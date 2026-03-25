@@ -69,7 +69,7 @@ export const useSearchStore = defineStore("search", () => {
       results.value = searchResults;
       widgets.value = generatedWidgets;
 
-      if (widgetValues) {
+      if (widgetValues && Object.keys(widgetValues).length > 0) {
         preferences.value[category] = widgetValues;
         savePreferences();
       }

@@ -28,7 +28,9 @@ onMounted(() => {
 
 watch(() => route.query.q, (newQ) => {
   const q = Array.isArray(newQ) ? (newQ[0] ?? '') : (newQ ?? '')
-  doSearch(q)
+  if (q.trim()) {
+    store.performSearch(q.trim(), {})
+  }
 })
 
 function handleSearch(q: string) {
