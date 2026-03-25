@@ -20,6 +20,7 @@
     "typescript": "^5.3.0"
   },
   "overrides": {
+    "glob": "^13.0.6",
     "test-exclude": "^8.0.0"
   },
   "jest": {
