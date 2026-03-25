@@ -1,12 +1,35 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useSearchStore } from '@/stores/searchStore'
 
-describe('searchStore', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-  })
+const MOCK_SEARCH_RESULTS = [
+  { id: '1', title: 'Result One', url: 'https://example.com/1', snippet: 'First result.' },
+  { id: '2', title: 'Result Two', url: 'https://example.com/2', snippet: 'Second result.' },
+  { id: '3', title: 'Result Three', url: 'https://example.com/3', snippet: 'Third result.' },
+]
 
+beforeEach(() => {
+  setActivePinia(createPinia())
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        results: MOCK_SEARCH_RESULTS,
+        totalCount: MOCK_SEARCH_RESULTS.length,
+        page: 1,
+        pageSize: MOCK_SEARCH_RESULTS.length,
+        query: 'test',
+      }),
+    })
+  )
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+describe('searchStore', () => {
   it('initializes with empty state', () => {
     const store = useSearchStore()
     expect(store.query).toBe('')
