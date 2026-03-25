@@ -1,57 +1,64 @@
-import type { APIGatewayProxyResult } from 'aws-lambda'
-import type { LambdaHandler, SearchRequest } from '../types'
-import { SearchProvider } from '../services/searchProvider'
+import type { APIGatewayProxyResult } from "aws-lambda";
+import type { LambdaHandler, SearchRequest } from "../types";
+import { SearchProvider } from "../services/searchProvider";
 
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Content-Type': 'application/json',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Content-Type": "application/json",
+};
 
 export const handler: LambdaHandler = async (event, _context) => {
   try {
-    let request: Partial<SearchRequest> = {}
+    let request: Partial<SearchRequest> = {};
 
     if (event.body) {
       try {
-        request = typeof event.body === 'string' ? JSON.parse(event.body) : event.body
+        request =
+          typeof event.body === "string" ? JSON.parse(event.body) : event.body;
       } catch {
-        return errorResponse(400, 'Invalid JSON in request body')
+        return errorResponse(400, "Invalid JSON in request body");
       }
     }
 
-    if (!request.query || typeof request.query !== 'string' || request.query.trim() === '') {
-      return errorResponse(400, 'Missing required field: query')
+    if (
+      !request.query ||
+      typeof request.query !== "string" ||
+      request.query.trim() === ""
+    ) {
+      return errorResponse(400, "Missing required field: query");
     }
 
-    const useMock = process.env['USE_MOCK'] !== 'false'
+    const useMock = process.env["USE_MOCK"] !== "false";
     const searchProvider = new SearchProvider({
-      apiKey: process.env['SEARCH_PROVIDER_API_KEY'],
-      engineId: process.env['SEARCH_PROVIDER_ENGINE_ID'],
+      apiKey: process.env["SEARCH_PROVIDER_API_KEY"],
+      engineId: process.env["SEARCH_PROVIDER_ENGINE_ID"],
       useMock,
-    })
+    });
 
     const response = await searchProvider.search({
       query: request.query,
       filters: request.filters,
-      page: request.page,
-      pageSize: request.pageSize,
-    })
+    });
 
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
       body: JSON.stringify(response),
-    }
+    };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return errorResponse(500, message)
+    const message =
+      err instanceof Error ? err.message : "Internal server error";
+    return errorResponse(500, message);
   }
-}
+};
 
-function errorResponse(statusCode: number, message: string): APIGatewayProxyResult {
+function errorResponse(
+  statusCode: number,
+  message: string,
+): APIGatewayProxyResult {
   return {
     statusCode,
     headers: CORS_HEADERS,
     body: JSON.stringify({ error: message }),
-  }
+  };
 }

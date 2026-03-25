@@ -12,11 +12,11 @@ yuppee-ai/
 
 ## Features
 
-- **Smart search bar** — Google-style search on the home page, compact on results
+- **Smart search bar** — Google-style search on the home screen, compact on results
 - **SERP results** — Clean result cards with title, URL, and snippet; shimmer loading skeletons
 - **Dynamic widget panel** — AI-generated filter widgets appear on the right (desktop) or bottom (mobile) based on the query:
   - Radio buttons (e.g. Fiction / Nonfiction)
-  - Range sliders (e.g. publication year, page count)
+  - Range sliders (e.g. publication year, book length)
   - Checkboxes (e.g. genre selection)
   - Dropdown menus (e.g. reading/scholarly level, content rating)
   - Freeform text refinement box

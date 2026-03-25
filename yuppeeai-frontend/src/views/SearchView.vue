@@ -47,7 +47,7 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
 </script>
 
 <template>
-  <div class="search-page">
+  <div class="search-view">
     <header class="search-header">
       <router-link to="/" class="search-header__logo">
         <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
@@ -88,7 +88,7 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
 </template>
 
 <style scoped>
-.search-page {
+.search-view {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
