@@ -1,8 +1,10 @@
 import type { SearchRequest, SearchResponse, SearchResult } from '../types'
 
+const SEARCH_SYSTEM_PROMPT = `You are a helpful search assistant. The user will provide a search query and you will answer it with relevant, accurate, and well-organized information. Be thorough but concise.`
+
 interface SearchProviderConfig {
-  apiKey?: string
-  engineId?: string
+  openaiApiKey?: string
+  model?: string
   useMock?: boolean
 }
 
@@ -38,8 +40,8 @@ export class SearchProvider {
 
   constructor(config: SearchProviderConfig = {}) {
     this.config = {
-      apiKey: config.apiKey ?? '',
-      engineId: config.engineId ?? '',
+      openaiApiKey: config.openaiApiKey ?? '',
+      model: config.model ?? 'gpt-4o-mini',
       useMock: config.useMock ?? true,
     }
   }
@@ -77,21 +79,52 @@ export class SearchProvider {
   }
 
   private async realSearch(request: SearchRequest, page: number, pageSize: number): Promise<SearchResponse> {
-    // TODO: Implement real search using Google Custom Search API or SerpAPI
-    // Example structure for Google Custom Search:
-    // const url = new URL('https://www.googleapis.com/customsearch/v1')
-    // url.searchParams.set('key', this.config.apiKey)
-    // url.searchParams.set('cx', this.config.engineId)
-    // url.searchParams.set('q', request.query)
-    // url.searchParams.set('start', String((page - 1) * pageSize + 1))
-    // url.searchParams.set('num', String(pageSize))
-    //
-    // const response = await fetch(url.toString())
-    // if (!response.ok) {
-    //   throw new Error(`Search API error: ${response.status} ${response.statusText}`)
-    // }
-    // const data = await response.json()
-    // return transformGoogleResults(data, request.query, page, pageSize)
-    throw new Error('Real search not yet implemented. Set USE_MOCK=true or implement the real search provider.')
+    if (!this.config.openaiApiKey) {
+      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY in your environment.')
+    }
+
+    if (page > 1) {
+      return { results: [], totalCount: 1, page, pageSize, query: request.query }
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${this.config.openaiApiKey}`,
+      },
+      body: JSON.stringify({
+        model: this.config.model,
+        messages: [
+          { role: 'system', content: SEARCH_SYSTEM_PROMPT },
+          { role: 'user', content: request.query },
+        ],
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`)
+    }
+
+    const data = await response.json() as { choices?: Array<{ message: { content: string } }> }
+    if (!Array.isArray(data.choices) || data.choices.length === 0) {
+      throw new Error('Unexpected response from OpenAI API: missing choices')
+    }
+    const content = data.choices[0].message.content
+
+    const result: SearchResult = {
+      id: 'gpt-response',
+      title: `GPT response for: "${request.query}"`,
+      url: '',
+      snippet: content,
+    }
+
+    return {
+      results: [result],
+      totalCount: 1,
+      page,
+      pageSize,
+      query: request.query,
+    }
   }
 }
