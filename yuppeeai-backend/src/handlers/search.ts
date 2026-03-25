@@ -30,9 +30,8 @@ export const handler: LambdaHandler = async (event, _context) => {
 
     const useMock = process.env["USE_MOCK"] !== "false";
     const searchProvider = new SearchProvider({
-      apiKey: process.env["SEARCH_PROVIDER_API_KEY"],
-      engineId: process.env["SEARCH_PROVIDER_ENGINE_ID"],
       useMock,
+      openaiApiKey: process.env["OPENAI_API_KEY"],
     });
 
     const response = await searchProvider.search({

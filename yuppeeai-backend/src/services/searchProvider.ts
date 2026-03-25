@@ -1,9 +1,9 @@
+import OpenAI from "openai";
 import type { SearchRequest, SearchResponse, SearchResult } from "../types";
 
 interface SearchProviderConfig {
-  apiKey?: string;
-  engineId?: string;
   useMock?: boolean;
+  openaiApiKey?: string;
 }
 
 const MOCK_BOOK_RESULTS: SearchResult[] = [
@@ -135,19 +135,33 @@ const MOCK_GENERAL_RESULTS: SearchResult[] = [
   },
 ];
 
+const GPT_MODEL_FAST = "gpt-4.1-nano";
+
 export class SearchProvider {
   private readonly config: Required<SearchProviderConfig>;
 
   constructor(config: SearchProviderConfig = {}) {
     this.config = {
-      apiKey: config.apiKey ?? "",
-      engineId: config.engineId ?? "",
       useMock: config.useMock ?? true,
+      openaiApiKey: config.openaiApiKey ?? "",
     };
   }
 
   async search(request: SearchRequest): Promise<SearchResponse> {
     console.log(`Search request: ${JSON.stringify(request)}`); // TODO DEBUG DELETE THIS
+    console.log(`QUERY: ${request.query}`); // TODO DEBUG DELETE THIS
+
+    if (!this.config.openaiApiKey) {
+      throw new Error("OPENAI_API_KEY is not configured.");
+    }
+
+    const openai = new OpenAI({ apiKey: this.config.openaiApiKey });
+    const response = await openai.responses.create({
+      model: GPT_MODEL_FAST,
+      input: `GPT, tell me everything you know about: ${request.query}`,
+    });
+    console.log("GPT response:", response.output_text);
+
     if (this.config.useMock) {
       return this.mockSearch(request);
     }
