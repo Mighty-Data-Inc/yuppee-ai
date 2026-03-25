@@ -1,7 +1,34 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { search, generateWidgets } from '@/services/searchService'
 
+const MOCK_RESULTS = [
+  { id: '1', title: 'Result One', url: 'https://example.com/1', snippet: 'First result.' },
+  { id: '2', title: 'Result Two', url: 'https://example.com/2', snippet: 'Second result.' },
+  { id: '3', title: 'Result Three', url: 'https://example.com/3', snippet: 'Third result.' },
+  { id: '4', title: 'Result Four', url: 'https://example.com/4', snippet: 'Fourth result.' },
+  { id: '5', title: 'Result Five', url: 'https://example.com/5', snippet: 'Fifth result.' },
+  { id: '6', title: 'Result Six', url: 'https://example.com/6', snippet: 'Sixth result.' },
+]
+
+function mockFetch(results = MOCK_RESULTS) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ results, totalCount: results.length, page: 1, pageSize: results.length, query: 'test' }),
+    })
+  )
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 describe('searchService.search', () => {
+  beforeEach(() => {
+    mockFetch()
+  })
+
   it('returns results for book-related queries', async () => {
     const results = await search('Books about Crimean War')
     expect(results.length).toBeGreaterThan(0)
@@ -14,7 +41,6 @@ describe('searchService.search', () => {
   it('returns results for movie-related queries', async () => {
     const results = await search('best sci-fi movies')
     expect(results.length).toBeGreaterThan(0)
-    expect(results[0].url).toMatch(/imdb|rottentomatoes|metacritic|letterboxd|a24/i)
   })
 
   it('returns default results for generic queries', async () => {
@@ -25,6 +51,28 @@ describe('searchService.search', () => {
   it('returns 6 results', async () => {
     const results = await search('books about history')
     expect(results).toHaveLength(6)
+  })
+
+  it('sends a POST request with query and filters to /search', async () => {
+    const filters = { genre: 'history' }
+    await search('books about history', filters)
+    const fetchMock = vi.mocked(fetch)
+    expect(fetchMock).toHaveBeenCalledOnce()
+    const call = fetchMock.mock.calls[0]!
+    const [url, init] = call as [string, RequestInit]
+    expect(url).toMatch(/\/search$/)
+    expect(init.method).toBe('POST')
+    const body = JSON.parse(init.body as string)
+    expect(body.query).toBe('books about history')
+    expect(body.filters).toEqual(filters)
+  })
+
+  it('throws when the backend returns a non-ok response', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 500 })
+    )
+    await expect(search('test query')).rejects.toThrow('Search request failed: 500')
   })
 })
 
