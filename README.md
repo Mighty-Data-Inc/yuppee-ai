@@ -6,8 +6,8 @@ An AI-powered search engine that fills a niche between freeform text and traditi
 
 ```
 yuppee-ai/
-├── frontend/    # Vue 3 + Vite + TypeScript SPA
-└── backend/     # AWS Lambda handlers (Node.js + TypeScript)
+├── yuppeeai-frontend/    # Vue 3 + Vite + TypeScript SPA
+└── yuppeeai-backend/     # AWS Lambda handlers (Node.js + TypeScript)
 ```
 
 ## Features
@@ -29,7 +29,7 @@ yuppee-ai/
 ### Setup
 
 ```bash
-cd frontend
+cd yuppeeai-frontend
 npm install
 ```
 
@@ -42,7 +42,7 @@ npm run dev       # Vite dev server at http://localhost:5173
 ### Build
 
 ```bash
-npm run build     # Type-checks and builds to frontend/dist/
+npm run build     # Type-checks and builds to yuppeeai-frontend/dist/
 npm run preview   # Locally preview the production build
 ```
 
@@ -66,7 +66,7 @@ Three Lambda handlers:
 ### Setup
 
 ```bash
-cd backend
+cd yuppeeai-backend
 npm install
 cp .env.example .env   # fill in your API keys
 ```
@@ -74,7 +74,7 @@ cp .env.example .env   # fill in your API keys
 ### Build
 
 ```bash
-npm run build     # Compiles TypeScript to backend/dist/
+npm run build     # Compiles TypeScript to yuppeeai-backend/dist/
 ```
 
 ### Tests (Jest)
@@ -97,7 +97,7 @@ npm test          # Run all 19 unit tests
 
 ### Deploying to AWS
 
-The Lambda handlers in `backend/dist/handlers/` can be deployed to AWS Lambda via the console, AWS CLI, or a framework such as the [Serverless Framework](https://www.serverless.com/) or [AWS SAM](https://aws.amazon.com/serverless/sam/).
+The Lambda handlers in `yuppeeai-backend/dist/handlers/` can be deployed to AWS Lambda via the console, AWS CLI, or a framework such as the [Serverless Framework](https://www.serverless.com/) or [AWS SAM](https://aws.amazon.com/serverless/sam/).
 
 Suggested API Gateway routes:
 
