@@ -45,7 +45,7 @@ export class PreferencesStore {
   }
 
   private async realGetPreferences(userId: string): Promise<Record<string, Record<string, unknown>>> {
-    if (!this.dynamoClient) throw new Error('DynamoDB client not initialised')
+    if (!this.dynamoClient) throw new Error('DynamoDB client not initialized')
 
     const result = await this.dynamoClient.send(
       new GetCommand({
@@ -61,7 +61,7 @@ export class PreferencesStore {
   }
 
   private async realSavePreferences(userId: string, queryCategory: string, prefs: Record<string, unknown>): Promise<void> {
-    if (!this.dynamoClient) throw new Error('DynamoDB client not initialised')
+    if (!this.dynamoClient) throw new Error('DynamoDB client not initialized')
 
     const existing = await this.realGetPreferences(userId)
 
