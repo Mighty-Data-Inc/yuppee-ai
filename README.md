@@ -77,6 +77,58 @@ cp .env.example .env   # fill in your API keys
 npm run build     # Compiles TypeScript to yuppeeai-backend/dist/
 ```
 
+### Local Backend Development
+
+Run the backend locally with a lightweight HTTP adapter that invokes the Lambda handlers directly.
+
+```bash
+cd yuppeeai-backend
+npm run api:local
+```
+
+Local API base URL:
+
+```text
+http://localhost:3000
+```
+
+Current local route:
+
+```text
+POST /search
+```
+
+Notes:
+
+- `USE_MOCK` defaults to `true` in local mode unless explicitly set to `false`.
+- Use `npm run api:local:start` if you already built and only want to start the local API.
+
+### Run Frontend Against Local Backend
+
+Use two terminals.
+
+Terminal 1 (backend):
+
+```bash
+cd yuppeeai-backend
+npm run api:local
+```
+
+Terminal 2 (frontend):
+
+```bash
+cd yuppeeai-frontend
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
+
+The frontend reads `VITE_API_BASE_URL` from `yuppeeai-frontend/.env.local`, which is set to `http://localhost:3000` for local backend development.
+
 ### Tests (Jest)
 
 ```bash
