@@ -143,24 +143,66 @@ const MOCK_GENERAL_RESULTS: SearchResult[] = [
 const GPT_MODEL_FAST = "gpt-4.1-nano";
 
 const WIDGET_JSON_SCHEMA = {
-  required: ["widgets"],
+  required: ["disambiguation", "widgets"],
   additionalProperties: false,
   type: "object",
   properties: {
+    disambiguation: {
+      type: "object",
+      description:
+        "A statement of whether or not you had to apply disambiguation to the search query, and if so, then what assumption you made about the intended meaning of the query.",
+      properties: {
+        was_disambiguation_necessary: {
+          type: "boolean",
+          description:
+            "Indicates whether disambiguation was applied to the search query.",
+        },
+        assumption_statement: {
+          type: "string",
+          description:
+            "If disambiguation was applied, this is the assumption made about the intended meaning of the query.",
+        },
+        query_rephrased_with_assumption: {
+          type: "string",
+          description:
+            `If disambiguation was applied, this is the rephrased query based on the assumption made about the intended meaning of the query.` +
+            `If the user had applied this phrasing instead of the one they actually submitted, then you wouldn't have had to apply disambiguation.`,
+        },
+        other_alternative_potential_meanings: {
+          type: "array",
+          description:
+            "If disambiguation was applied, this is a list of other potential meanings of the query that were considered.",
+          items: {
+            type: "object",
+            properties: {
+              meaning: {
+                type: "string",
+                description:
+                  "A potential alternative meaning of the query that was considered during disambiguation.",
+              },
+              query_rephrase: {
+                type: "string",
+                description:
+                  "A rephrased version of the original query that the user should have used if they intended this alternative meaning.",
+              },
+            },
+            required: ["meaning", "query_rephrase"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: [
+        "was_disambiguation_necessary",
+        "assumption_statement",
+        "query_rephrased_with_assumption",
+        "other_alternative_potential_meanings",
+      ],
+      additionalProperties: false,
+    },
     widgets: {
       type: "array",
       items: {
         type: "object",
-        required: [
-          "widget_type",
-          "widget_variable_name",
-          "widget_label",
-          "widget_descriptive_title",
-          "widget_params",
-          "discuss_is_widget_meaningful",
-          "is_widget_meaningful",
-        ],
-        additionalProperties: false,
         properties: {
           widget_type: {
             type: "string",
@@ -239,7 +281,10 @@ const WIDGET_JSON_SCHEMA = {
                       `Are they interested in filtering on a specific day? ` +
                       `Or are they more interested in a more coarse-grained selection, like by year? ` +
                       `Provide a detailed, thorough, comprehensive explanation of the desired ` +
-                      `selection granularity for this search.`,
+                      `selection granularity for this search. Don't merely state the granularity; ` +
+                      `instead, provide a detailed rationales for why different levels of granularity ` +
+                      `might be appropriate for this search, and then ultimately determine which ` +
+                      `argument has the strongest merit.`,
                   },
                   is_specific_calendar_date_important: {
                     type: "boolean",
@@ -304,21 +349,28 @@ const WIDGET_JSON_SCHEMA = {
               },
             ],
           },
-          discuss_is_widget_meaningful: {
+          argument_against_including_this_selection_criterion: {
             type: "string",
             description:
-              `Discuss whether the value conveyed by this widget provides meaningful information ` +
-              `to the user for refining their search. This should include reasoning about why the widget ` +
-              `is or isn't useful, and any considerations that went into determining its usefulness.`,
+              `Provide a detailed argument against including this selection criterion in the search refinement options. ` +
+              `Explain why this criterion might not be useful or relevant for the user in the context of this particular ` +
+              `search.`,
           },
-          is_widget_meaningful: {
+          should_we_include_this_selection_criterion: {
             type: "boolean",
-            description:
-              `Does the value conveyed by this widget provide meaningful information ` +
-              `to the user for refining their search? Or is this, instead, something that ` +
-              `you just brainstormed in order to fulfill the schema requirements?`,
+            description: `Indicates whether this selection criterion should be included in the search refinement options. `,
           },
         },
+        required: [
+          "widget_type",
+          "widget_variable_name",
+          "widget_label",
+          "widget_descriptive_title",
+          "widget_params",
+          "argument_against_including_this_selection_criterion",
+          "should_we_include_this_selection_criterion",
+        ],
+        additionalProperties: false,
       },
     },
   },
@@ -354,6 +406,26 @@ search results. *Your* job is to think about the following question: when the us
 the results, how might they want to refine, filter, or sort them? What additional selection
 criteria or attributes might they want to use to narrow down the results?
 
+---
+
+PRELIMINARY DISAMBIGUATION
+
+As a preliminary step, before you begin your proper work as a criteria refinement specialist,
+first determine whether or not the search query requires **disambiguation**. For example,
+if search query is for "apple", it doesn't even make sense to provide refinement criteria
+at all unless you first determine if they mean the fruit, the software company, or the music
+label.
+
+Most search queries do not require disambiguation, so hopefully this is a moot point.
+
+If this one *does* require disambiguation, make an assumption about the intended meaning
+of the query before proceeding with the refinement criteria. Be sure to state your assumption
+clearly before your brainstorming begins.
+
+---
+
+BRAINSTORMING AND DISCUSSION
+
 First, discuss and brainstorm possible refinement criteria for the search results.
 
 When you're done brainstorming, finalize your answer with three or four refinement criteria
@@ -373,17 +445,32 @@ use to further refine their search in ways that aren't covered by these widgets.
 
 ---
 
+REPORT
+
 Provide your response as a report, in the following format:
+0. Disambiguation
 I. Brainstorming and Discussion
 II. Initial Comprehensive List of Refinement Criteria
-III. Evaluation of User's Likely Interest In Items From the Initial Comprehensive List
+III. Evaluation of User's Likely Interest In Refinement Criteria
 IV. Final Selection of Refinement Criteria Most Likely to Be Used by the User
 V. Discussion of Possible UI Widgets for Selected Refinement Criteria
 VI. Final Selection of UI Widgets
 VII. Values for UI Widgets
 
+NOTE: In Section 0, "Disambiguation", explain whether or not you decided that disambiguation was
+necessary for the search query. If it is, make an assumption about the intended meaning,
+and state your assumption clearly before your brainstorming begins.
+
+NOTE: In the "Evaluation of User's Likely Interest In Refinement Criteria", discuss
+whether or not any given selection criterion is likely to be of interest to the user,
+based on the context of their search query and typical user behavior. Of paramount
+importance is whether or not a particular refinement criterion is specific to the
+topic being search for. Do NOT include generic catch-all criteria that could apply
+to any search query, such as "sort by relevance" or "filter by date" -- these are already
+built-in behaviors on the part of any search engine, and listing them here adds no value.
+
 NOTE: For the "Final Selection of UI Widgets" section, your decisions have to be concrete
-and specific. DO NOT say, "Dropdown or radio button", or "Either one will work". You must
+and specific. Do NOT say, "Dropdown or radio button", or "Either one will work". You must
 choose a specific widget for each refinement criterion.
 
 NOTE: For the "Final Selection of UI Widgets" section, your decisions should be non-overlapping
