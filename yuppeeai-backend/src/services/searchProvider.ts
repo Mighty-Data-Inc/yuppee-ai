@@ -386,18 +386,28 @@ export class SearchProvider {
     };
   }
 
-  async search(request: SearchRequest): Promise<SearchResponse> {
-    console.log(`Search request: ${JSON.stringify(request)}`); // TODO DEBUG DELETE THIS
-    console.log(`QUERY: ${request.query}`); // TODO DEBUG DELETE THIS
+  async getSearchResults(request: SearchRequest): Promise<SearchResponse> {
+    if (this.config.useMock) {
+      return this.mockSearch(request);
+    }
 
+    return this.realSearch(request);
+  }
+
+  async inferSearchRefinements(request: SearchRequest): Promise<any> {
     if (!this.config.openaiApiKey) {
       throw new Error("OPENAI_API_KEY is not configured.");
     }
 
-    const openaiClient = new OpenAI({ apiKey: this.config.openaiApiKey });
+    try {
+      const openaiClient = new OpenAI({ apiKey: this.config.openaiApiKey });
 
-    const convo = new LLMConversation(openaiClient, undefined, GPT_MODEL_FAST);
-    convo.addDeveloperMessage(`
+      const convo = new LLMConversation(
+        openaiClient,
+        undefined,
+        GPT_MODEL_FAST,
+      );
+      convo.addDeveloperMessage(`
 You're an AI agent running on the back end of a new AI-powered web search service.
 The user has just submitted a search query. Your job is *not* to generate a response yet;
 your job is to think about criteria that the user might want to add for refining their
@@ -508,11 +518,10 @@ exact day.
 
 The user will now show you their search query.
 `);
-    convo.addUserMessage(request.query);
-    await convo.submit();
-    console.log(convo.getLastReplyStr());
+      convo.addUserMessage(request.query);
+      await convo.submit();
+      console.log(convo.getLastReplyStr());
 
-    try {
       await convo.submit(undefined, undefined, {
         jsonResponse: {
           format: {
@@ -526,14 +535,6 @@ The user will now show you their search query.
     } catch (error) {
       console.error("Error submitting conversation:", error);
     }
-
-    console.log(JSON.stringify(convo.getLastReplyDict(), null, 2));
-
-    if (this.config.useMock) {
-      return this.mockSearch(request);
-    }
-
-    return this.realSearch(request);
   }
 
   private mockSearch(request: SearchRequest): SearchResponse {

@@ -34,7 +34,7 @@ export const handler: LambdaHandler = async (event, _context) => {
       openaiApiKey: process.env["OPENAI_API_KEY"],
     });
 
-    const response = await searchProvider.search({
+    const response = await searchProvider.getSearchResults({
       query: request.query,
       filters: request.filters,
     });
