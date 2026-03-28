@@ -155,7 +155,7 @@ const WIDGET_JSON_SCHEMA = {
           "widget_type",
           "widget_variable_name",
           "widget_label",
-          "widget_tooltip",
+          "widget_descriptive_title",
           "widget_params",
           "discuss_is_widget_meaningful",
           "is_widget_meaningful",
@@ -179,40 +179,30 @@ const WIDGET_JSON_SCHEMA = {
           },
           widget_label: {
             type: "string",
-            description: "The label for the widget, displayed to the user.",
-          },
-          widget_tooltip: {
-            type: "object",
             description:
-              `A tooltip message that provides additional context or explanation to the user. ` +
-              `We'll use a couple of different phrasings for it, so that the UI framework can ` +
-              `choose one depending on the context.`,
+              `The label for the widget, displayed to the user. ` +
+              `NOTE: The widget label must NOT include an imperative verb, such as "Choose" or "Select" or "Pick" or "Specify". ` +
+              `We already know damn well that we're here to pick, choose, select, or specify something, because we're using ` +
+              `this UI in the first place. The label must simply state the thing being chosen, selected, picked, or specified.`,
+          },
+          widget_descriptive_title: {
+            type: "object",
+            description: `Similar to "widget_label", but more verbose and detailed. We'll offer a few different variants on phrasing.`,
             properties: {
-              imperative_for_user: {
+              teleological: {
                 type: "string",
-                description:
-                  `A command to the user, e.g. "Select one or more continents to filter the results ` +
-                  `about which specific birds are found on the selected continents."`,
+                description: `An explanation of what objectives the user might achieve by specifying these filter criteria.`,
               },
-              imperative_for_filter: {
+              provides_examples: {
                 type: "string",
-                description:
-                  `A concise, direct, specific command to the SERP filter, e.g. ` +
-                  `"Include only the birds found on the selected continents."`,
+                description: `Provides examples of some of the filter values that the user might want to specify.`,
               },
-              imperative_for_filter_concise: {
+              direct: {
                 type: "string",
-                description:
-                  `Same as "imperative_for_filter", but removing anything that's obvious or implied by the context. ` +
-                  `For example, you don't need to tell the filter, "Filter for...". The filter already knows it should filter. ` +
-                  `It's a *filter*. Duh. Remove anything else in the "imperative_for_filter" that is also a Duh.`,
+                description: `A version of the descriptive title that is neither teleological nor provides examples.`,
               },
             },
-            required: [
-              "imperative_for_user",
-              "imperative_for_filter",
-              "imperative_for_filter_concise",
-            ],
+            required: ["teleological", "provides_examples", "direct"],
             additionalProperties: false,
           },
           widget_params: {
@@ -242,6 +232,15 @@ const WIDGET_JSON_SCHEMA = {
                   date_max: { type: "string", format: "date" },
                   user_selects_lowest_value_of_range: { type: "boolean" },
                   user_selects_highest_value_of_range: { type: "boolean" },
+                  discuss_desired_selection_granularity: {
+                    type: "string",
+                    description:
+                      `Talk about what kind of granularity the user wants for this search. ` +
+                      `Are they interested in filtering on a specific day? ` +
+                      `Or are they more interested in a more coarse-grained selection, like by year? ` +
+                      `Provide a detailed, thorough, comprehensive explanation of the desired ` +
+                      `selection granularity for this search.`,
+                  },
                   is_specific_calendar_date_important: {
                     type: "boolean",
                     description: `Is selecting a specific calendar date meaningful for this search?`,
@@ -266,6 +265,7 @@ const WIDGET_JSON_SCHEMA = {
                   "date_max",
                   "user_selects_lowest_value_of_range",
                   "user_selects_highest_value_of_range",
+                  "discuss_desired_selection_granularity",
                   "is_specific_calendar_date_important",
                   "should_just_use_slider_instead",
                   "slider_value_min",
