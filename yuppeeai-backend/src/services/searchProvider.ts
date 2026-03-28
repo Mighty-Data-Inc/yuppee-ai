@@ -394,20 +394,18 @@ export class SearchProvider {
     return this.realSearch(request);
   }
 
-  async inferSearchRefinements(request: SearchRequest): Promise<any> {
+  async inferSearchRefinements(request: SearchRequest): Promise<{
+    report: string;
+    refinements: unknown;
+  }> {
     if (!this.config.openaiApiKey) {
       throw new Error("OPENAI_API_KEY is not configured.");
     }
 
-    try {
-      const openaiClient = new OpenAI({ apiKey: this.config.openaiApiKey });
+    const openaiClient = new OpenAI({ apiKey: this.config.openaiApiKey });
 
-      const convo = new LLMConversation(
-        openaiClient,
-        undefined,
-        GPT_MODEL_FAST,
-      );
-      convo.addDeveloperMessage(`
+    const convo = new LLMConversation(openaiClient, undefined, GPT_MODEL_FAST);
+    convo.addDeveloperMessage(`
 You're an AI agent running on the back end of a new AI-powered web search service.
 The user has just submitted a search query. Your job is *not* to generate a response yet;
 your job is to think about criteria that the user might want to add for refining their
@@ -518,22 +516,32 @@ exact day.
 
 The user will now show you their search query.
 `);
-      convo.addUserMessage(request.query);
-      await convo.submit();
-      console.log(convo.getLastReplyStr());
+    convo.addUserMessage(request.query);
+    await convo.submit();
+    const report = convo.getLastReplyStr();
 
-      await convo.submit(undefined, undefined, {
-        jsonResponse: {
-          format: {
-            type: "json_schema",
-            strict: true,
-            name: "json_schema_for_structured_response",
-            schema: WIDGET_JSON_SCHEMA,
-          },
+    await convo.submit(undefined, undefined, {
+      jsonResponse: {
+        format: {
+          type: "json_schema",
+          strict: true,
+          name: "json_schema_for_structured_response",
+          schema: WIDGET_JSON_SCHEMA,
         },
-      });
-    } catch (error) {
-      console.error("Error submitting conversation:", error);
+      },
+    });
+
+    const structuredReply = convo.getLastReplyStr();
+    try {
+      return {
+        report,
+        refinements: JSON.parse(structuredReply),
+      };
+    } catch {
+      return {
+        report,
+        refinements: structuredReply,
+      };
     }
   }
 

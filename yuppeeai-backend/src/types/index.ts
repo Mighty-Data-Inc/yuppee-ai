@@ -23,6 +23,11 @@ export interface SearchResponse {
   query: string;
 }
 
+export interface SearchRefinementsResponse {
+  report: string;
+  refinements: unknown;
+}
+
 export type WidgetType =
   | "radio"
   | "range-slider"
