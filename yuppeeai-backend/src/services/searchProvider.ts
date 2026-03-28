@@ -291,42 +291,6 @@ const WIDGET_JSON_SCHEMA = {
               },
             ],
           },
-          should_we_include_this_selection_criterion: {
-            type: "object",
-            description:
-              `Pro and con arguments about why this would or wouldn't be a useful or ` +
-              `sensible refinement criterion for this search. Each item here is not just ` +
-              `a sentence or two; each item here is a thorough, detailed, well-thought-out argument.`,
-            properties: {
-              explanation_of_selection_criterion: {
-                type: "string",
-                description:
-                  "A detailed explanation of what this selection criterion is and why it might be relevant for this search.",
-              },
-              explanation_of_selection_criterion_choices: {
-                type: "string",
-                description:
-                  "A detailed explanation of what the choices for this selection criterion are and what they would mean for the search results.",
-              },
-              explanation_of_which_selection_choices_make_sense_and_why: {
-                type: "string",
-                description:
-                  "A detailed explanation of which selection choices make sense for this search and why.",
-              },
-              explanation_of_which_selection_choices_are_bullshit: {
-                type: "string",
-                description:
-                  "A detailed explanation of which selection choices are not useful or relevant for this search and why.",
-              },
-            },
-            required: [
-              "explanation_of_selection_criterion",
-              "explanation_of_selection_criterion_choices",
-              "explanation_of_which_selection_choices_make_sense_and_why",
-              "explanation_of_which_selection_choices_are_bullshit",
-            ],
-            additionalProperties: false,
-          },
         },
         required: [
           "widget_type",
@@ -334,7 +298,6 @@ const WIDGET_JSON_SCHEMA = {
           "widget_label",
           "widget_descriptive_title",
           "widget_params",
-          "should_we_include_this_selection_criterion",
         ],
         additionalProperties: false,
       },
@@ -437,7 +400,8 @@ could be applied to the search results. This list should be as exhaustive as pos
 including any criteria that might be relevant to the topic of the search query.
 
 III. Eliminate Refinement Criteria Which Only Have One Valid Value
-Here, you will eliminate choices that are not yours to make. That is, you will remove any
+Starting with the comprehensive list you just wrote in the previous section, 
+you will eliminate choices that are not yours to make. That is, you will remove any
 refinement criteria whose value is already implicitly set by the nature of the search topic.
 For example, it doesn't make sense to provide a criterion for "date" when the topic is
 "Assassination of JFK" -- yes, the user might be interested in the date of the event,
@@ -448,16 +412,23 @@ but *they don't get to CHOOSE*. There aren't, like, web pages that describe one 
 web pages that describe the other, and they only want to look for one -- all web pages that
 talk about this subject will report the same winner. Understood?
 
-IV. Evaluation of User's Likely Interest In Refinement Criteria
-Here, you will discuss whether any given selection criterion is likely to be of interest to the user,
+IV. Further Elimination to Most Relevant Criteria
+Starting with the whittled-down list you produced in the previous section,
+you will further whittle it down to a small number of refinement criteria that are 
+most likely to be of interest to the user.
+You will discuss whether any given selection criterion is likely to be of interest to the user,
 based on the context of their search query and typical user behavior. Of paramount
 importance is whether or not a particular refinement criterion is specific to the
-topic being search for. Do NOT include generic catch-all criteria that could apply
-to any search query, such as "sort by relevance" or "filter by date" -- these are already
-built-in behaviors on the part of any search engine, and listing them here adds no value.
+topic being search for. 
+IMPORTANT:
+- Do NOT include generic catch-all criteria that could apply to any search query, 
+  such as "sort by relevance" or "filter by date" -- these are already built-in 
+  behaviors on the part of any search engine, and listing them here adds no value.
+- Do NOT include criteria that have already been eliminated in previous steps.
 
 IV. Final Selection of Refinement Criteria Most Likely to Be Used by the User
-Here, you make a concrete, specific decision about which UI widgets to use for each refinement criterion. 
+Based on the evaluation in the previous section, you will make a concrete, 
+specific decision about which UI widgets to use for each refinement criterion. 
 Do NOT say, "Dropdown or radio button", or "Either one will work". You must choose a specific widget for
 each refinement criterion.
 
@@ -527,63 +498,54 @@ The user will now show you their search query.
 
     const widgets: any[] = Array.isArray(raw.widgets) ? raw.widgets : [];
 
-    const cleanedWidgets = widgets
-      .filter((w) => {
-        const includeField = w?.should_we_include_this_selection_criterion;
-        if (typeof includeField === "boolean") return includeField;
-        if (includeField && typeof includeField === "object") {
-          return (
-            !includeField.is_only_one_value_actually_correct_for_this_particular_search_query &&
-            !includeField.is_multiple_responses_based_on_hypothetical_scenarios &&
-            includeField.should_we_present_this_selection_criterion_to_the_user
-          );
-        }
-        return false;
-      })
-      .map((w) => {
-        const {
-          does_this_criterion_make_sense_for_this_search: _arg,
-          should_we_include_this_selection_criterion: _include,
-          widget_type: type,
-          widget_variable_name: variable_name,
-          widget_label: label,
-          widget_descriptive_title,
-          widget_params,
-        } = w;
+    const cleanedWidgets = widgets.map((w) => {
+      const {
+        does_this_criterion_make_sense_for_this_search: _arg,
+        widget_type: type,
+        widget_variable_name: variable_name,
+        widget_label: label,
+        widget_descriptive_title,
+        widget_params,
+      } = w;
 
-        let params = widget_params;
-        if (
-          params &&
-          typeof params === "object" &&
-          Array.isArray((params as { choices?: unknown }).choices)
-        ) {
-          const rawChoices = (params as { choices: unknown[] }).choices;
-          const choices = rawChoices
-            .filter((choice) => choice && typeof choice === "object")
-            .map((choice) => {
-              const c = choice as {
-                choice_variable_value?: unknown;
-                choice_ui_label?: unknown;
-                choice_label?: unknown;
-              };
+      let params = widget_params;
+      if (
+        params &&
+        typeof params === "object" &&
+        Array.isArray((params as { choices?: unknown }).choices)
+      ) {
+        const rawChoices = (params as { choices: unknown[] }).choices;
+        const choices = rawChoices
+          .filter((choice) => choice && typeof choice === "object")
+          .map((choice) => {
+            const c = choice as {
+              choice_variable_value?: unknown;
+              choice_ui_label?: unknown;
+              choice_label?: unknown;
+            };
 
-              return {
-                value: c.choice_variable_value,
-                label: c.choice_ui_label ?? c.choice_label,
-              };
-            });
+            return {
+              value: c.choice_variable_value,
+              label: c.choice_ui_label ?? c.choice_label,
+            };
+          });
 
-          params = { ...params, choices };
-        }
+        params = { ...params, choices };
+      }
 
-        return {
-          type,
-          variable_name,
-          label,
-          tooltip: widget_descriptive_title?.teleological ?? "",
-          params,
-        };
-      });
+      const cleanedWidget = {
+        type,
+        variable_name,
+        label,
+        tooltip: widget_descriptive_title?.teleological ?? "",
+      } as Record<string, unknown>;
+
+      if (type !== "switch") {
+        cleanedWidget.params = params;
+      }
+
+      return cleanedWidget;
+    });
 
     const d = raw.disambiguation;
     const disambiguation =
