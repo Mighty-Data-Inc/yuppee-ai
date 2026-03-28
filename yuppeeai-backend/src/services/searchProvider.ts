@@ -157,6 +157,8 @@ const WIDGET_JSON_SCHEMA = {
           "widget_label",
           "widget_tooltip",
           "widget_params",
+          "discuss_is_widget_meaningful",
+          "is_widget_meaningful",
         ],
         additionalProperties: false,
         properties: {
@@ -186,26 +188,31 @@ const WIDGET_JSON_SCHEMA = {
               `We'll use a couple of different phrasings for it, so that the UI framework can ` +
               `choose one depending on the context.`,
             properties: {
-              imperative: {
+              imperative_for_user: {
                 type: "string",
                 description:
-                  'A command to the user, e.g. "Select a range of desired house prices".',
+                  `A command to the user, e.g. "Select one or more continents to filter the results ` +
+                  `about which specific birds are found on the selected continents."`,
               },
-              self_referential: {
+              imperative_for_filter: {
                 type: "string",
                 description:
-                  `A description of the widget that makes reference to itself ` +
-                  `as a widget, e.g. "A slider for selecting a range of desired house prices".`,
+                  `A concise, direct, specific command to the SERP filter, e.g. ` +
+                  `"Include only the birds found on the selected continents."`,
               },
-              direct: {
+              imperative_for_filter_concise: {
                 type: "string",
                 description:
-                  `A description of what the widget represents, without referring to the widget itself, ` +
-                  `and without being phrased as an instruction to the user. E.g. ` +
-                  `"A range of desired house prices."`,
+                  `Same as "imperative_for_filter", but removing anything that's obvious or implied by the context. ` +
+                  `For example, you don't need to tell the filter, "Filter for...". The filter already knows it should filter. ` +
+                  `It's a *filter*. Duh. Remove anything else in the "imperative_for_filter" that is also a Duh.`,
               },
             },
-            required: ["imperative", "self_referential", "direct"],
+            required: [
+              "imperative_for_user",
+              "imperative_for_filter",
+              "imperative_for_filter_concise",
+            ],
             additionalProperties: false,
           },
           widget_params: {
@@ -296,6 +303,20 @@ const WIDGET_JSON_SCHEMA = {
                 additionalProperties: false,
               },
             ],
+          },
+          discuss_is_widget_meaningful: {
+            type: "string",
+            description:
+              `Discuss whether the value conveyed by this widget provides meaningful information ` +
+              `to the user for refining their search. This should include reasoning about why the widget ` +
+              `is or isn't useful, and any considerations that went into determining its usefulness.`,
+          },
+          is_widget_meaningful: {
+            type: "boolean",
+            description:
+              `Does the value conveyed by this widget provide meaningful information ` +
+              `to the user for refining their search? Or is this, instead, something that ` +
+              `you just brainstormed in order to fulfill the schema requirements?`,
           },
         },
       },
