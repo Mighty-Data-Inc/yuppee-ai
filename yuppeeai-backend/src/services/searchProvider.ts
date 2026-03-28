@@ -410,7 +410,19 @@ Likewise, it doesn't make sense to provide a dropdown for "Winner" when the topi
 "Muhammad Ali vs George Foreman" -- yes, the user might be interested in the winner of the match,
 but *they don't get to CHOOSE*. There aren't, like, web pages that describe one winner and 
 web pages that describe the other, and they only want to look for one -- all web pages that
-talk about this subject will report the same winner. Understood?
+talk about this subject will report the same winner.
+NOTE: I am *not* asking you to eliminate criteria based on whether or not they're relevant.
+That's not the question here. I'm asking you to eliminate criteria whose value is predetermined
+by the search topic itself. Do not tell me whether or not they're relevant. That's for the *next*
+section to determine. Here, you will focus on eliminating criteria that are not eligible for
+even being selection criteria in the first place. LET ME BE VERY CLEAR. YOU ARE NOT TO PRESENT
+SELECTION CRITERIA TO THE USER IF THEY ARE NOT ELIGIBLE FOR BEING SELECTION CRITERIA IN THE
+FIRST PLACE. Begin your essay for this section with an explanation of your understanding
+of this principle, and proceed from there. When you are finished with your essay for this
+section, go ahead and provide a bulletted list of the criteria that remain -- that is,
+the selection criteria that still have more than one potential valid value or more than
+one eligible choice. No fixed-value criteria should be presented to the user, as they 
+do not offer any meaningful search refinement. 
 
 IV. Further Elimination to Most Relevant Criteria
 Starting with the whittled-down list you produced in the previous section,
@@ -421,10 +433,16 @@ based on the context of their search query and typical user behavior. Of paramou
 importance is whether or not a particular refinement criterion is specific to the
 topic being search for. 
 IMPORTANT:
+- Do NOT include criteria that have already been eliminated in previous steps.
 - Do NOT include generic catch-all criteria that could apply to any search query, 
   such as "sort by relevance" or "filter by date" -- these are already built-in 
   behaviors on the part of any search engine, and listing them here adds no value.
-- Do NOT include criteria that have already been eliminated in previous steps.
+  Examples of generic catch-all criteria (that you should NOT include) include:
+  - "Relevance"
+  - "Recentness"
+  - "Popularity"
+  - "Priority"
+  - etc.
 
 IV. Final Selection of Refinement Criteria Most Likely to Be Used by the User
 Based on the evaluation in the previous section, you will make a concrete, 
