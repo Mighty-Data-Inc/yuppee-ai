@@ -518,9 +518,12 @@ The user will now show you their search query.
 `);
     convo.addUserMessage(request.query);
     await convo.submit();
-    const report = convo.getLastReplyStr();
 
-    await convo.submit(undefined, undefined, {
+    // The above "submit" was simply to trigger chain-of-thought reasoning in the conversation.
+    // The below "submit" is used to get the structured JSON response for the search refinements.
+    // Both are necessary for good results.
+
+    const refinements: any = await convo.submit(undefined, undefined, {
       jsonResponse: {
         format: {
           type: "json_schema",
@@ -531,18 +534,82 @@ The user will now show you their search query.
       },
     });
 
-    const structuredReply = convo.getLastReplyStr();
-    try {
-      return {
-        report,
-        refinements: JSON.parse(structuredReply),
-      };
-    } catch {
-      return {
-        report,
-        refinements: structuredReply,
-      };
-    }
+    return this.cleanRefinements(refinements);
+  }
+
+  private cleanRefinements(raw: any): any {
+    if (!raw || typeof raw !== "object") return raw;
+
+    const widgets: any[] = Array.isArray(raw.widgets) ? raw.widgets : [];
+
+    const cleanedWidgets = widgets
+      .filter((w) => w?.should_we_include_this_selection_criterion === true)
+      .map((w) => {
+        const {
+          argument_against_including_this_selection_criterion: _arg,
+          should_we_include_this_selection_criterion: _include,
+          widget_type: type,
+          widget_variable_name: variable_name,
+          widget_label: label,
+          widget_descriptive_title,
+          widget_params,
+        } = w;
+
+        let params = widget_params;
+        if (
+          params &&
+          typeof params === "object" &&
+          "discuss_desired_selection_granularity" in params
+        ) {
+          const {
+            discuss_desired_selection_granularity: _discuss,
+            ...cleanParams
+          } = params;
+          params = cleanParams;
+        }
+
+        if (
+          params &&
+          typeof params === "object" &&
+          Array.isArray((params as { choices?: unknown }).choices)
+        ) {
+          const rawChoices = (params as { choices: unknown[] }).choices;
+          const choices = rawChoices
+            .filter((choice) => choice && typeof choice === "object")
+            .map((choice) => {
+              const c = choice as {
+                choice_variable_value?: unknown;
+                choice_ui_label?: unknown;
+                choice_label?: unknown;
+              };
+
+              return {
+                value: c.choice_variable_value,
+                label: c.choice_ui_label ?? c.choice_label,
+              };
+            });
+
+          params = { ...params, choices };
+        }
+
+        return {
+          type,
+          variable_name,
+          label,
+          tooltip: widget_descriptive_title?.direct ?? "",
+          params,
+        };
+      });
+
+    const d = raw.disambiguation;
+    const disambiguation =
+      d?.was_disambiguation_necessary === true &&
+      Array.isArray(d.other_alternative_potential_meanings) &&
+      d.other_alternative_potential_meanings.length > 0
+        ? d
+        : null;
+
+    return { ...raw, disambiguation, widgets: cleanedWidgets };
   }
 
   private mockSearch(request: SearchRequest): SearchResponse {
