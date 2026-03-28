@@ -489,7 +489,7 @@ knob along a track, but the meaning of that knob can vary. Specify whether it me
     EXAMPLE: Selecting ratings, e.g. "No fewer than 4 stars"
 - There are two knobs, and the values of the knobs represent a range. The user can select a
     minimum and maximum value for the criterion.
-    EXAMPLE: Selecting dates, e.g. "From Jan 1, 2020 to Dec 31, 2020"
+    EXAMPLE: Selecting age range, e.g. "From 18 to 35 years old"
 If you decide to use a slider, provide its minimum and maximum values, and
     specify whether the knob represents a singular selection, the highest value, the lowest 
     value, or a range.
