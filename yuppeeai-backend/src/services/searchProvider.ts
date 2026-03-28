@@ -207,14 +207,7 @@ const WIDGET_JSON_SCHEMA = {
         properties: {
           widget_type: {
             type: "string",
-            enum: [
-              "dropdown",
-              "switch",
-              "checkboxes",
-              "radio",
-              "slider",
-              "datepicker",
-            ],
+            enum: ["dropdown", "switch", "checkboxes", "radio", "slider"],
           },
           widget_variable_name: {
             type: "string",
@@ -264,58 +257,6 @@ const WIDGET_JSON_SCHEMA = {
                   "value_max",
                   "user_selects_lowest_value_of_range",
                   "user_selects_highest_value_of_range",
-                ],
-                additionalProperties: false,
-              },
-              {
-                type: "object",
-                description: "Parameters for date picker widget.",
-                properties: {
-                  date_min: { type: "string", format: "date" },
-                  date_max: { type: "string", format: "date" },
-                  user_selects_lowest_value_of_range: { type: "boolean" },
-                  user_selects_highest_value_of_range: { type: "boolean" },
-                  discuss_desired_selection_granularity: {
-                    type: "string",
-                    description:
-                      `Talk about what kind of granularity the user wants for this search. ` +
-                      `Are they interested in filtering on a specific day? ` +
-                      `Or are they more interested in a more coarse-grained selection, like by year? ` +
-                      `Provide a detailed, thorough, comprehensive explanation of the desired ` +
-                      `selection granularity for this search. Don't merely state the granularity; ` +
-                      `instead, provide a detailed rationales for why different levels of granularity ` +
-                      `might be appropriate for this search, and then ultimately determine which ` +
-                      `argument has the strongest merit.`,
-                  },
-                  is_specific_calendar_date_important: {
-                    type: "boolean",
-                    description: `Is selecting a specific calendar date meaningful for this search?`,
-                  },
-                  should_just_use_slider_instead: {
-                    type: "boolean",
-                    description: `Indicates whether a slider widget should be used instead of a date picker for this search.`,
-                  },
-                  slider_value_min: {
-                    type: "number",
-                    description:
-                      "The minimum value for the slider widget, if should_just_use_slider_instead is true. Otherwise, this value is ignored.",
-                  },
-                  slider_value_max: {
-                    type: "number",
-                    description:
-                      "The maximum value for the slider widget, if should_just_use_slider_instead is true. Otherwise, this value is ignored.",
-                  },
-                },
-                required: [
-                  "date_min",
-                  "date_max",
-                  "user_selects_lowest_value_of_range",
-                  "user_selects_highest_value_of_range",
-                  "discuss_desired_selection_granularity",
-                  "is_specific_calendar_date_important",
-                  "should_just_use_slider_instead",
-                  "slider_value_min",
-                  "slider_value_max",
                 ],
                 additionalProperties: false,
               },
@@ -471,7 +412,6 @@ selected refinement criteria. Your choices are:
 - checkboxes (lets user pick several options from a set)
 - radio button (lets user pick one option from several)
 - slider (lets user select a value or range of values)
-- date picker (ONLY FOR SELECTING RECENT CALENDAR DATES, **NOT** YEAR RANGES)
 
 (You may assume that there will also be a free-form text entry field that the user can
 use to further refine their search in ways that aren't covered by these widgets.)
@@ -536,12 +476,12 @@ VII. Values for UI Widgets
 Here, you state exactly what the labels, titles, and values of the UI widgets will be.
 If a widget involves presenting multiple options (like a dropdown, radio button, or checkboxes),
 provide the possible choices. 
-For a slider, provide the minimum and maximum values. For a date picker, provide the date range.
+For a slider, provide the minimum and maximum values.
 DO NOT leave these fields TBD. 
 Do NOT be like "(there will be options here)". Actually provide the options.
 
-NOTE: Sliders and date pickers can work in a few different ways. They all involve moving a
-knob along a track, sure; but the meaning of that knob can vary. Specify whether it means:
+NOTE: Sliders can work in a few different ways. They involve moving a
+knob along a track, but the meaning of that knob can vary. Specify whether it means:
 - The value that the knob is set to is interpreted as a singular selection.
 - The knob's value represents the highest thing that the user wants, e.g. "Up to N".
     EXAMPLE: Selecting prices, e.g. "No more than $50"
@@ -550,14 +490,9 @@ knob along a track, sure; but the meaning of that knob can vary. Specify whether
 - There are two knobs, and the values of the knobs represent a range. The user can select a
     minimum and maximum value for the criterion.
     EXAMPLE: Selecting dates, e.g. "From Jan 1, 2020 to Dec 31, 2020"
-If you decide to use a slider or date picker, provide its minimum and maximum values, and
+If you decide to use a slider, provide its minimum and maximum values, and
     specify whether the knob represents a singular selection, the highest value, the lowest 
     value, or a range.
-
-NOTE: Date pickers are inappropriate for selecting dates that are far in the past or when the
-user is only interested in a general/approximate time range. In such cases, a slider is more
-appropriate as it allows the user to select a range of years without needing to specify an
-exact day.
 
 ---
 
@@ -617,18 +552,6 @@ The user will now show you their search query.
         } = w;
 
         let params = widget_params;
-        if (
-          params &&
-          typeof params === "object" &&
-          "discuss_desired_selection_granularity" in params
-        ) {
-          const {
-            discuss_desired_selection_granularity: _discuss,
-            ...cleanParams
-          } = params;
-          params = cleanParams;
-        }
-
         if (
           params &&
           typeof params === "object" &&
