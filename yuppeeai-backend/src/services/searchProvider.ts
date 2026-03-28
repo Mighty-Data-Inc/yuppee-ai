@@ -141,6 +141,7 @@ const MOCK_GENERAL_RESULTS: SearchResult[] = [
 ];
 
 const GPT_MODEL_FAST = "gpt-4.1-nano";
+const GPT_MODEL_SMART = "gpt-4.1";
 
 const WIDGET_JSON_SCHEMA = {
   required: ["disambiguation", "widgets"],
@@ -349,16 +350,41 @@ const WIDGET_JSON_SCHEMA = {
               },
             ],
           },
-          argument_against_including_this_selection_criterion: {
-            type: "string",
-            description:
-              `Provide a detailed argument against including this selection criterion in the search refinement options. ` +
-              `Explain why this criterion might not be useful or relevant for the user in the context of this particular ` +
-              `search.`,
-          },
           should_we_include_this_selection_criterion: {
-            type: "boolean",
-            description: `Indicates whether this selection criterion should be included in the search refinement options. `,
+            type: "object",
+            description:
+              `Pro and con arguments about why this would or wouldn't be a useful or ` +
+              `sensible refinement criterion for this search. Each item here is not just ` +
+              `a sentence or two; each item here is a thorough, detailed, well-thought-out argument.`,
+            properties: {
+              explanation_of_selection_criterion: {
+                type: "string",
+                description:
+                  "A detailed explanation of what this selection criterion is and why it might be relevant for this search.",
+              },
+              explanation_of_selection_criterion_choices: {
+                type: "string",
+                description:
+                  "A detailed explanation of what the choices for this selection criterion are and what they would mean for the search results.",
+              },
+              explanation_of_which_selection_choices_make_sense_and_why: {
+                type: "string",
+                description:
+                  "A detailed explanation of which selection choices make sense for this search and why.",
+              },
+              explanation_of_which_selection_choices_are_bullshit: {
+                type: "string",
+                description:
+                  "A detailed explanation of which selection choices are not useful or relevant for this search and why.",
+              },
+            },
+            required: [
+              "explanation_of_selection_criterion",
+              "explanation_of_selection_criterion_choices",
+              "explanation_of_which_selection_choices_make_sense_and_why",
+              "explanation_of_which_selection_choices_are_bullshit",
+            ],
+            additionalProperties: false,
           },
         },
         required: [
@@ -367,7 +393,6 @@ const WIDGET_JSON_SCHEMA = {
           "widget_label",
           "widget_descriptive_title",
           "widget_params",
-          "argument_against_including_this_selection_criterion",
           "should_we_include_this_selection_criterion",
         ],
         additionalProperties: false,
@@ -455,43 +480,65 @@ use to further refine their search in ways that aren't covered by these widgets.
 
 REPORT
 
-Provide your response as a report, in the following format:
-0. Disambiguation
-I. Brainstorming and Discussion
-II. Initial Comprehensive List of Refinement Criteria
-III. Evaluation of User's Likely Interest In Refinement Criteria
-IV. Final Selection of Refinement Criteria Most Likely to Be Used by the User
-V. Discussion of Possible UI Widgets for Selected Refinement Criteria
-VI. Final Selection of UI Widgets
-VII. Values for UI Widgets
+Provide your response as a report, in the following format. Each section is **NOT A BULLET LIST**.
+Each section is an **ESSAY**.
 
-NOTE: In Section 0, "Disambiguation", explain whether or not you decided that disambiguation was
+0. Disambiguation
+Here, you will explain whether or not you decided that disambiguation was
 necessary for the search query. If it is, make an assumption about the intended meaning,
 and state your assumption clearly before your brainstorming begins.
 
-NOTE: In the "Evaluation of User's Likely Interest In Refinement Criteria", discuss
-whether or not any given selection criterion is likely to be of interest to the user,
+I. Brainstorming and Discussion
+Here, you will discuss and brainstorm possible refinement criteria for the search results.
+
+II. Initial Comprehensive List of Refinement Criteria
+Here, you will provide a comprehensive list of all possible refinement criteria that 
+could be applied to the search results. This list should be as exhaustive as possible,
+including any criteria that might be relevant to the topic of the search query.
+
+III. Eliminate Refinement Criteria Which Only Have One Valid Value
+Here, you will eliminate choices that are not yours to make. That is, you will remove any
+refinement criteria whose value is already implicitly set by the nature of the search topic.
+For example, it doesn't make sense to provide a criterion for "date" when the topic is
+"Assassination of JFK" -- yes, the user might be interested in the date of the event,
+but it is already implicitly set by the topic itself, so providing a date filter doesn't make sense.
+Likewise, it doesn't make sense to provide a dropdown for "Winner" when the topic is
+"Muhammad Ali vs George Foreman" -- yes, the user might be interested in the winner of the match,
+but *they don't get to CHOOSE*. There aren't, like, web pages that describe one winner and 
+web pages that describe the other, and they only want to look for one -- all web pages that
+talk about this subject will report the same winner. Understood?
+
+IV. Evaluation of User's Likely Interest In Refinement Criteria
+Here, you will discuss whether any given selection criterion is likely to be of interest to the user,
 based on the context of their search query and typical user behavior. Of paramount
 importance is whether or not a particular refinement criterion is specific to the
 topic being search for. Do NOT include generic catch-all criteria that could apply
 to any search query, such as "sort by relevance" or "filter by date" -- these are already
 built-in behaviors on the part of any search engine, and listing them here adds no value.
 
-NOTE: For the "Final Selection of UI Widgets" section, your decisions have to be concrete
-and specific. Do NOT say, "Dropdown or radio button", or "Either one will work". You must
-choose a specific widget for each refinement criterion.
+IV. Final Selection of Refinement Criteria Most Likely to Be Used by the User
+Here, you make a concrete, specific decision about which UI widgets to use for each refinement criterion. 
+Do NOT say, "Dropdown or radio button", or "Either one will work". You must choose a specific widget for
+each refinement criterion.
 
-NOTE: For the "Final Selection of UI Widgets" section, your decisions should be non-overlapping
+V. Discussion of Possible UI Widgets for Selected Refinement Criteria
+Brainstorm appropriate UI components to provide the user with the ability to refine their search results
+based on the selected criteria.
+
+VI. Final Selection of UI Widgets
+Your decisions should be non-overlapping
 and non-redundant. For example, if the user is searching for a house, DO NOT have one widget
 be a dropdown representing a couple of possible price ranges, and another be a slider representing
 a range of prices. This would be redundant and pointless. Make sure that each widget represents
 a distinct non-overlapping refinement criterion.
 
-NOTE: For the "Values for UI Widgets" section, if a widget involves presenting multiple options
-(like a dropdown, radio button, or checkboxes), provide the possible choices. For a slider,
-provide the minimum and maximum values. For a date picker, provide the date range.
-DO NOT leave these fields TBD. Do NOT be like "(there will be options here)". Actually
-provide the options.
+VII. Values for UI Widgets
+Here, you state exactly what the labels, titles, and values of the UI widgets will be.
+If a widget involves presenting multiple options (like a dropdown, radio button, or checkboxes),
+provide the possible choices. 
+For a slider, provide the minimum and maximum values. For a date picker, provide the date range.
+DO NOT leave these fields TBD. 
+Do NOT be like "(there will be options here)". Actually provide the options.
 
 NOTE: Sliders and date pickers can work in a few different ways. They all involve moving a
 knob along a track, sure; but the meaning of that knob can vary. Specify whether it means:
@@ -519,6 +566,8 @@ The user will now show you their search query.
     convo.addUserMessage(request.query);
     await convo.submit();
 
+    console.log(convo.getLastReplyStr());
+
     // The above "submit" was simply to trigger chain-of-thought reasoning in the conversation.
     // The below "submit" is used to get the structured JSON response for the search refinements.
     // Both are necessary for good results.
@@ -539,14 +588,26 @@ The user will now show you their search query.
 
   private cleanRefinements(raw: any): any {
     if (!raw || typeof raw !== "object") return raw;
+    console.log("Raw refinements:", JSON.stringify(raw, null, 2));
 
     const widgets: any[] = Array.isArray(raw.widgets) ? raw.widgets : [];
 
     const cleanedWidgets = widgets
-      .filter((w) => w?.should_we_include_this_selection_criterion === true)
+      .filter((w) => {
+        const includeField = w?.should_we_include_this_selection_criterion;
+        if (typeof includeField === "boolean") return includeField;
+        if (includeField && typeof includeField === "object") {
+          return (
+            !includeField.is_only_one_value_actually_correct_for_this_particular_search_query &&
+            !includeField.is_multiple_responses_based_on_hypothetical_scenarios &&
+            includeField.should_we_present_this_selection_criterion_to_the_user
+          );
+        }
+        return false;
+      })
       .map((w) => {
         const {
-          argument_against_including_this_selection_criterion: _arg,
+          does_this_criterion_make_sense_for_this_search: _arg,
           should_we_include_this_selection_criterion: _include,
           widget_type: type,
           widget_variable_name: variable_name,
@@ -596,7 +657,7 @@ The user will now show you their search query.
           type,
           variable_name,
           label,
-          tooltip: widget_descriptive_title?.direct ?? "",
+          tooltip: widget_descriptive_title?.teleological ?? "",
           params,
         };
       });
