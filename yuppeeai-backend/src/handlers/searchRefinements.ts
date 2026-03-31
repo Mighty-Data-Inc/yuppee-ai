@@ -34,7 +34,6 @@ export const handler: LambdaHandler = async (event, _context) => {
 
     const searchProvider = new SearchProvider({
       openaiApiKey: process.env["OPENAI_API_KEY"],
-      useMock: false,
     });
 
     const response: SearchRefinementsResponse =

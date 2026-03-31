@@ -13,10 +13,6 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-if (!process.env["USE_MOCK"]) {
-  process.env["USE_MOCK"] = "true";
-}
-
 function collectBody(
   req: import("node:http").IncomingMessage,
 ): Promise<string> {
@@ -101,6 +97,4 @@ const server = createServer(async (req, res) => {
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Local backend API running at http://localhost:${PORT}`);
-  // eslint-disable-next-line no-console
-  console.log("Mock search mode:", process.env["USE_MOCK"] !== "false");
 });

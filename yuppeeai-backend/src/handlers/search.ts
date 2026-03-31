@@ -28,9 +28,7 @@ export const handler: LambdaHandler = async (event, _context) => {
       return errorResponse(400, "Missing required field: query");
     }
 
-    const useMock = process.env["USE_MOCK"] !== "false";
     const searchProvider = new SearchProvider({
-      useMock,
       openaiApiKey: process.env["OPENAI_API_KEY"],
     });
 
