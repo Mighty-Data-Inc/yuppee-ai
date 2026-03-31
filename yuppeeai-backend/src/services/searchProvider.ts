@@ -16,7 +16,7 @@ const SERP_JSON_SCHEMA = {
     result_summary: {
       type: "string",
       description:
-        "A concise summary of the search results for the query, in a way that can be presented as a short intro at the top of the page before listing the SERP results. You may use <strong> and <em> tags to emphasize key points.",
+        "A concise summary of the search results for the query, in a way that can be presented as a short intro at the top of the page before listing the SERP results. You may use <strong> and <em> tags to emphasize key points, but use them sparingly.",
     },
     results: {
       type: "array",
@@ -49,7 +49,7 @@ const SERP_JSON_SCHEMA = {
           thumbnail_url: {
             type: "string",
             description:
-              "A URL pointing to an image corresponding to this result. This could be a thumbnail or any representative image for the result; it will be shown as a thumbnail on the search results page, but the URL can be an image of any size. Optional; leave blank if none available.",
+              "A URL pointing to an image corresponding to this result. This could be a thumbnail or any representative image for the result; it will be shown as a thumbnail on the search results page, but the URL can be an image of any size. Optional; leave blank if none available. Be very careful to avoid hallucinations when specifying image URLs; it's much better to just leave this blank than to provide a fabricated URL.",
           },
         },
       },

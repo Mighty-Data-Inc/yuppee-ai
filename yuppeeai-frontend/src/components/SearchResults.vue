@@ -127,14 +127,17 @@ function formatUrl(url: string): string {
 .result-card__snippet {
   font-size: 0.9rem;
   color: var(--color-text-muted);
-  line-height: 1.6;
+  line-height: 1.5;
+  padding-left: 0.7em;
+  border-left: 2px solid #ccc;
 }
 
 .result-card__summary {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: inherit;
   font-size: 0.94rem;
   color: var(--color-text);
-  line-height: 1.7;
+  line-height: 1.6;
+  margin-top: 1ex;
 }
 
 /* Skeleton styles */
