@@ -24,7 +24,6 @@ function formatUrl(url: string): string {
     <template v-if="isLoading">
       <div class="results__meta skeleton-line skeleton-line--short" />
       <div v-for="i in 5" :key="i" class="result-card result-card--skeleton">
-        <div class="skeleton-line skeleton-line--url" />
         <div class="skeleton-line skeleton-line--title" />
         <div class="skeleton-line" />
         <div class="skeleton-line skeleton-line--short" />
@@ -34,14 +33,17 @@ function formatUrl(url: string): string {
     <!-- Results -->
     <template v-else-if="results.length > 0">
       <p v-if="resultSummary" class="results__meta" v-html="resultSummary" />
-      <article v-for="result in results" :key="result.url" class="result-card">
-        <div class="result-card__url">
-          <span class="result-card__favicon">🔗</span>
-          {{ formatUrl(result.url) }}
-        </div>
-        <a :href="result.url" class="result-card__title" target="_blank" rel="noopener noreferrer">
+      <a
+        v-for="result in results"
+        :key="result.url"
+        :href="result.url"
+        class="result-card"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span class="result-card__title">
           {{ result.title }}
-        </a>
+        </span>
         <p v-if="result.snippet" class="result-card__snippet">{{ result.snippet }}</p>
         <p
           v-if="result.summary && result.summary !== result.snippet"
@@ -49,7 +51,8 @@ function formatUrl(url: string): string {
         >
           {{ result.summary }}
         </p>
-      </article>
+        <div class="result-card__url">{{ formatUrl(result.url) }}</div>
+      </a>
     </template>
 
     <!-- Empty state -->
@@ -83,13 +86,15 @@ function formatUrl(url: string): string {
 }
 
 .result-card {
-  padding: 1rem 1.25rem;
+  position: relative;
+  padding: 1rem 1.25rem 1.7rem;
   background: white;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  text-decoration: none;
   transition: box-shadow var(--transition), border-color var(--transition);
 }
 
@@ -99,27 +104,33 @@ function formatUrl(url: string): string {
 }
 
 .result-card__url {
+  position: absolute;
+  right: .75rem;
+  bottom: 0.3rem;
   font-size: 0.78rem;
   color: #16a34a;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity 140ms ease, transform 140ms ease;
+  pointer-events: none;
 }
 
-.result-card__favicon {
-  font-size: 0.7rem;
+.result-card:hover .result-card__url,
+.result-card:focus-visible .result-card__url {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .result-card__title {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--color-primary);
-  text-decoration: none;
   line-height: 1.4;
   transition: color var(--transition);
 }
 
-.result-card__title:hover {
+.result-card:hover .result-card__title,
+.result-card:focus-visible .result-card__title {
   color: var(--color-primary-dark);
   text-decoration: underline;
 }
@@ -170,7 +181,7 @@ function formatUrl(url: string): string {
 
 .result-card--skeleton {
   gap: 0.5rem;
-  padding: 1.2rem 1.25rem;
+  padding: 1.2rem 1.25rem 1.2rem;
 }
 
 .results__empty {
