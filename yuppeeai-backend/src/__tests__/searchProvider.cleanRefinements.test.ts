@@ -109,4 +109,34 @@ describe("SearchProvider cleanRefinements", () => {
     const cleaned = (provider as any).cleanRefinements(raw);
     expect(cleaned.widgets[0].type).toBe("chipgroup");
   });
+
+  it("uses label_for_switch_on as label for native switch widgets", () => {
+    const provider = new SearchProvider({ useMock: true });
+    const raw = makeBaseRaw();
+    raw.widgets = [
+      {
+        widget_type: "switch",
+        widget_variable_name: "in_stock",
+        widget_label: "In Stock",
+        widget_descriptive_title: {
+          teleological: "Only show available items",
+          provides_examples: "",
+          direct: "",
+        },
+        widget_params: {
+          label_for_switch_on: "Show only in-stock items",
+          label_for_switch_off: "Show all items regardless of stock status",
+        },
+      },
+    ];
+
+    const cleaned = (provider as any).cleanRefinements(raw);
+    expect(cleaned.widgets[0]).toEqual({
+      type: "switch",
+      variable_name: "in_stock",
+      label: "Show only in-stock items",
+      tooltip: "Only show available items",
+    });
+    expect(cleaned.widgets[0]).not.toHaveProperty("params");
+  });
 });

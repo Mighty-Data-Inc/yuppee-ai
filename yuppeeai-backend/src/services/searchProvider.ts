@@ -275,7 +275,7 @@ const WIDGET_JSON_SCHEMA = {
                         choice_variable_value: {
                           type: "string",
                           description:
-                            "The snake_casevalue that will be used in the search query when this choice is selected.",
+                            "The snake_case value that will be used in the search query when this choice is selected.",
                         },
                         choice_ui_label: {
                           type: "string",
@@ -287,6 +287,22 @@ const WIDGET_JSON_SCHEMA = {
                   },
                 },
                 required: ["choices"],
+                additionalProperties: false,
+              },
+              {
+                type: "object",
+                description: "Parameters for the switch widget.",
+                properties: {
+                  label_for_switch_on: {
+                    type: "string",
+                    description: `The prompt to show users to explain what happens when the switch is turned on, e.g. "Show only in-stock items" or "Only show shops in your area"`,
+                  },
+                  label_for_switch_off: {
+                    type: "string",
+                    description: `The prompt to show users to explain what happens when the switch is turned off, e.g. "Show all items regardless of in-stock status" or "Show all shops regardless of distance from you"`,
+                  },
+                },
+                required: ["label_for_switch_on", "label_for_switch_off"],
                 additionalProperties: false,
               },
             ],
@@ -447,9 +463,12 @@ Do this query's search results lend themselves to any kind of filtration by a nu
         (params as { choices: unknown[] }).choices.length === 1;
 
       const emittedType = hasSingleChoiceDropdown ? "switch" : normalizedType;
+      const isNativeSwitch = normalizedType === "switch";
       const emittedLabel = hasSingleChoiceDropdown
         ? `Show only results about: ${label}`
-        : label;
+        : isNativeSwitch && widget_params?.label_for_switch_on
+          ? widget_params.label_for_switch_on
+          : label;
 
       const cleanedWidget = {
         type: emittedType,
