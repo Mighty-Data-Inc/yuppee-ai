@@ -73,7 +73,7 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
       <main class="search-main">
         <SearchResults
           :results="store.results"
-          :is-loading="store.isLoading"
+          :is-loading="store.isLoadingResults"
           :query="store.query"
         />
       </main>
@@ -81,7 +81,7 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
       <aside class="search-aside">
         <WidgetPanel
           :widgets="store.widgets"
-          :is-loading="store.isLoading"
+          :is-loading="store.isLoadingWidgets"
           @refine="handleRefine"
         />
       </aside>

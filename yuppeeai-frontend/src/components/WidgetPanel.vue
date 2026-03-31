@@ -50,6 +50,7 @@ const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform'
 
     <!-- Loading state -->
     <template v-if="isLoading">
+      <p class="widget-panel__loading-message">Analyzing results and devising refinement criteria...</p>
       <div v-for="i in 4" :key="i" class="widget-skeleton">
         <div class="skeleton-line skeleton-line--label" />
         <div class="skeleton-line skeleton-line--control" />
@@ -149,6 +150,12 @@ const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform'
   font-weight: 600;
   color: var(--color-text);
   letter-spacing: -0.01em;
+}
+
+.widget-panel__loading-message {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  line-height: 1.5;
 }
 
 .widget-panel__widgets {

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import type { SearchResult, Widget } from "@/types";
 import { search, generateWidgets } from "@/services/searchService";
 
@@ -10,9 +10,14 @@ export const useSearchStore = defineStore("search", () => {
   const results = ref<SearchResult[]>([]);
   const widgets = ref<Widget[]>([]);
   const refinement = ref("");
-  const isLoading = ref(false);
+  const isLoadingResults = ref(false);
+  const isLoadingWidgets = ref(false);
+  const isLoading = computed(
+    () => isLoadingResults.value || isLoadingWidgets.value,
+  );
   const error = ref<string | null>(null);
   const preferences = ref<Record<string, any>>({});
+  const activeRequestId = ref(0);
 
   function loadPreferences() {
     try {
@@ -52,34 +57,59 @@ export const useSearchStore = defineStore("search", () => {
   }
 
   async function performSearch(q: string, widgetValues?: Record<string, any>) {
+    const requestId = ++activeRequestId.value;
     query.value = q;
-    isLoading.value = true;
+    isLoadingResults.value = true;
+    isLoadingWidgets.value = true;
     error.value = null;
 
     const category = getCategoryKey(q);
     const savedPrefs = preferences.value[category] ?? {};
     const effectiveFilters = widgetValues ?? savedPrefs;
 
-    try {
-      const [searchResults, generatedWidgets] = await Promise.all([
-        search(q, effectiveFilters),
-        generateWidgets(q, effectiveFilters),
-      ]);
+    const searchRequest = search(q, effectiveFilters)
+      .then((searchResults) => {
+        if (activeRequestId.value !== requestId) return;
+        results.value = searchResults;
+      })
+      .catch((e) => {
+        if (activeRequestId.value !== requestId) return;
+        error.value =
+          e instanceof Error ? e.message : "An error occurred during search";
+        results.value = [];
+      })
+      .finally(() => {
+        if (activeRequestId.value !== requestId) return;
+        isLoadingResults.value = false;
+      });
 
-      results.value = searchResults;
-      widgets.value = generatedWidgets;
+    const refinementRequest = generateWidgets(q, effectiveFilters)
+      .then((generatedWidgets) => {
+        if (activeRequestId.value !== requestId) return;
+        widgets.value = generatedWidgets;
+      })
+      .catch((e) => {
+        if (activeRequestId.value !== requestId) return;
+        if (!error.value) {
+          error.value =
+            e instanceof Error
+              ? e.message
+              : "An error occurred while loading refinements";
+        }
+        widgets.value = [];
+      })
+      .finally(() => {
+        if (activeRequestId.value !== requestId) return;
+        isLoadingWidgets.value = false;
+      });
 
-      if (widgetValues && Object.keys(widgetValues).length > 0) {
-        preferences.value[category] = widgetValues;
-        savePreferences();
-      }
-    } catch (e) {
-      error.value =
-        e instanceof Error ? e.message : "An error occurred during search";
-      results.value = [];
-      widgets.value = [];
-    } finally {
-      isLoading.value = false;
+    await Promise.allSettled([searchRequest, refinementRequest]);
+
+    if (activeRequestId.value !== requestId) return;
+
+    if (widgetValues && Object.keys(widgetValues).length > 0) {
+      preferences.value[category] = widgetValues;
+      savePreferences();
     }
   }
 
@@ -91,11 +121,13 @@ export const useSearchStore = defineStore("search", () => {
   }
 
   function clearSearch() {
+    activeRequestId.value += 1;
     query.value = "";
     results.value = [];
     widgets.value = [];
     refinement.value = "";
-    isLoading.value = false;
+    isLoadingResults.value = false;
+    isLoadingWidgets.value = false;
     error.value = null;
   }
 
@@ -104,6 +136,8 @@ export const useSearchStore = defineStore("search", () => {
     results,
     widgets,
     refinement,
+    isLoadingResults,
+    isLoadingWidgets,
     isLoading,
     error,
     preferences,
