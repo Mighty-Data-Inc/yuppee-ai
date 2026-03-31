@@ -28,38 +28,6 @@ export interface SearchRefinementsResponse {
   refinements: unknown;
 }
 
-export type WidgetType =
-  | "radio"
-  | "range-slider"
-  | "checkbox"
-  | "dropdown"
-  | "freeform";
-
-export interface WidgetOption {
-  label: string;
-  value: string;
-}
-
-export interface Widget {
-  id: string;
-  type: WidgetType;
-  label: string;
-  options?: WidgetOption[];
-  min?: number;
-  max?: number;
-  step?: number;
-  defaultValue?: unknown;
-}
-
-export interface WidgetsRequest {
-  query: string;
-  currentFilters?: Record<string, unknown>;
-}
-
-export interface WidgetsResponse {
-  widgets: Widget[];
-}
-
 export interface PreferencesRequest {
   userId: string;
   queryCategory?: string;
