@@ -252,35 +252,27 @@ export class SearchProvider {
 
     const openaiClient = new OpenAI({ apiKey: this.config.openaiApiKey });
 
-    const convo = new LLMConversation(openaiClient, undefined, GPT_MODEL_SMART);
-    convo.addDeveloperMessage(`
-You're an AI that powers the back end of a smart search engine.
+    const userInput =
+      `Search query:\n${request.query}` +
+      (request.filters && Object.keys(request.filters).length > 0
+        ? `\n\nI want the results filtered as follows:\n${JSON.stringify(request.filters, null, 2)}`
+        : "");
 
-Your task is to generate realistic SERP-style search results for the user's query.
-
-Requirements:
-- Return relevant, plausible web results for the user's query.
-- Include a good mix of authoritative and useful sources when appropriate.
-- Keep snippets concise and informative.
-- Use summary for a slightly richer one-paragraph description when available.
-- Include thumbnail_url only when a plausible image URL is appropriate.
-- Preserve result ordering from most relevant to least relevant.
-
-Do not return JSON yet; first reason through the query and the likely intent.
-`);
-
-    convo.addDeveloperMessage(
-      "The user will now provide the search query and optional filters.",
-    );
-    convo.addUserMessage(`Search query:\n${request.query}`);
-    if (request.filters && Object.keys(request.filters).length > 0) {
-      convo.addUserMessage(
-        `I want the results filtered as follows:\n` +
-          `${JSON.stringify(request.filters, null, 2)}`,
-      );
-    }
-
-    await convo.submit();
+    const reasoningResponse = await openaiClient.responses.create({
+      model: GPT_MODEL_SMART,
+      tools: [{ type: "web_search_preview" }],
+      input: [
+        {
+          role: "developer",
+          content:
+            "You are an AI that powers the back end of a smart search engine. Use web search to gather realistic, current SERP-style results for the user's query. Do not return JSON yet; first reason through likely user intent and source selection.",
+        },
+        {
+          role: "user",
+          content: userInput,
+        },
+      ],
+    });
 
     const retval = {
       query: request.query,
@@ -289,10 +281,20 @@ Do not return JSON yet; first reason through the query and the likely intent.
     };
 
     try {
-      // The first submit encourages deliberate reasoning.
-      // The second submit requests strict structured output.
-      const structuredResponse: any = await convo.submit(undefined, undefined, {
-        jsonResponse: {
+      // The first call performs reasoning and source discovery.
+      // The second call requests strict structured output.
+      const structuredResponse = await openaiClient.responses.create({
+        model: GPT_MODEL_SMART,
+        previous_response_id: reasoningResponse.id,
+        tools: [{ type: "web_search_preview" }],
+        input: [
+          {
+            role: "developer",
+            content:
+              "Return only valid JSON matching the provided schema. Preserve relevance ordering from highest to lowest.",
+          },
+        ],
+        text: {
           format: {
             type: "json_schema",
             strict: true,
@@ -302,8 +304,17 @@ Do not return JSON yet; first reason through the query and the likely intent.
         },
       });
 
-      retval.result_summary = structuredResponse.result_summary;
-      retval.results = structuredResponse.results;
+      if (!structuredResponse.output_text) {
+        throw new Error("No structured JSON output was returned.");
+      }
+
+      const parsed = JSON.parse(structuredResponse.output_text) as {
+        result_summary?: string;
+        results?: SearchResponse["results"];
+      };
+
+      retval.result_summary = parsed.result_summary ?? "";
+      retval.results = Array.isArray(parsed.results) ? parsed.results : [];
     } catch (error) {
       console.error("Error during structured output request:", error);
       throw error;
