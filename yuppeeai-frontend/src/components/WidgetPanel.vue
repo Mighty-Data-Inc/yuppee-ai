@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Widget } from '@/types'
 import RadioWidget from '@/components/widgets/RadioWidget.vue'
 import RangeSliderWidget from '@/components/widgets/RangeSliderWidget.vue'
@@ -20,6 +20,19 @@ const emit = defineEmits<{
 
 const widgetValues = ref<Record<string, any>>({})
 const refinementText = ref('')
+const baselineWidgetValues = ref<Record<string, any>>({})
+const baselineRefinementText = ref('')
+
+function cloneValues(values: Record<string, any>): Record<string, any> {
+  return JSON.parse(JSON.stringify(values))
+}
+
+function hasValueChanges(
+  current: Record<string, any>,
+  baseline: Record<string, any>,
+): boolean {
+  return JSON.stringify(current) !== JSON.stringify(baseline)
+}
 
 watch(() => props.widgets, (newWidgets) => {
   const newValues: Record<string, any> = {}
@@ -27,6 +40,8 @@ watch(() => props.widgets, (newWidgets) => {
     newValues[widget.id] = widgetValues.value[widget.id] ?? widget.value
   }
   widgetValues.value = newValues
+  baselineWidgetValues.value = cloneValues(newValues)
+  baselineRefinementText.value = refinementText.value
 }, { immediate: true, deep: true })
 
 function updateValue(widgetId: string, value: any) {
@@ -34,10 +49,16 @@ function updateValue(widgetId: string, value: any) {
 }
 
 function handleSearchAgain() {
+  if (!canSearchAgain.value) return
   emit('refine', { ...widgetValues.value }, refinementText.value)
 }
 
 const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform')
+const canSearchAgain = computed(() => {
+  if (props.isLoading) return false
+  if (hasValueChanges(widgetValues.value, baselineWidgetValues.value)) return true
+  return refinementText.value !== baselineRefinementText.value
+})
 </script>
 
 <template>
@@ -110,7 +131,7 @@ const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform'
         />
       </div>
 
-      <button class="widget-panel__btn" @click="handleSearchAgain">
+      <button class="widget-panel__btn" :disabled="!canSearchAgain" @click="handleSearchAgain">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
           <circle cx="11" cy="11" r="8"/>
           <path d="m21 21-4.35-4.35"/>
@@ -205,6 +226,13 @@ const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform'
 .widget-panel__btn:hover {
   background: var(--color-primary-dark);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.widget-panel__btn:disabled {
+  background: #cbd5e1;
+  color: #f8fafc;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .widget-panel__btn:active {
