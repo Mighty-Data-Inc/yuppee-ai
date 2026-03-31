@@ -1,6 +1,6 @@
-import { SearchProvider } from "../services/searchProvider";
+import { SearchRefiner } from "../services/searchRefiner";
 
-describe("SearchProvider cleanRefinements", () => {
+describe("SearchRefiner cleanRefinements", () => {
   function makeBaseRaw() {
     return {
       disambiguation: {
@@ -14,7 +14,7 @@ describe("SearchProvider cleanRefinements", () => {
   }
 
   it("converts single-choice dropdown into switch", () => {
-    const provider = new SearchProvider();
+    const provider = new SearchRefiner();
     const raw = makeBaseRaw();
     raw.widgets = [
       {
@@ -48,7 +48,7 @@ describe("SearchProvider cleanRefinements", () => {
   });
 
   it("keeps multi-choice dropdown and normalizes choices", () => {
-    const provider = new SearchProvider();
+    const provider = new SearchRefiner();
     const raw = makeBaseRaw();
     raw.widgets = [
       {
@@ -85,7 +85,7 @@ describe("SearchProvider cleanRefinements", () => {
   });
 
   it("renames checkboxes type to chipgroup", () => {
-    const provider = new SearchProvider();
+    const provider = new SearchRefiner();
     const raw = makeBaseRaw();
     raw.widgets = [
       {
@@ -111,7 +111,7 @@ describe("SearchProvider cleanRefinements", () => {
   });
 
   it("uses label_for_switch_on as label for native switch widgets", () => {
-    const provider = new SearchProvider();
+    const provider = new SearchRefiner();
     const raw = makeBaseRaw();
     raw.widgets = [
       {
