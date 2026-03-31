@@ -2,7 +2,7 @@ import "dotenv/config";
 import { createServer, type IncomingHttpHeaders } from "node:http";
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { handler as searchHandler } from "./handlers/search";
-import { handler as searchRefinementsHandler } from "./handlers/searchRefinements";
+import { handler as searchRefinementsHandler } from "./handlers/refine";
 
 const PORT = Number(process.env["PORT"] ?? 3000);
 const context = {} as Context;

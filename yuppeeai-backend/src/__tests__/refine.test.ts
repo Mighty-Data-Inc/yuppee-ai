@@ -1,5 +1,5 @@
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
-import { handler } from "../handlers/searchRefinements";
+import { handler } from "../handlers/refine";
 import { SearchProvider } from "../services/searchProvider";
 
 const mockContext = {} as Context;
