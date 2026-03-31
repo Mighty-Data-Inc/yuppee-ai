@@ -216,7 +216,7 @@ describe("searchService.generateWidgets", () => {
       id: "novel_type",
       type: "dropdown",
       label: "Type of Novel",
-      value: "classics",
+      value: "",
     });
     expect(widgets[1]).toMatchObject({
       id: "recognition",
@@ -229,6 +229,7 @@ describe("searchService.generateWidgets", () => {
       type: "range-slider",
       min: 1,
       max: 5,
+      sliderMode: "range",
       value: [1, 5],
     });
     expect(widgets[3]).toMatchObject({
@@ -243,6 +244,84 @@ describe("searchService.generateWidgets", () => {
     const widgets = await generateWidgets("artificial intelligence");
     expect(widgets).toHaveLength(2);
     expect(widgets[0]?.id).toBe("date-range");
+  });
+
+  it("maps slider mode semantics from backend range flags", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/refine")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                widgets: [
+                  {
+                    type: "slider",
+                    variable_name: "exact_price",
+                    label: "Exact Price",
+                    params: {
+                      value_min: 0,
+                      value_max: 100,
+                      user_selects_lowest_value_of_range: false,
+                      user_selects_highest_value_of_range: false,
+                    },
+                  },
+                  {
+                    type: "slider",
+                    variable_name: "max_price",
+                    label: "Max Price",
+                    params: {
+                      value_min: 0,
+                      value_max: 100,
+                      user_selects_lowest_value_of_range: false,
+                      user_selects_highest_value_of_range: true,
+                    },
+                  },
+                  {
+                    type: "slider",
+                    variable_name: "min_price",
+                    label: "Min Price",
+                    params: {
+                      value_min: 0,
+                      value_max: 100,
+                      user_selects_lowest_value_of_range: true,
+                      user_selects_highest_value_of_range: false,
+                    },
+                  },
+                  {
+                    type: "slider",
+                    variable_name: "between_price",
+                    label: "Between Price",
+                    params: {
+                      value_min: 0,
+                      value_max: 100,
+                      user_selects_lowest_value_of_range: true,
+                      user_selects_highest_value_of_range: true,
+                    },
+                  },
+                ],
+              }),
+          });
+        }
+
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: MOCK_RESULTS }),
+        });
+      }),
+    );
+
+    const widgets = await generateWidgets("prices");
+
+    expect(widgets[0]).toMatchObject({ sliderMode: "exact", value: 0 });
+    expect(widgets[1]).toMatchObject({ sliderMode: "lte", value: 100 });
+    expect(widgets[2]).toMatchObject({ sliderMode: "gte", value: 0 });
+    expect(widgets[3]).toMatchObject({
+      sliderMode: "range",
+      value: [0, 100],
+    });
   });
 
   it("sends a POST request with query and filters to /refine", async () => {

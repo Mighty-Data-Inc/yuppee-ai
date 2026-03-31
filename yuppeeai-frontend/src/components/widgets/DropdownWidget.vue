@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Widget } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   widget: Widget
   modelValue: string
 }>()
@@ -9,6 +10,10 @@ defineProps<{
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
+
+const hasEmptyOption = computed(() =>
+  (props.widget.options ?? []).some((option) => option.value === ''),
+)
 </script>
 
 <template>
@@ -20,8 +25,9 @@ const emit = defineEmits<{
         :value="modelValue"
         @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
       >
+        <option v-if="!hasEmptyOption" value=""></option>
         <option
-          v-for="option in widget.options"
+          v-for="option in props.widget.options"
           :key="option.value"
           :value="option.value"
         >

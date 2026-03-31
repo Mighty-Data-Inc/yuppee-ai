@@ -1,46 +1,96 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import Slider from '@vueform/slider'
+import '@vueform/slider/themes/default.css'
 import type { Widget } from '@/types'
 
 const props = defineProps<{
   widget: Widget
-  modelValue: [number, number]
+  modelValue: number | [number, number]
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: [number, number]]
+  'update:modelValue': [value: number | [number, number]]
 }>()
 
-const minVal = ref(props.modelValue[0])
-const maxVal = ref(props.modelValue[1])
+const sliderMode = computed(() => props.widget.sliderMode ?? 'range')
 
-watch(() => props.modelValue, (val) => {
-  minVal.value = val[0]
-  maxVal.value = val[1]
+const normalizedValue = computed<number | [number, number]>(() => {
+  const min = props.widget.min ?? 0
+  const max = props.widget.max ?? 100
+  const val = props.modelValue
+
+  if (sliderMode.value === 'range') {
+    if (Array.isArray(val) && val.length >= 2) {
+      return [Number(val[0]), Number(val[1])]
+    }
+    return [min, max]
+  }
+
+  if (typeof val === 'number') {
+    return Number(val)
+  }
+
+  if (Array.isArray(val) && val.length > 0) {
+    return Number(val[0])
+  }
+
+  if (sliderMode.value === 'lte') {
+    return max
+  }
+
+  return min
 })
 
-function updateMin(e: Event) {
-  const v = Number((e.target as HTMLInputElement).value)
-  if (v <= maxVal.value) {
-    minVal.value = v
-    emit('update:modelValue', [minVal.value, maxVal.value])
-  }
-}
+const internalValue = ref<number | [number, number]>(normalizedValue.value)
 
-function updateMax(e: Event) {
-  const v = Number((e.target as HTMLInputElement).value)
-  if (v >= minVal.value) {
-    maxVal.value = v
-    emit('update:modelValue', [minVal.value, maxVal.value])
-  }
-}
+watch(normalizedValue, (val) => {
+  internalValue.value = val
+}, { immediate: true })
+
+watch(internalValue, (val) => {
+  emit('update:modelValue', val)
+})
+
+const connect = computed(() => {
+  if (sliderMode.value === 'range') return true
+  if (sliderMode.value === 'lte') return 'lower'
+  if (sliderMode.value === 'gte') return 'upper'
+  return false
+})
+
+const singleInputLabel = computed(() => {
+  if (sliderMode.value === 'lte') return 'At Most'
+  if (sliderMode.value === 'gte') return 'At Least'
+  return 'Exactly'
+})
+
+const modeDescription = computed(() => {
+  if (sliderMode.value === 'range') return 'Between two values (inclusive)'
+  if (sliderMode.value === 'lte') return 'Select values up to and including this point'
+  if (sliderMode.value === 'gte') return 'Select values at or above this point'
+  return 'Select one exact value'
+})
+
+const lowerBoundValue = computed(() => {
+  if (Array.isArray(internalValue.value)) return internalValue.value[0]
+  if (sliderMode.value === 'lte') return props.widget.min ?? 0
+  return internalValue.value
+})
+
+const upperBoundValue = computed(() => {
+  if (Array.isArray(internalValue.value)) return internalValue.value[1]
+  if (sliderMode.value === 'gte') return props.widget.max ?? 100
+  return internalValue.value
+})
 </script>
 
 <template>
   <div class="widget">
     <p class="widget__label">{{ widget.label }}</p>
+    <p class="widget__mode-hint">{{ modeDescription }}</p>
     <div class="widget__range">
-      <div class="widget__range-inputs">
+      <div v-if="sliderMode === 'range'" class="widget__range-inputs">
         <div class="widget__range-group">
           <label class="widget__range-label">From</label>
           <input
@@ -49,11 +99,11 @@ function updateMax(e: Event) {
             :min="widget.min"
             :max="widget.max"
             :step="widget.step ?? 1"
-            :value="minVal"
-            @change="updateMin"
+            :value="lowerBoundValue"
+            @change="internalValue = sliderMode === 'range' ? [Number(($event.target as HTMLInputElement).value), upperBoundValue] : Number(($event.target as HTMLInputElement).value)"
           />
         </div>
-        <span class="widget__range-sep">–</span>
+        <span v-if="sliderMode === 'range'" class="widget__range-sep">–</span>
         <div class="widget__range-group">
           <label class="widget__range-label">To</label>
           <input
@@ -62,29 +112,33 @@ function updateMax(e: Event) {
             :min="widget.min"
             :max="widget.max"
             :step="widget.step ?? 1"
-            :value="maxVal"
-            @change="updateMax"
+            :value="upperBoundValue"
+            @change="internalValue = [lowerBoundValue, Number(($event.target as HTMLInputElement).value)]"
           />
         </div>
       </div>
-      <div class="widget__sliders">
+      <div v-else class="widget__range-group">
+        <label class="widget__range-label">{{ singleInputLabel }}</label>
         <input
-          type="range"
-          class="widget__slider"
+          type="number"
+          class="widget__range-input"
           :min="widget.min"
           :max="widget.max"
           :step="widget.step ?? 1"
-          :value="minVal"
-          @input="updateMin"
+          :value="internalValue"
+          @change="internalValue = Number(($event.target as HTMLInputElement).value)"
         />
-        <input
-          type="range"
+      </div>
+      <div class="widget__slider-wrap">
+        <Slider
+          v-model="internalValue"
           class="widget__slider"
-          :min="widget.min"
-          :max="widget.max"
+          :min="widget.min ?? 0"
+          :max="widget.max ?? 100"
           :step="widget.step ?? 1"
-          :value="maxVal"
-          @input="updateMax"
+          :connect="connect"
+          :tooltips="false"
+          :lazy="false"
         />
       </div>
     </div>
@@ -104,7 +158,14 @@ function updateMax(e: Event) {
 .widget__range {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.7rem;
+}
+
+.widget__mode-hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.1rem;
+  line-height: 1.4;
 }
 
 .widget__range-inputs {
@@ -155,43 +216,19 @@ function updateMax(e: Event) {
   flex-shrink: 0;
 }
 
-.widget__sliders {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+.widget__slider-wrap {
+  padding: 0.15rem 0.2rem;
 }
 
-.widget__slider {
-  width: 100%;
-  height: 4px;
-  appearance: none;
-  background: linear-gradient(to right, #c7d2fe, var(--color-primary));
-  border-radius: 999px;
-  outline: none;
-  cursor: pointer;
-}
-
-.widget__slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(99, 102, 241, 0.4);
-  transition: transform var(--transition);
-}
-
-.widget__slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
-
-.widget__slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: var(--color-primary);
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
+:deep(.widget__slider) {
+  --slider-connect-bg: var(--color-primary);
+  --slider-bg: #e5e7eb;
+  --slider-height: 6px;
+  --slider-handle-width: 18px;
+  --slider-handle-height: 18px;
+  --slider-handle-bg: #fff;
+  --slider-handle-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+  --slider-handle-ring-width: 3px;
+  --slider-handle-ring-color: rgba(99, 102, 241, 0.2);
 }
 </style>

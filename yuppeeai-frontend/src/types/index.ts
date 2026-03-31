@@ -27,6 +27,7 @@ export interface Widget {
   min?: number;
   max?: number;
   step?: number;
+  sliderMode?: "exact" | "lte" | "gte" | "range";
   value: any;
 }
 
