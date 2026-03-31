@@ -324,8 +324,9 @@ export class SearchProvider {
   }
 
   async inferSearchRefinements(request: SearchRequest): Promise<{
-    report: string;
-    refinements: unknown;
+    query: string;
+    disambiguation: string;
+    widgets: any;
   }> {
     if (!this.config.openaiApiKey) {
       throw new Error("OPENAI_API_KEY is not configured.");
@@ -381,11 +382,13 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     await convo.submit();
 
     const retval: {
-      report: string;
-      refinements: unknown;
+      query: string;
+      disambiguation: string;
+      widgets: any;
     } = {
-      report: "",
-      refinements: null,
+      query: request.query,
+      disambiguation: "",
+      widgets: null,
     };
 
     try {
@@ -403,7 +406,9 @@ Do this query's search results lend themselves to any kind of filtration by a nu
         },
       });
 
-      retval.refinements = this.cleanRefinements(refinements);
+      const cleaned = this.cleanRefinements(refinements);
+      retval.disambiguation = cleaned.disambiguation;
+      retval.widgets = cleaned.widgets;
     } catch (error) {
       console.error(
         "Error during structured output request for refinements:",

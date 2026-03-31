@@ -24,8 +24,9 @@ export interface SearchResponse {
 }
 
 export interface SearchRefinementsResponse {
-  report: string;
-  refinements: unknown;
+  query: string;
+  disambiguation: string;
+  widgets: unknown;
 }
 
 export interface PreferencesRequest {

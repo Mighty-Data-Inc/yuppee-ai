@@ -49,8 +49,9 @@ describe("search refinements handler", () => {
     const inferSpy = jest
       .spyOn(SearchProvider.prototype, "inferSearchRefinements")
       .mockResolvedValue({
-        report: "analysis",
-        refinements: { widgets: [] },
+        query: "best books about startup fundraising",
+        disambiguation: "analysis",
+        widgets: [],
       });
 
     const event = makeEvent({
@@ -62,8 +63,8 @@ describe("search refinements handler", () => {
 
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
-    expect(body.report).toBe("analysis");
-    expect(body.refinements).toEqual({ widgets: [] });
+    expect(body.disambiguation).toBe("analysis");
+    expect(body.widgets).toEqual([]);
     expect(inferSpy).toHaveBeenCalledWith({
       query: "best books about startup fundraising",
       filters: { language: "en" },
