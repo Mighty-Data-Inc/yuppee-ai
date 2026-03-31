@@ -66,6 +66,7 @@ export const useSearchStore = defineStore("search", () => {
     const category = getCategoryKey(q);
     const savedPrefs = preferences.value[category] ?? {};
     const effectiveFilters = widgetValues ?? savedPrefs;
+    const knownResults = [...results.value];
 
     const searchRequest = search(q, effectiveFilters)
       .then((searchResults) => {
@@ -83,7 +84,7 @@ export const useSearchStore = defineStore("search", () => {
         isLoadingResults.value = false;
       });
 
-    const refinementRequest = generateWidgets(q, effectiveFilters)
+    const refinementRequest = generateWidgets(q, effectiveFilters, knownResults)
       .then((generatedWidgets) => {
         if (activeRequestId.value !== requestId) return;
         widgets.value = generatedWidgets;

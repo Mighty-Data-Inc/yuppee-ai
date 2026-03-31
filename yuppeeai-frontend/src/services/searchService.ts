@@ -23,11 +23,16 @@ export async function search(
 export async function generateWidgets(
   query: string,
   currentFilters?: Record<string, any>,
+  knownResults?: SearchResult[],
 ): Promise<Widget[]> {
   const response = await fetch(`${API_BASE_URL}/refine`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, filters: currentFilters }),
+    body: JSON.stringify({
+      query,
+      filters: currentFilters,
+      results: knownResults,
+    }),
   });
   if (!response.ok) {
     throw new Error(`Refinements request failed: ${response.status}`);

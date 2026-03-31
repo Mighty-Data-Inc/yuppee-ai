@@ -324,9 +324,17 @@ describe("searchService.generateWidgets", () => {
     });
   });
 
-  it("sends a POST request with query and filters to /refine", async () => {
+  it("sends a POST request with query, filters, and known results to /refine", async () => {
     const filters = { genre: "history" };
-    await generateWidgets("books about history", filters);
+    const knownResults = [
+      {
+        id: "10",
+        title: "Known Result",
+        url: "https://example.com/known",
+        snippet: "Known snippet",
+      },
+    ];
+    await generateWidgets("books about history", filters, knownResults);
 
     const fetchMock = vi.mocked(fetch);
     const refinementCall = fetchMock.mock.calls.find((call) =>
@@ -340,6 +348,7 @@ describe("searchService.generateWidgets", () => {
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");
     expect(body.filters).toEqual(filters);
+    expect(body.results).toEqual(knownResults);
   });
 
   it("throws when refinements endpoint returns a non-ok response", async () => {
