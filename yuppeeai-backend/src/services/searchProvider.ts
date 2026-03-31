@@ -415,7 +415,9 @@ Do this query's search results lend themselves to any kind of filtration by a nu
   }
 
   private cleanRefinements(raw: any): any {
-    if (!raw || typeof raw !== "object") return raw;
+    if (!raw || typeof raw !== "object") {
+      return raw;
+    }
 
     const widgets: any[] = Array.isArray(raw.widgets) ? raw.widgets : [];
 
@@ -492,7 +494,11 @@ Do this query's search results lend themselves to any kind of filtration by a nu
         ? d
         : null;
 
-    return { ...raw, disambiguation, widgets: cleanedWidgets };
+    const retval = {
+      disambiguation,
+      widgets: cleanedWidgets,
+    };
+    return retval;
   }
 
   private mockSearch(request: SearchRequest): SearchResponse {
