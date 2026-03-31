@@ -51,7 +51,7 @@ beforeEach(() => {
     "fetch",
     vi.fn().mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.endsWith("/search/refinements")) {
+      if (url.endsWith("/refine")) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ widgets: MOCK_WIDGETS }),
@@ -112,7 +112,7 @@ describe("searchStore", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/search/refinements")) {
+        if (url.endsWith("/refine")) {
           return Promise.resolve({
             ok: true,
             json: () => refinementDeferred.promise,

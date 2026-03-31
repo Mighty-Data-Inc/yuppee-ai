@@ -70,10 +70,7 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  if (
-    method === "POST" &&
-    (path === "/search" || path === "/search/refinements")
-  ) {
+  if (method === "POST" && (path === "/search" || path === "/refine")) {
     const body = await collectBody(req);
     const event = toLambdaEvent({
       method,
@@ -83,7 +80,7 @@ const server = createServer(async (req, res) => {
     });
 
     const response =
-      path === "/search/refinements"
+      path === "/refine"
         ? await searchRefinementsHandler(event, context)
         : await searchHandler(event, context);
     res.writeHead(response.statusCode, {

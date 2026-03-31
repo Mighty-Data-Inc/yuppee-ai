@@ -134,7 +134,7 @@ export async function generateWidgets(
   query: string,
   currentFilters?: Record<string, any>,
 ): Promise<Widget[]> {
-  const response = await fetch(`${API_BASE_URL}/search/refinements`, {
+  const response = await fetch(`${API_BASE_URL}/refine`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query, filters: currentFilters }),

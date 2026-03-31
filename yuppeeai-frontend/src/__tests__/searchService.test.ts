@@ -67,7 +67,7 @@ function mockFetch(results = MOCK_RESULTS, widgets = MOCK_WIDGETS) {
     "fetch",
     vi.fn().mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.endsWith("/search/refinements")) {
+      if (url.endsWith("/refine")) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ widgets }),
@@ -155,7 +155,7 @@ describe("searchService.generateWidgets", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/search/refinements")) {
+        if (url.endsWith("/refine")) {
           return Promise.resolve({
             ok: true,
             json: () =>
@@ -239,24 +239,24 @@ describe("searchService.generateWidgets", () => {
     });
   });
 
-  it("returns widgets from /search/refinements", async () => {
+  it("returns widgets from /refine", async () => {
     const widgets = await generateWidgets("artificial intelligence");
     expect(widgets).toHaveLength(2);
     expect(widgets[0]?.id).toBe("date-range");
   });
 
-  it("sends a POST request with query and filters to /search/refinements", async () => {
+  it("sends a POST request with query and filters to /refine", async () => {
     const filters = { genre: "history" };
     await generateWidgets("books about history", filters);
 
     const fetchMock = vi.mocked(fetch);
     const refinementCall = fetchMock.mock.calls.find((call) =>
-      String(call[0]).endsWith("/search/refinements"),
+      String(call[0]).endsWith("/refine"),
     );
 
     expect(refinementCall).toBeDefined();
     const [url, init] = refinementCall as [string, RequestInit];
-    expect(url).toMatch(/\/search\/refinements$/);
+    expect(url).toMatch(/\/refine$/);
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");
@@ -268,7 +268,7 @@ describe("searchService.generateWidgets", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/search/refinements")) {
+        if (url.endsWith("/refine")) {
           return Promise.resolve({ ok: false, status: 500 });
         }
 
