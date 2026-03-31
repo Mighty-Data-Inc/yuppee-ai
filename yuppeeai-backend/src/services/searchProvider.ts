@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { SearchRequest, SearchResponse } from "../types";
+import { ResponseInput } from "openai/resources/responses/responses";
 
 interface SearchProviderConfig {
   openaiApiKey?: string;
@@ -72,33 +73,59 @@ export class SearchProvider {
 
     const openaiClient = new OpenAI({ apiKey: this.config.openaiApiKey });
 
-    const userInput =
-      `Search query:\n${request.query}` +
-      (request.filters && Object.keys(request.filters).length > 0
-        ? `\n\nI want the results filtered as follows:\n${JSON.stringify(request.filters, null, 2)}`
-        : "");
+    const convo: ResponseInput = [
+      {
+        role: "developer",
+        content:
+          "You are an AI that powers the back end of a smart search engine. First, discuss the user's intent, and establish a firm understanding of what they're looking for. Then, use web search to gather current relevant SERP-style results for the user's query. Do not return JSON yet; first reason through likely user intent and source selection.",
+      },
+      {
+        role: "user",
+        content: `Search query:\n${request.query}`,
+      },
+    ];
+
+    // Clean up the filters object by removing anything falsy or nullsy.
+    // If there's anything left, we'll use it as a focus.
+    if (request.filters) {
+      for (const key of Object.keys(request.filters)) {
+        const filterValue = request.filters[key];
+        if (
+          !filterValue ||
+          (Array.isArray(filterValue) && filterValue.length === 0)
+        ) {
+          delete request.filters[key];
+        }
+      }
+      if (Object.keys(request.filters).length > 0) {
+        convo.push({
+          role: "user",
+          content: `I want the results filtered/specialized as follows:\n${JSON.stringify(request.filters, null, 2)}`,
+        });
+      }
+    }
 
     const reasoningResponse = await openaiClient.responses.create({
       model: GPT_MODEL_SMART,
       tools: [{ type: "web_search_preview" }],
-      input: [
-        {
-          role: "developer",
-          content:
-            "You are an AI that powers the back end of a smart search engine. Use web search to gather realistic, current SERP-style results for the user's query. Do not return JSON yet; first reason through likely user intent and source selection.",
-        },
-        {
-          role: "user",
-          content: userInput,
-        },
-      ],
+      input: convo,
     });
+    let assistantReply = reasoningResponse.output_text;
+    convo.push({ role: "assistant", content: assistantReply });
 
     const retval = {
       query: request.query,
       result_summary: "",
       results: [] as SearchResponse["results"],
     };
+
+    convo.push({
+      role: "developer",
+      content: `
+Thank you for that preliminary analysis. Let's now formalize it into an official set of JSON results.
+Return only valid JSON matching the provided schema. Preserve relevance ordering from highest to lowest.
+`,
+    });
 
     try {
       // The first call performs reasoning and source discovery.
@@ -107,13 +134,7 @@ export class SearchProvider {
         model: GPT_MODEL_SMART,
         previous_response_id: reasoningResponse.id,
         tools: [{ type: "web_search_preview" }],
-        input: [
-          {
-            role: "developer",
-            content:
-              "Return only valid JSON matching the provided schema. Preserve relevance ordering from highest to lowest.",
-          },
-        ],
+        input: convo,
         text: {
           format: {
             type: "json_schema",
