@@ -134,6 +134,24 @@ describe("searchService.search", () => {
     expect(body.filters).toEqual(filters);
   });
 
+  it("preserves additionalInstructions within filters for /search", async () => {
+    const filters = {
+      genre: "history",
+      additionalInstructions: "written by a British author",
+    };
+
+    await search("books about history", filters);
+
+    const fetchMock = vi.mocked(fetch);
+    const call = fetchMock.mock.calls[0]!;
+    const [, init] = call as [string, RequestInit];
+    const body = JSON.parse(init.body as string);
+
+    expect(body.filters).toMatchObject({
+      additionalInstructions: "written by a British author",
+    });
+  });
+
   it("throws when the backend returns a non-ok response", async () => {
     vi.stubGlobal(
       "fetch",

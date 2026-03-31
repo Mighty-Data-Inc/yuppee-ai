@@ -41,10 +41,14 @@ function handleSearch(q: string) {
 
 async function handleRefine(widgetValues: Record<string, any>, refinementText: string) {
   store.refinement = refinementText
-  const q = refinementText.trim()
-    ? `${store.query} ${refinementText}`
-    : store.query
-  await store.performSearch(q, widgetValues)
+  const filters = { ...widgetValues }
+  const trimmedRefinement = refinementText.trim()
+
+  if (trimmedRefinement) {
+    filters.additionalInstructions = trimmedRefinement
+  }
+
+  await store.performSearch(store.query, filters)
 }
 </script>
 
