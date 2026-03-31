@@ -13,6 +13,62 @@ interface SearchProviderConfig {
 const GPT_MODEL_FAST = "gpt-4.1-nano";
 const GPT_MODEL_SMART = "gpt-4.1";
 
+const SERP_JSON_SCHEMA = {
+  type: "object",
+  required: ["results", "totalCount", "query"],
+  additionalProperties: false,
+  properties: {
+    results: {
+      type: "array",
+      description: "The list of search results matching the query.",
+      items: {
+        type: "object",
+        required: ["id", "title", "url"],
+        additionalProperties: false,
+        properties: {
+          id: {
+            type: "string",
+            description: "A unique identifier for this result.",
+          },
+          title: {
+            type: "string",
+            description:
+              "The title of the search result, as it would appear in a SERP.",
+          },
+          url: {
+            type: "string",
+            description: "The canonical URL of the result page.",
+          },
+          snippet: {
+            type: "string",
+            description:
+              "A short excerpt from the result page that explains its relevance to the query, as typically shown beneath the title in a SERP.",
+          },
+          summary: {
+            type: "string",
+            description:
+              "A concise, neutral summary of the result page's content — longer and more informative than the snippet, written in plain prose.",
+          },
+          thumbnail_url: {
+            type: "string",
+            description:
+              "A URL pointing to a representative thumbnail image for this result, if one is available.",
+          },
+        },
+      },
+    },
+    totalCount: {
+      type: "number",
+      description:
+        "The total number of results available for this query, which may be larger than the number of results returned.",
+    },
+    query: {
+      type: "string",
+      description: "The original search query string as submitted by the user.",
+    },
+  },
+};
+
 const WIDGET_JSON_SCHEMA = {
   required: ["disambiguation", "widgets"],
   additionalProperties: false,
