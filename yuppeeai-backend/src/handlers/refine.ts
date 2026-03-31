@@ -4,7 +4,7 @@ import type {
   SearchRefinementsResponse,
   SearchRequest,
 } from "../types";
-import { SearchProvider } from "../services/searchProvider";
+import { SearchRefiner } from "../services/searchRefiner";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -32,12 +32,12 @@ export const handler: LambdaHandler = async (event, _context) => {
       return errorResponse(400, "Missing required field: query");
     }
 
-    const searchProvider = new SearchProvider({
+    const searchRefiner = new SearchRefiner({
       openaiApiKey: process.env["OPENAI_API_KEY"],
     });
 
     const response: SearchRefinementsResponse =
-      await searchProvider.inferSearchRefinements({
+      await searchRefiner.inferSearchRefinements({
         query: request.query,
         filters: request.filters,
       });

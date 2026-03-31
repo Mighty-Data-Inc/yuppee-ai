@@ -1,10 +1,5 @@
 import OpenAI from "openai";
-import type {
-  SearchRefinementsResponse,
-  SearchRequest,
-  SearchResponse,
-} from "../types";
-import { SearchRefiner } from "./searchRefiner";
+import type { SearchRequest, SearchResponse } from "../types";
 
 interface SearchProviderConfig {
   openaiApiKey?: string;
@@ -63,13 +58,11 @@ const SERP_JSON_SCHEMA = {
 
 export class SearchProvider {
   private readonly config: Required<SearchProviderConfig>;
-  private readonly searchRefiner: SearchRefiner;
 
   constructor(config: SearchProviderConfig = {}) {
     this.config = {
       openaiApiKey: config.openaiApiKey ?? "",
     };
-    this.searchRefiner = new SearchRefiner(this.config);
   }
 
   async getSearchResults(request: SearchRequest): Promise<SearchResponse> {
@@ -148,11 +141,5 @@ export class SearchProvider {
     }
 
     return retval;
-  }
-
-  async inferSearchRefinements(
-    request: SearchRequest,
-  ): Promise<SearchRefinementsResponse> {
-    return this.searchRefiner.inferSearchRefinements(request);
   }
 }

@@ -1,6 +1,6 @@
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { handler } from "../handlers/refine";
-import { SearchProvider } from "../services/searchProvider";
+import { SearchRefiner } from "../services/searchRefiner";
 
 const mockContext = {} as Context;
 
@@ -47,7 +47,7 @@ describe("search refinements handler", () => {
 
   it("returns inferred refinements for a valid query", async () => {
     const inferSpy = jest
-      .spyOn(SearchProvider.prototype, "inferSearchRefinements")
+      .spyOn(SearchRefiner.prototype, "inferSearchRefinements")
       .mockResolvedValue({
         query: "best books about startup fundraising",
         disambiguation: "analysis",
