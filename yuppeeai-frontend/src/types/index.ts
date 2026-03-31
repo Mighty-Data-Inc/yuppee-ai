@@ -10,6 +10,7 @@ export type WidgetType =
   | "range-slider"
   | "checkbox"
   | "chipgroup"
+  | "switch"
   | "dropdown"
   | "freeform";
 

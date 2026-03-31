@@ -5,6 +5,7 @@ import RadioWidget from '@/components/widgets/RadioWidget.vue'
 import RangeSliderWidget from '@/components/widgets/RangeSliderWidget.vue'
 import CheckboxWidget from '@/components/widgets/CheckboxWidget.vue'
 import ChipGroupWidget from '@/components/widgets/ChipGroupWidget.vue'
+import SwitchWidget from '@/components/widgets/SwitchWidget.vue'
 import DropdownWidget from '@/components/widgets/DropdownWidget.vue'
 import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 
@@ -81,6 +82,12 @@ const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform'
           />
           <ChipGroupWidget
             v-else-if="widget.type === 'chipgroup'"
+            :widget="widget"
+            :model-value="widgetValues[widget.id] ?? widget.value"
+            @update:model-value="updateValue(widget.id, $event)"
+          />
+          <SwitchWidget
+            v-else-if="widget.type === 'switch'"
             :widget="widget"
             :model-value="widgetValues[widget.id] ?? widget.value"
             @update:model-value="updateValue(widget.id, $event)"

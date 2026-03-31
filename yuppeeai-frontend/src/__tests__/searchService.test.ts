@@ -191,6 +191,12 @@ describe("searchService.generateWidgets", () => {
                       value_max: 5,
                     },
                   },
+                  {
+                    type: "switch",
+                    variable_name: "in_stock",
+                    label: "In Stock Only",
+                    value: true,
+                  },
                 ],
               }),
           });
@@ -205,7 +211,7 @@ describe("searchService.generateWidgets", () => {
 
     const widgets = await generateWidgets("best novels");
 
-    expect(widgets).toHaveLength(3);
+    expect(widgets).toHaveLength(4);
     expect(widgets[0]).toMatchObject({
       id: "novel_type",
       type: "dropdown",
@@ -224,6 +230,12 @@ describe("searchService.generateWidgets", () => {
       min: 1,
       max: 5,
       value: [1, 5],
+    });
+    expect(widgets[3]).toMatchObject({
+      id: "in_stock",
+      type: "switch",
+      label: "In Stock Only",
+      value: true,
     });
   });
 

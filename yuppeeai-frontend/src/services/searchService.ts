@@ -29,6 +29,7 @@ function normalizeWidgetType(type: string): Widget["type"] | null {
   if (type === "dropdown") return "dropdown";
   if (type === "chipgroup" || type === "checkboxes") return "chipgroup";
   if (type === "checkbox") return "checkbox";
+  if (type === "switch") return "switch";
   if (type === "slider" || type === "range-slider") return "range-slider";
   if (type === "radio") return "radio";
   if (type === "freeform") return "freeform";
@@ -91,6 +92,15 @@ function normalizeWidgets(
           options,
           value:
             currentFilters?.[id] ?? widget.value ?? options?.[0]?.value ?? "",
+        };
+      }
+
+      if (type === "switch") {
+        return {
+          id,
+          type,
+          label: widget.label ?? id,
+          value: Boolean(currentFilters?.[id] ?? widget.value ?? false),
         };
       }
 

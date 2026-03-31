@@ -68,6 +68,13 @@
       }
     },
     {
+      "type": "switch",
+      "variable_name": "award_winners_only",
+      "label": "Award Winners Only",
+      "tooltip": "Toggle to limit results to novels that have received major literary awards.",
+      "value": false
+    },
+    {
       "type": "slider",
       "variable_name": "rating",
       "label": "Rating",
