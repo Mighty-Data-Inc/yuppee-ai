@@ -369,22 +369,39 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     convo.addUserMessage(request.query);
     await convo.submit();
 
-    // The above "submit" was simply to trigger chain-of-thought reasoning in the conversation.
-    // The below "submit" is used to get the structured JSON response for the search refinements.
-    // Both are necessary for good results.
+    const retval: {
+      report: string;
+      refinements: unknown;
+    } = {
+      report: "",
+      refinements: null,
+    };
 
-    const refinements: any = await convo.submit(undefined, undefined, {
-      jsonResponse: {
-        format: {
-          type: "json_schema",
-          strict: true,
-          name: "json_schema_for_structured_response",
-          schema: WIDGET_JSON_SCHEMA,
+    try {
+      // The above "submit" was simply to trigger chain-of-thought reasoning in the conversation.
+      // The below "submit" is used to get the structured JSON response for the search refinements.
+      // Both are necessary for good results.
+      const refinements: any = await convo.submit(undefined, undefined, {
+        jsonResponse: {
+          format: {
+            type: "json_schema",
+            strict: true,
+            name: "json_schema_for_structured_response",
+            schema: WIDGET_JSON_SCHEMA,
+          },
         },
-      },
-    });
+      });
 
-    return this.cleanRefinements(refinements);
+      retval.refinements = this.cleanRefinements(refinements);
+    } catch (error) {
+      console.error(
+        "Error during structured output request for refinements:",
+        error,
+      );
+      throw error;
+    }
+
+    return retval;
   }
 
   private cleanRefinements(raw: any): any {
