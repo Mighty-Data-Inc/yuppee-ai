@@ -430,7 +430,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
       }
 
       const cleanedWidget = {
-        type,
+        type: type === "checkboxes" ? "chipgroup" : type,
         variable_name,
         label,
         tooltip: widget_descriptive_title?.teleological ?? "",

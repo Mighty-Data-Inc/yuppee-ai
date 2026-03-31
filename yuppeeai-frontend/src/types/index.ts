@@ -9,6 +9,7 @@ export type WidgetType =
   | "radio"
   | "range-slider"
   | "checkbox"
+  | "chipgroup"
   | "dropdown"
   | "freeform";
 

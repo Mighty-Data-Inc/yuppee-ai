@@ -27,7 +27,8 @@ type BackendWidget = {
 
 function normalizeWidgetType(type: string): Widget["type"] | null {
   if (type === "dropdown") return "dropdown";
-  if (type === "checkbox" || type === "checkboxes") return "checkbox";
+  if (type === "chipgroup" || type === "checkboxes") return "chipgroup";
+  if (type === "checkbox") return "checkbox";
   if (type === "slider" || type === "range-slider") return "range-slider";
   if (type === "radio") return "radio";
   if (type === "freeform") return "freeform";
@@ -72,7 +73,7 @@ function normalizeWidgets(
         };
       }
 
-      if (type === "checkbox") {
+      if (type === "checkbox" || type === "chipgroup") {
         return {
           id,
           type,

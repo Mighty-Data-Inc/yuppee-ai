@@ -173,7 +173,7 @@ describe("searchService.generateWidgets", () => {
                     },
                   },
                   {
-                    type: "checkboxes",
+                    type: "chipgroup",
                     variable_name: "recognition",
                     label: "Recognition",
                     params: {
@@ -214,7 +214,7 @@ describe("searchService.generateWidgets", () => {
     });
     expect(widgets[1]).toMatchObject({
       id: "recognition",
-      type: "checkbox",
+      type: "chipgroup",
       label: "Recognition",
       value: [],
     });

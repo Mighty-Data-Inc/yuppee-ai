@@ -24,7 +24,7 @@
       }
     },
     {
-      "type": "checkboxes",
+      "type": "chipgroup",
       "variable_name": "recognition",
       "label": "Recognition/Recognition Type",
       "tooltip": "Allow users to filter based on awards, popularity, or critical acclaim to find highly regarded novels.",
