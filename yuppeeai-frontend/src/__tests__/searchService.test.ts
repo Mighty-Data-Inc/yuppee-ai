@@ -164,6 +164,65 @@ describe("searchService.search", () => {
     });
   });
 
+  it("preserves both snippet and summary when backend provides both", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results: [
+              {
+                title: "Dual text result",
+                url: "https://example.com/dual",
+                snippet: "Short snippet",
+                summary: "Longer detailed summary",
+              },
+            ],
+          }),
+      }),
+    );
+
+    const response = await search("dual text test");
+
+    expect(response.results).toHaveLength(1);
+    expect(response.results[0]).toMatchObject({
+      title: "Dual text result",
+      url: "https://example.com/dual",
+      snippet: "Short snippet",
+      summary: "Longer detailed summary",
+    });
+  });
+
+  it("does not use summary as snippet fallback", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results: [
+              {
+                title: "Summary-only result",
+                url: "https://example.com/summary-only",
+                summary: "This should stay in summary only",
+              },
+            ],
+          }),
+      }),
+    );
+
+    const response = await search("summary only test");
+
+    expect(response.results).toHaveLength(1);
+    expect(response.results[0]).toMatchObject({
+      title: "Summary-only result",
+      url: "https://example.com/summary-only",
+      snippet: "",
+      summary: "This should stay in summary only",
+    });
+  });
+
   it("sends a POST request with query and filters to /search", async () => {
     const filters = { genre: "history" };
     await search("books about history", filters);

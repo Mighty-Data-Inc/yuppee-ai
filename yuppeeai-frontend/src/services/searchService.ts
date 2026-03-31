@@ -29,17 +29,14 @@ function normalizeSearchResults(rawResults: unknown): SearchResult[] {
       typeof result.title === "string" && result.title.trim()
         ? result.title
         : url;
-    const snippet =
-      typeof result.snippet === "string"
-        ? result.snippet
-        : typeof result.summary === "string"
-          ? result.summary
-          : "";
+    const summary = typeof result.summary === "string" ? result.summary : "";
+    const snippet = typeof result.snippet === "string" ? result.snippet : "";
 
     normalized.push({
       title,
       url,
       snippet,
+      summary,
     });
   }
 

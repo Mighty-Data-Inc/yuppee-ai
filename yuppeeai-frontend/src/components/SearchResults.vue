@@ -42,7 +42,13 @@ function formatUrl(url: string): string {
         <a :href="result.url" class="result-card__title" target="_blank" rel="noopener noreferrer">
           {{ result.title }}
         </a>
-        <p class="result-card__snippet">{{ result.snippet }}</p>
+        <p v-if="result.snippet" class="result-card__snippet">{{ result.snippet }}</p>
+        <p
+          v-if="result.summary && result.summary !== result.snippet"
+          class="result-card__summary"
+        >
+          {{ result.summary }}
+        </p>
       </article>
     </template>
 
@@ -122,6 +128,13 @@ function formatUrl(url: string): string {
   font-size: 0.9rem;
   color: var(--color-text-muted);
   line-height: 1.6;
+}
+
+.result-card__summary {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.94rem;
+  color: var(--color-text);
+  line-height: 1.7;
 }
 
 /* Skeleton styles */

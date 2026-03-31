@@ -2,6 +2,7 @@ export interface SearchResult {
   title: string;
   url: string;
   snippet: string;
+  summary?: string;
 }
 
 export type WidgetType =

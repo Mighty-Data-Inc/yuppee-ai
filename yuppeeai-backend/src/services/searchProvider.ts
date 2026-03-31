@@ -39,7 +39,7 @@ const SERP_JSON_SCHEMA = {
           snippet: {
             type: "string",
             description:
-              "A short excerpt from the result page that explains its relevance to the query, as typically shown beneath the title in a SERP. Optional but strongly encouraged; leave blank if none available.",
+              "A short excerpt from the result page that explains its relevance to the query, as typically shown beneath the title in a SERP. **Must be the !!EXACT WORDS!! from the result page.** Optional but strongly encouraged; leave blank if none available.",
           },
           summary: {
             type: "string",
@@ -49,7 +49,7 @@ const SERP_JSON_SCHEMA = {
           thumbnail_url: {
             type: "string",
             description:
-              "A URL pointing to a representative thumbnail image for this result, if one is available. Optional; leave blank if none available.",
+              "A URL pointing to an image corresponding to this result. This could be a thumbnail or any representative image for the result; it will be shown as a thumbnail on the search results page, but the URL can be an image of any size. Optional; leave blank if none available.",
           },
         },
       },
