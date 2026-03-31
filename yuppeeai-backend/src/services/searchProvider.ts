@@ -76,8 +76,16 @@ export class SearchProvider {
     const convo: ResponseInput = [
       {
         role: "developer",
-        content:
-          "You are an AI that powers the back end of a smart search engine. First, discuss the user's intent, and establish a firm understanding of what they're looking for. Then, use web search to gather current relevant SERP-style results for the user's query. Do not return JSON yet; first reason through likely user intent and source selection.",
+        content: `
+You are an AI that powers the back end of a smart search engine.
+
+First, discuss the user's intent, and establish a firm understanding of what they're looking for.
+
+Then, give a ballpark numerical estimate of how many relevant SERP rows the user might want to see. This should be somewhere between, say, 5 results and 200. Very specific searches will of course produce very few results; while very broad ones may produce many results. Ultimately, the bottleneck is not a question of how many results exist, but how many the user is likely to find useful. If they're doing deep research on a topic, they might want more results; if they're just looking for a quick answer, fewer results will suffice.
+
+Finally, having determined the user's intent and the approximate number of results they probably want to see, use web search to gather current relevant SERP-style results for the user's query.
+
+Do not return JSON yet; first reason through likely user intent and source selection.`,
       },
       {
         role: "user",
