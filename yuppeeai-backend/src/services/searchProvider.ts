@@ -11,40 +11,46 @@ const GPT_MODEL_SMART = "gpt-4.1";
 
 const SERP_JSON_SCHEMA = {
   type: "object",
-  required: ["results"],
+  required: ["result_summary", "results"],
   additionalProperties: false,
   properties: {
+    result_summary: {
+      type: "string",
+      description:
+        "A concise summary of the search results for the query, in a way that can be presented as a short intro at the top of the page before listing the SERP results. You may use <strong> and <em> tags to emphasize key points.",
+    },
     results: {
       type: "array",
       description: "The list of search results matching the query.",
       items: {
         type: "object",
-        required: ["title"],
+        required: ["title", "url", "snippet", "summary", "thumbnail_url"],
         additionalProperties: false,
         properties: {
           title: {
             type: "string",
             description:
-              "The title of the search result, as it would appear in a SERP.",
+              "The title of the search result, as it would appear in a SERP. Mandatory.",
           },
           url: {
             type: "string",
-            description: "The canonical URL of the result page.",
+            description:
+              "The canonical URL of the result page. Optional, but strongly encouraged; leave blank if none available.",
           },
           snippet: {
             type: "string",
             description:
-              "A short excerpt from the result page that explains its relevance to the query, as typically shown beneath the title in a SERP.",
+              "A short excerpt from the result page that explains its relevance to the query, as typically shown beneath the title in a SERP. Optional but strongly encouraged; leave blank if none available.",
           },
           summary: {
             type: "string",
             description:
-              "A concise, neutral summary of the result page's content — longer and more informative than the snippet, written in plain prose.",
+              "A concise, neutral summary of the result page's content — longer and more informative than the snippet, written in plain prose. Optional but strongly encouraged; leave blank if none available.",
           },
           thumbnail_url: {
             type: "string",
             description:
-              "A URL pointing to a representative thumbnail image for this result, if one is available.",
+              "A URL pointing to a representative thumbnail image for this result, if one is available. Optional; leave blank if none available.",
           },
         },
       },
@@ -276,23 +282,34 @@ Do not return JSON yet; first reason through the query and the likely intent.
 
     await convo.submit();
 
-    // The first submit encourages deliberate reasoning.
-    // The second submit requests strict structured output.
-    const structuredResponse = (await convo.submit(undefined, undefined, {
-      jsonResponse: {
-        format: {
-          type: "json_schema",
-          strict: true,
-          name: "json_schema_for_serp_results",
-          schema: SERP_JSON_SCHEMA,
-        },
-      },
-    })) as { results: SearchResponse["results"] };
-
-    return {
+    const retval = {
       query: request.query,
-      results: structuredResponse.results,
+      result_summary: "",
+      results: [] as SearchResponse["results"],
     };
+
+    try {
+      // The first submit encourages deliberate reasoning.
+      // The second submit requests strict structured output.
+      const structuredResponse: any = await convo.submit(undefined, undefined, {
+        jsonResponse: {
+          format: {
+            type: "json_schema",
+            strict: true,
+            name: "json_schema_for_serp_results",
+            schema: SERP_JSON_SCHEMA,
+          },
+        },
+      });
+
+      retval.result_summary = structuredResponse.result_summary;
+      retval.results = structuredResponse.results;
+    } catch (error) {
+      console.error("Error during structured output request:", error);
+      throw error;
+    }
+
+    return retval;
   }
 
   async inferSearchRefinements(request: SearchRequest): Promise<{
