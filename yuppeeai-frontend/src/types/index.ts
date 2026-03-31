@@ -23,6 +23,7 @@ export interface Widget {
   id: string;
   type: WidgetType;
   label: string;
+  tooltip?: string;
   options?: WidgetOption[];
   min?: number;
   max?: number;

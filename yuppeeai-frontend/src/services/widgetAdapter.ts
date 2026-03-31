@@ -10,6 +10,7 @@ type BackendWidget = {
   id?: string;
   variable_name?: string;
   label?: string;
+  tooltip?: string;
   options?: BackendWidgetChoice[];
   min?: number;
   max?: number;
@@ -125,6 +126,7 @@ export function normalizeWidgets(
           id,
           type,
           label: widget.label ?? id,
+          tooltip: widget.tooltip,
           min,
           max,
           step: widget.step ?? 1,
@@ -138,6 +140,7 @@ export function normalizeWidgets(
           id,
           type,
           label: widget.label ?? id,
+          tooltip: widget.tooltip,
           options,
           value: currentFilters?.[id] ?? widget.value ?? [],
         };
@@ -148,6 +151,7 @@ export function normalizeWidgets(
           id,
           type,
           label: widget.label ?? id,
+          tooltip: widget.tooltip,
           options,
           value: currentFilters?.[id] ?? widget.value ?? "",
         };
@@ -158,6 +162,7 @@ export function normalizeWidgets(
           id,
           type,
           label: widget.label ?? id,
+          tooltip: widget.tooltip,
           options,
           value:
             currentFilters?.[id] ?? widget.value ?? options?.[0]?.value ?? "",
@@ -169,6 +174,7 @@ export function normalizeWidgets(
           id,
           type,
           label: widget.label ?? id,
+          tooltip: widget.tooltip,
           value: Boolean(currentFilters?.[id] ?? widget.value ?? false),
         };
       }
@@ -177,6 +183,7 @@ export function normalizeWidgets(
         id,
         type,
         label: widget.label ?? id,
+        tooltip: widget.tooltip,
         value: currentFilters?.[id] ?? widget.value ?? "",
       };
     })

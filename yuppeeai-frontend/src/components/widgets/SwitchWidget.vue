@@ -14,7 +14,18 @@ const emit = defineEmits<{
 <template>
   <div class="widget">
     <label class="widget__switch-row">
-      <span class="widget__label">{{ widget.label }}</span>
+      <span class="widget__label-wrap">
+        <span class="widget__label">{{ widget.label }}</span>
+        <span
+          v-if="widget.tooltip"
+          class="widget__tooltip"
+          :title="widget.tooltip"
+          :aria-label="widget.tooltip"
+          tabindex="0"
+        >
+          i
+        </span>
+      </span>
       <span class="widget__switch-wrap">
         <input
           type="checkbox"
@@ -39,11 +50,37 @@ const emit = defineEmits<{
   cursor: pointer;
 }
 
+.widget__label-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
 .widget__label {
   font-size: 0.86rem;
   font-weight: 600;
   color: var(--color-text);
   letter-spacing: 0.01em;
+}
+
+.widget__tooltip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: help;
+  user-select: none;
+}
+
+.widget__tooltip:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 1px;
 }
 
 .widget__switch-wrap {

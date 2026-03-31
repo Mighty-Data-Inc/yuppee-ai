@@ -18,7 +18,18 @@ const hasEmptyOption = computed(() =>
 
 <template>
   <div class="widget">
-    <p class="widget__label">{{ widget.label }}</p>
+    <div class="widget__label-row">
+      <p class="widget__label">{{ widget.label }}</p>
+      <span
+        v-if="widget.tooltip"
+        class="widget__tooltip"
+        :title="widget.tooltip"
+        :aria-label="widget.tooltip"
+        tabindex="0"
+      >
+        i
+      </span>
+    </div>
     <div class="widget__select-wrapper">
       <select
         class="widget__select"
@@ -48,7 +59,33 @@ const hasEmptyOption = computed(() =>
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+.widget__label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   margin-bottom: 0.5rem;
+}
+
+.widget__tooltip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: help;
+  user-select: none;
+}
+
+.widget__tooltip:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 1px;
 }
 
 .widget__select-wrapper {

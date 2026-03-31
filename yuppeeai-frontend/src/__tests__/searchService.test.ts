@@ -183,6 +183,8 @@ describe("searchService.generateWidgets", () => {
                     type: "dropdown",
                     variable_name: "novel_type",
                     label: "Type of Novel",
+                    tooltip:
+                      "Shows the style and era focus of each recommendation",
                     params: {
                       choices: [
                         { value: "classics", label: "Classics" },
