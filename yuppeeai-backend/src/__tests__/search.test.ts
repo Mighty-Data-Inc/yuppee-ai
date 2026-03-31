@@ -45,7 +45,6 @@ describe("search handler", () => {
           summary: "A sample summary.",
         },
       ],
-      totalCount: 1,
       query: "interesting topics",
     });
 
@@ -70,7 +69,6 @@ describe("search handler", () => {
           thumbnail_url: "https://example.com/thumb.jpg",
         },
       ],
-      totalCount: 1,
       query: "interesting topics",
     });
 
@@ -105,7 +103,6 @@ describe("search handler", () => {
           summary: "Another book summary.",
         },
       ],
-      totalCount: 2,
       query: "best book recommendations",
     });
 

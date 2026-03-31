@@ -10,9 +10,9 @@ export interface SearchRequest {
 }
 
 export interface SearchResult {
-  id: string;
+  id?: string;
   title: string;
-  url: string;
+  url?: string;
   snippet?: string;
   summary?: string;
   thumbnail_url?: string;
@@ -20,7 +20,6 @@ export interface SearchResult {
 
 export interface SearchResponse {
   results: SearchResult[];
-  totalCount: number;
   query: string;
 }
 

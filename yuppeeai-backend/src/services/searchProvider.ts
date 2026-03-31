@@ -1,10 +1,6 @@
 import OpenAI from "openai";
 import type { SearchRequest, SearchResponse } from "../types";
-import { ResponseInput } from "openai/resources/responses/responses";
-import {
-  JSONSchemaFormat,
-  LLMConversation,
-} from "@mightydatainc/llm-conversation";
+import { LLMConversation } from "@mightydatainc/llm-conversation";
 
 interface SearchProviderConfig {
   openaiApiKey?: string;
@@ -15,7 +11,7 @@ const GPT_MODEL_SMART = "gpt-4.1";
 
 const SERP_JSON_SCHEMA = {
   type: "object",
-  required: ["results", "totalCount", "query"],
+  required: ["results"],
   additionalProperties: false,
   properties: {
     results: {
@@ -23,13 +19,9 @@ const SERP_JSON_SCHEMA = {
       description: "The list of search results matching the query.",
       items: {
         type: "object",
-        required: ["id", "title", "url"],
+        required: ["title"],
         additionalProperties: false,
         properties: {
-          id: {
-            type: "string",
-            description: "A unique identifier for this result.",
-          },
           title: {
             type: "string",
             description:
@@ -56,15 +48,6 @@ const SERP_JSON_SCHEMA = {
           },
         },
       },
-    },
-    totalCount: {
-      type: "number",
-      description:
-        "The total number of results available for this query, which may be larger than the number of results returned.",
-    },
-    query: {
-      type: "string",
-      description: "The original search query string as submitted by the user.",
     },
   },
 };
@@ -257,7 +240,59 @@ export class SearchProvider {
   }
 
   async getSearchResults(request: SearchRequest): Promise<SearchResponse> {
-    return this.realSearch(request);
+    if (!this.config.openaiApiKey) {
+      throw new Error("OPENAI_API_KEY is not configured.");
+    }
+
+    const openaiClient = new OpenAI({ apiKey: this.config.openaiApiKey });
+
+    const convo = new LLMConversation(openaiClient, undefined, GPT_MODEL_SMART);
+    convo.addDeveloperMessage(`
+You're an AI that powers the back end of a smart search engine.
+
+Your task is to generate realistic SERP-style search results for the user's query.
+
+Requirements:
+- Return relevant, plausible web results for the user's query.
+- Include a good mix of authoritative and useful sources when appropriate.
+- Keep snippets concise and informative.
+- Use summary for a slightly richer one-paragraph description when available.
+- Include thumbnail_url only when a plausible image URL is appropriate.
+- Preserve result ordering from most relevant to least relevant.
+
+Do not return JSON yet; first reason through the query and the likely intent.
+`);
+
+    convo.addDeveloperMessage(
+      "The user will now provide the search query and optional filters.",
+    );
+    convo.addUserMessage(`Search query:\n${request.query}`);
+    if (request.filters && Object.keys(request.filters).length > 0) {
+      convo.addUserMessage(
+        `I want the results filtered as follows:\n` +
+          `${JSON.stringify(request.filters, null, 2)}`,
+      );
+    }
+
+    await convo.submit();
+
+    // The first submit encourages deliberate reasoning.
+    // The second submit requests strict structured output.
+    const structuredResponse = (await convo.submit(undefined, undefined, {
+      jsonResponse: {
+        format: {
+          type: "json_schema",
+          strict: true,
+          name: "json_schema_for_serp_results",
+          schema: SERP_JSON_SCHEMA,
+        },
+      },
+    })) as { results: SearchResponse["results"] };
+
+    return {
+      query: request.query,
+      results: structuredResponse.results,
+    };
   }
 
   async inferSearchRefinements(request: SearchRequest): Promise<{
@@ -420,24 +455,5 @@ Do this query's search results lend themselves to any kind of filtration by a nu
       widgets: cleanedWidgets,
     };
     return retval;
-  }
-
-  private async realSearch(request: SearchRequest): Promise<SearchResponse> {
-    // TODO: Implement real search using Google Custom Search API or SerpAPI
-    // Example structure for Google Custom Search:
-    // const url = new URL('https://www.googleapis.com/customsearch/v1')
-    // url.searchParams.set('key', this.config.apiKey)
-    // url.searchParams.set('cx', this.config.engineId)
-    // url.searchParams.set('q', request.query)
-    //
-    // const response = await fetch(url.toString())
-    // if (!response.ok) {
-    //   throw new Error(`Search API error: ${response.status} ${response.statusText}`)
-    // }
-    // const data = await response.json()
-    // return transformGoogleResults(data, request.query)
-    throw new Error(
-      "Real search not yet implemented. Implement the real search provider.",
-    );
   }
 }
