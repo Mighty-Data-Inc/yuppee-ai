@@ -23,18 +23,40 @@ const MOCK_SEARCH_RESULTS = [
   },
 ];
 
+const MOCK_WIDGETS = [
+  {
+    id: "date-range",
+    type: "range-slider",
+    label: "Date Range",
+    min: 2000,
+    max: 2024,
+    step: 1,
+    value: [2010, 2024],
+  },
+];
+
 beforeEach(() => {
   setActivePinia(createPinia());
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          results: MOCK_SEARCH_RESULTS,
-          totalCount: MOCK_SEARCH_RESULTS.length,
-          query: "test",
-        }),
+    vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/search/refinements")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ widgets: MOCK_WIDGETS }),
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results: MOCK_SEARCH_RESULTS,
+            totalCount: MOCK_SEARCH_RESULTS.length,
+            query: "test",
+          }),
+      });
     }),
   );
 });

@@ -350,7 +350,6 @@ Write a list of 10 sample results that might look like the kind of thing the SER
 III. Categorization
 Can these potential SERP results be sorted into categories and subcategories? For example, if the query were "Apple computer company", one category of results could be "Significant people", with subcategories being "Steve Jobs", "Steve Wozniak", and "Tim Cook", allowing the user to find articles specifically about, say, Steve Jobs, for example. Can you give a similar treatment to the user's search query? Or no? If so, write a two-level bulletted list, listing categories and subcategories -- it should consist of at least one category, and each category should contain a minimum of two subcategories.
 
-
 IV. Discussion of Possible UI Widgets for Selecting Categories
 The categories you described in Section III can be represented as UI widgets to allow the user to filter their search results. We have the following library of widgets to choose from:
 - **Dropdown**. The category name becomes the dropdown's label, and the subcategories become values that can be selected in the dropdown. The user can select 1 specific subcategory to drill down into.
@@ -372,8 +371,6 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     convo.addUserMessage(request.query);
     await convo.submit();
 
-    console.log(convo.getLastReplyStr());
-
     // The above "submit" was simply to trigger chain-of-thought reasoning in the conversation.
     // The below "submit" is used to get the structured JSON response for the search refinements.
     // Both are necessary for good results.
@@ -394,7 +391,6 @@ Do this query's search results lend themselves to any kind of filtration by a nu
 
   private cleanRefinements(raw: any): any {
     if (!raw || typeof raw !== "object") return raw;
-    console.log("Raw refinements:", JSON.stringify(raw, null, 2));
 
     const widgets: any[] = Array.isArray(raw.widgets) ? raw.widgets : [];
 

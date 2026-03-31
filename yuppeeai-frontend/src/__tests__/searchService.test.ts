@@ -40,13 +40,49 @@ const MOCK_RESULTS = [
   },
 ];
 
-function mockFetch(results = MOCK_RESULTS) {
+const MOCK_WIDGETS = [
+  {
+    id: "date-range",
+    type: "range-slider",
+    label: "Date Range",
+    min: 2000,
+    max: 2024,
+    step: 1,
+    value: [2010, 2024],
+  },
+  {
+    id: "sort-by",
+    type: "dropdown",
+    label: "Sort By",
+    options: [
+      { label: "Most relevant", value: "relevance" },
+      { label: "Most recent", value: "recent" },
+    ],
+    value: "relevance",
+  },
+];
+
+function mockFetch(results = MOCK_RESULTS, widgets = MOCK_WIDGETS) {
   vi.stubGlobal(
     "fetch",
-    vi.fn().mockResolvedValue({
-      ok: true,
-      json: () =>
-        Promise.resolve({ results, totalCount: results.length, query: "test" }),
+    vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/search/refinements")) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ widgets }),
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results,
+            totalCount: results.length,
+            query: "test",
+          }),
+      });
     }),
   );
 }
@@ -110,44 +146,129 @@ describe("searchService.search", () => {
 });
 
 describe("searchService.generateWidgets", () => {
-  it("returns book widgets for book queries", async () => {
-    const widgets = await generateWidgets("Books about Crimean War");
-    const types = widgets.map((w) => w.type);
-    expect(types).toContain("radio");
-    expect(types).toContain("range-slider");
-    expect(types).toContain("checkbox");
-    expect(types).toContain("dropdown");
+  beforeEach(() => {
+    mockFetch();
   });
 
-  it("returns movie widgets for movie queries", async () => {
-    const widgets = await generateWidgets("best sci-fi movies");
-    const types = widgets.map((w) => w.type);
-    expect(types).toContain("checkbox");
-    expect(types).toContain("range-slider");
-    expect(types).toContain("dropdown");
-    expect(types).toContain("radio");
+  it("normalizes backend refinement widget schema", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/search/refinements")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                widgets: [
+                  {
+                    type: "dropdown",
+                    variable_name: "novel_type",
+                    label: "Type of Novel",
+                    params: {
+                      choices: [
+                        { value: "classics", label: "Classics" },
+                        { value: "modern", label: "Modern" },
+                      ],
+                    },
+                  },
+                  {
+                    type: "checkboxes",
+                    variable_name: "recognition",
+                    label: "Recognition",
+                    params: {
+                      choices: [
+                        { value: "award_winning", label: "Award-winning" },
+                      ],
+                    },
+                  },
+                  {
+                    type: "slider",
+                    variable_name: "rating",
+                    label: "Rating",
+                    params: {
+                      value_min: 1,
+                      value_max: 5,
+                    },
+                  },
+                ],
+              }),
+          });
+        }
+
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: MOCK_RESULTS }),
+        });
+      }),
+    );
+
+    const widgets = await generateWidgets("best novels");
+
+    expect(widgets).toHaveLength(3);
+    expect(widgets[0]).toMatchObject({
+      id: "novel_type",
+      type: "dropdown",
+      label: "Type of Novel",
+      value: "classics",
+    });
+    expect(widgets[1]).toMatchObject({
+      id: "recognition",
+      type: "checkbox",
+      label: "Recognition",
+      value: [],
+    });
+    expect(widgets[2]).toMatchObject({
+      id: "rating",
+      type: "range-slider",
+      min: 1,
+      max: 5,
+      value: [1, 5],
+    });
   });
 
-  it("returns default widgets for generic queries", async () => {
+  it("returns widgets from /search/refinements", async () => {
     const widgets = await generateWidgets("artificial intelligence");
-    expect(widgets.length).toBeGreaterThan(0);
-    const types = widgets.map((w) => w.type);
-    expect(types).toContain("dropdown");
+    expect(widgets).toHaveLength(2);
+    expect(widgets[0]?.id).toBe("date-range");
   });
 
-  it("adds scholarly-level widget when fiction-type is nonfiction", async () => {
-    const widgets = await generateWidgets("books", {
-      "fiction-type": "nonfiction",
-    });
-    const ids = widgets.map((w) => w.id);
-    expect(ids).toContain("scholarly-level");
+  it("sends a POST request with query and filters to /search/refinements", async () => {
+    const filters = { genre: "history" };
+    await generateWidgets("books about history", filters);
+
+    const fetchMock = vi.mocked(fetch);
+    const refinementCall = fetchMock.mock.calls.find((call) =>
+      String(call[0]).endsWith("/search/refinements"),
+    );
+
+    expect(refinementCall).toBeDefined();
+    const [url, init] = refinementCall as [string, RequestInit];
+    expect(url).toMatch(/\/search\/refinements$/);
+    expect(init.method).toBe("POST");
+    const body = JSON.parse(init.body as string);
+    expect(body.query).toBe("books about history");
+    expect(body.filters).toEqual(filters);
   });
 
-  it("adds fiction-genres widget when fiction-type is fiction", async () => {
-    const widgets = await generateWidgets("books", {
-      "fiction-type": "fiction",
-    });
-    const ids = widgets.map((w) => w.id);
-    expect(ids).toContain("fiction-genres");
+  it("throws when refinements endpoint returns a non-ok response", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/search/refinements")) {
+          return Promise.resolve({ ok: false, status: 500 });
+        }
+
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: MOCK_RESULTS }),
+        });
+      }),
+    );
+
+    await expect(generateWidgets("test query")).rejects.toThrow(
+      "Refinements request failed: 500",
+    );
   });
 });

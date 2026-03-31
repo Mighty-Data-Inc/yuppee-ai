@@ -1,0 +1,83 @@
+{
+  "disambiguation": null,
+  "widgets": [
+    {
+      "type": "dropdown",
+      "variable_name": "novel_type",
+      "label": "Type of Novel",
+      "tooltip": "Help users filter recommendations based on the classic, modern, or lesser-known status of the novel.",
+      "params": {
+        "choices": [
+          {
+            "value": "classics",
+            "label": "Classics"
+          },
+          {
+            "value": "modern",
+            "label": "Modern"
+          },
+          {
+            "value": "hidden_gems",
+            "label": "Hidden Gems"
+          }
+        ]
+      }
+    },
+    {
+      "type": "checkboxes",
+      "variable_name": "recognition",
+      "label": "Recognition/Recognition Type",
+      "tooltip": "Allow users to filter based on awards, popularity, or critical acclaim to find highly regarded novels.",
+      "params": {
+        "choices": [
+          {
+            "value": "award_winning",
+            "label": "Award-winning"
+          },
+          {
+            "value": "best_selling",
+            "label": "Best-sellers"
+          },
+          {
+            "value": "critically_acclaimed",
+            "label": "Critically acclaimed"
+          }
+        ]
+      }
+    },
+    {
+      "type": "dropdown",
+      "variable_name": "time_frame",
+      "label": "Time Frame",
+      "tooltip": "Help users specify the publication period or influence period of the novels.",
+      "params": {
+        "choices": [
+          {
+            "value": "last_decade",
+            "label": "Last decade"
+          },
+          {
+            "value": "historical_influential",
+            "label": "Historical influential"
+          },
+          {
+            "value": "upcoming",
+            "label": "Upcoming/recent releases"
+          }
+        ]
+      }
+    },
+    {
+      "type": "slider",
+      "variable_name": "rating",
+      "label": "Rating",
+      "tooltip": "Filter novels based on user ratings to find highly-rated books.",
+      "params": {
+        "value_min": 1,
+        "value_max": 5,
+        "user_selects_lowest_value_of_range": true,
+        "user_selects_highest_value_of_range": false
+      }
+    }
+  ]
+}
