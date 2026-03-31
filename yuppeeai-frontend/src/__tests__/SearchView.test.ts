@@ -13,6 +13,7 @@ const routeState: { query: Record<string, unknown> } = {
 const mockStore = {
   query: "crimean war books",
   results: [],
+  resultSummary: "",
   widgets: [],
   refinement: "",
   isLoadingResults: false,

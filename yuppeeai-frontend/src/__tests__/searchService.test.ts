@@ -81,6 +81,7 @@ function mockFetch(results = MOCK_RESULTS, widgets = MOCK_WIDGETS) {
             results,
             totalCount: results.length,
             query: "test",
+            result_summary: "Summary for test query",
           }),
       });
     }),
@@ -97,27 +98,70 @@ describe("searchService.search", () => {
   });
 
   it("returns results for book-related queries", async () => {
-    const results = await search("Books about Crimean War");
-    expect(results.length).toBeGreaterThan(0);
-    expect(results[0]).toHaveProperty("id");
-    expect(results[0]).toHaveProperty("title");
-    expect(results[0]).toHaveProperty("url");
-    expect(results[0]).toHaveProperty("snippet");
+    const response = await search("Books about Crimean War");
+    expect(response.results.length).toBeGreaterThan(0);
+    expect(response.results[0]).toHaveProperty("title");
+    expect(response.results[0]).toHaveProperty("url");
+    expect(response.results[0]).toHaveProperty("snippet");
+    expect(response.resultSummary).toBe("Summary for test query");
   });
 
   it("returns results for movie-related queries", async () => {
-    const results = await search("best sci-fi movies");
-    expect(results.length).toBeGreaterThan(0);
+    const response = await search("best sci-fi movies");
+    expect(response.results.length).toBeGreaterThan(0);
   });
 
   it("returns default results for generic queries", async () => {
-    const results = await search("artificial intelligence search");
-    expect(results.length).toBeGreaterThan(0);
+    const response = await search("artificial intelligence search");
+    expect(response.results.length).toBeGreaterThan(0);
   });
 
   it("returns 6 results", async () => {
-    const results = await search("books about history");
-    expect(results).toHaveLength(6);
+    const response = await search("books about history");
+    expect(response.results).toHaveLength(6);
+  });
+
+  it("deduplicates results by URL and keeps the first occurrence", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            results: [
+              {
+                title: "First title",
+                url: "https://example.com/duplicate",
+                snippet: "First snippet",
+              },
+              {
+                title: "Second title",
+                url: "https://example.com/duplicate",
+                snippet: "Second snippet",
+              },
+              {
+                title: "Unique title",
+                url: "https://example.com/unique",
+                snippet: "Unique snippet",
+              },
+            ],
+          }),
+      }),
+    );
+
+    const response = await search("duplicate test");
+
+    expect(response.results).toHaveLength(2);
+    expect(response.results[0]).toMatchObject({
+      title: "First title",
+      url: "https://example.com/duplicate",
+      snippet: "First snippet",
+    });
+    expect(response.results[1]).toMatchObject({
+      title: "Unique title",
+      url: "https://example.com/unique",
+      snippet: "Unique snippet",
+    });
   });
 
   it("sends a POST request with query and filters to /search", async () => {

@@ -8,6 +8,7 @@ const PREFS_KEY = "yuppee_search_preferences";
 export const useSearchStore = defineStore("search", () => {
   const query = ref("");
   const results = ref<SearchResult[]>([]);
+  const resultSummary = ref("");
   const widgets = ref<Widget[]>([]);
   const refinement = ref("");
   const isLoadingResults = ref(false);
@@ -69,15 +70,17 @@ export const useSearchStore = defineStore("search", () => {
     const knownResults = [...results.value];
 
     const searchRequest = search(q, effectiveFilters)
-      .then((searchResults) => {
+      .then((searchResponse) => {
         if (activeRequestId.value !== requestId) return;
-        results.value = searchResults;
+        results.value = searchResponse.results;
+        resultSummary.value = searchResponse.resultSummary;
       })
       .catch((e) => {
         if (activeRequestId.value !== requestId) return;
         error.value =
           e instanceof Error ? e.message : "An error occurred during search";
         results.value = [];
+        resultSummary.value = "";
       })
       .finally(() => {
         if (activeRequestId.value !== requestId) return;
@@ -125,6 +128,7 @@ export const useSearchStore = defineStore("search", () => {
     activeRequestId.value += 1;
     query.value = "";
     results.value = [];
+    resultSummary.value = "";
     widgets.value = [];
     refinement.value = "";
     isLoadingResults.value = false;
@@ -135,6 +139,7 @@ export const useSearchStore = defineStore("search", () => {
   return {
     query,
     results,
+    resultSummary,
     widgets,
     refinement,
     isLoadingResults,

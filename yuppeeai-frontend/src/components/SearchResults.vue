@@ -5,6 +5,7 @@ defineProps<{
   results: SearchResult[]
   isLoading: boolean
   query: string
+  resultSummary: string
 }>()
 
 function formatUrl(url: string): string {
@@ -32,8 +33,8 @@ function formatUrl(url: string): string {
 
     <!-- Results -->
     <template v-else-if="results.length > 0">
-      <p class="results__meta">About {{ results.length.toLocaleString() }} results for "<strong>{{ query }}</strong>"</p>
-      <article v-for="result in results" :key="result.id" class="result-card">
+      <p v-if="resultSummary" class="results__meta" v-html="resultSummary" />
+      <article v-for="result in results" :key="result.url" class="result-card">
         <div class="result-card__url">
           <span class="result-card__favicon">🔗</span>
           {{ formatUrl(result.url) }}

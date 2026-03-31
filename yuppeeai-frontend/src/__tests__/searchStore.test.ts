@@ -65,6 +65,7 @@ beforeEach(() => {
             results: MOCK_SEARCH_RESULTS,
             totalCount: MOCK_SEARCH_RESULTS.length,
             query: "test",
+            result_summary: "Store test summary",
           }),
       });
     }),
@@ -80,6 +81,7 @@ describe("searchStore", () => {
     const store = useSearchStore();
     expect(store.query).toBe("");
     expect(store.results).toHaveLength(0);
+    expect(store.resultSummary).toBe("");
     expect(store.widgets).toHaveLength(0);
     expect(store.isLoadingResults).toBe(false);
     expect(store.isLoadingWidgets).toBe(false);
@@ -136,10 +138,12 @@ describe("searchStore", () => {
       results: MOCK_SEARCH_RESULTS,
       totalCount: MOCK_SEARCH_RESULTS.length,
       query: "test",
+      result_summary: "Deferred summary",
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(store.results.length).toBeGreaterThan(0);
+    expect(store.resultSummary).toBe("Deferred summary");
     expect(store.isLoadingResults).toBe(false);
     expect(store.isLoadingWidgets).toBe(true);
 
@@ -155,6 +159,7 @@ describe("searchStore", () => {
     const store = useSearchStore();
     await store.performSearch("books about Crimean War");
     expect(store.results.length).toBeGreaterThan(0);
+    expect(store.resultSummary).toBe("Store test summary");
     expect(store.query).toBe("books about Crimean War");
   });
 
@@ -183,6 +188,7 @@ describe("searchStore", () => {
 
     expect(store.query).toBe("");
     expect(store.results).toHaveLength(0);
+    expect(store.resultSummary).toBe("");
     expect(store.widgets).toHaveLength(0);
     expect(store.isLoading).toBe(false);
   });

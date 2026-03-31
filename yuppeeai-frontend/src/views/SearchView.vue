@@ -79,6 +79,7 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
           :results="store.results"
           :is-loading="store.isLoadingResults"
           :query="store.query"
+          :result-summary="store.resultSummary"
         />
       </main>
 

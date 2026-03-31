@@ -4,10 +4,52 @@ import { normalizeWidgets } from "@/services/widgetAdapter";
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
+export interface SearchResponse {
+  results: SearchResult[];
+  resultSummary: string;
+}
+
+function normalizeSearchResults(rawResults: unknown): SearchResult[] {
+  if (!Array.isArray(rawResults)) {
+    return [];
+  }
+
+  const seenUrls = new Set<string>();
+  const normalized: SearchResult[] = [];
+
+  for (const rawResult of rawResults) {
+    const result = rawResult as Record<string, unknown>;
+    const url = typeof result.url === "string" ? result.url.trim() : "";
+    if (!url || seenUrls.has(url)) {
+      continue;
+    }
+    seenUrls.add(url);
+
+    const title =
+      typeof result.title === "string" && result.title.trim()
+        ? result.title
+        : url;
+    const snippet =
+      typeof result.snippet === "string"
+        ? result.snippet
+        : typeof result.summary === "string"
+          ? result.summary
+          : "";
+
+    normalized.push({
+      title,
+      url,
+      snippet,
+    });
+  }
+
+  return normalized;
+}
+
 export async function search(
   query: string,
   filters?: Record<string, any>,
-): Promise<SearchResult[]> {
+): Promise<SearchResponse> {
   const response = await fetch(`${API_BASE_URL}/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -15,10 +57,21 @@ export async function search(
     body: JSON.stringify({ query, filters }),
   });
   if (!response.ok) {
+    console.error("[SERP] /search failed", {
+      status: response.status,
+      query,
+      filters,
+    });
     throw new Error(`Search request failed: ${response.status}`);
   }
   const data = await response.json();
-  return data.results as SearchResult[];
+  console.log("[SERP] /search payload\n" + JSON.stringify(data, undefined, 2));
+  const payload = data as { results?: unknown; result_summary?: unknown };
+  return {
+    results: normalizeSearchResults(payload.results),
+    resultSummary:
+      typeof payload.result_summary === "string" ? payload.result_summary : "",
+  };
 }
 
 export async function generateWidgets(

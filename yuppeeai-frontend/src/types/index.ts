@@ -1,5 +1,4 @@
 export interface SearchResult {
-  id: string;
   title: string;
   url: string;
   snippet: string;
@@ -35,6 +34,7 @@ export interface Widget {
 export interface SearchState {
   query: string;
   results: SearchResult[];
+  resultSummary: string;
   widgets: Widget[];
   refinement: string;
   isLoading: boolean;
