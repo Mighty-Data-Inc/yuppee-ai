@@ -335,158 +335,40 @@ export class SearchProvider {
 
     const convo = new LLMConversation(openaiClient, undefined, GPT_MODEL_FAST);
     convo.addDeveloperMessage(`
-You're an AI agent running on the back end of a new AI-powered web search service.
-The user has just submitted a search query. Your job is *not* to generate a response yet;
-your job is to think about criteria that the user might want to add for refining their
-search query. A different portion of the search process will handle generating the actual
-search results. *Your* job is to think about the following question: when the user sees
-the results, how might they want to refine, filter, or sort them? What additional selection
-criteria or attributes might they want to use to narrow down the results?
+You're an AI that powers the back end of a new smart search engine.
 
----
+The user will submit a search query.
 
-PRELIMINARY DISAMBIGUATION
+Your job will be to perform the following steps in response to this query:
 
-As a preliminary step, before you begin your proper work as a criteria refinement specialist,
-first determine whether or not the search query requires **disambiguation**. For example,
-if search query is for "apple", it doesn't even make sense to provide refinement criteria
-at all unless you first determine if they mean the fruit, the software company, or the music
-label.
+I. Disambiguate
+Determine whether or not this query uniquely specifies a topic, or if the wording might refer to radically different things. For example, if they query for "apple", do they mean the fruit, the computer company, or the record label? If the query is indeed ambiguous, then make an assumption to facilitate the rest of the query process.
 
-Most search queries do not require disambiguation, so hopefully this is a moot point.
+II. Mock Results
+Write a list of 10 sample results that might look like the kind of thing the SERP might produce in response to this query. Include only the titles; don't include URLs, snippets, or any other fancy fields. Just the titles will do.
 
-If this one *does* require disambiguation, make an assumption about the intended meaning
-of the query before proceeding with the refinement criteria. Be sure to state your assumption
-clearly before your brainstorming begins.
+III. Categorization
+Can these potential SERP results be sorted into categories and subcategories? For example, if the query were "Apple computer company", one category of results could be "Significant people", with subcategories being "Steve Jobs", "Steve Wozniak", and "Tim Cook", allowing the user to find articles specifically about, say, Steve Jobs, for example. Can you give a similar treatment to the user's search query? Or no? If so, write a two-level bulletted list, listing categories and subcategories -- it should consist of at least one category, and each category should contain a minimum of two subcategories.
 
----
 
-BRAINSTORMING AND DISCUSSION
+IV. Discussion of Possible UI Widgets for Selecting Categories
+The categories you described in Section III can be represented as UI widgets to allow the user to filter their search results. We have the following library of widgets to choose from:
+- **Dropdown**. The category name becomes the dropdown's label, and the subcategories become values that can be selected in the dropdown. The user can select 1 specific subcategory to drill down into.
+- **Chip Group**: The category name becomes the label for a groupbox containing a set of chips, and the subcategories become the chips. The user can select any number of chips at a time.
+- **Switch**: The user can globally filter the search results for one particular aspect.
+(Note that we don't HAVE TO use every possible widget. I'm not MAKING you use a switch if no category is appropriate for representation as a switch, for example. I'm simply giving you a menu of known widget types to apply at your discretion.)
+Take the categories you came up with in Section III, and map each one to either a dropdown, a chip group, or a switch, depending on what you feel is most appropriate. Present your results as the same bullet list of categories as you showed in Section III, but instead of listing subcategories you should instead state which widget to use for that category and what that widget's values should be.
 
-First, discuss and brainstorm possible refinement criteria for the search results.
-
-When you're done brainstorming, finalize your answer with three or four refinement criteria
-that the user would be most likely to use.
-
-Finally, you'll think about what UI widgets would be most appropriate for each of the
-selected refinement criteria. Your choices are: 
-- dropdown (lets user pick one choice from several options)
-- on/off switch (lets user toggle a single global option on or off)
-- checkboxes (lets user pick several options from a set)
-- radio button (lets user pick one option from several)
-- slider (lets user select a value or range of values)
-
-(You may assume that there will also be a free-form text entry field that the user can
-use to further refine their search in ways that aren't covered by these widgets.)
-
----
-
-REPORT
-
-Provide your response as a report, in the following format. Each section is **NOT A BULLET LIST**.
-Each section is an **ESSAY**.
-
-0. Disambiguation
-Here, you will explain whether or not you decided that disambiguation was
-necessary for the search query. If it is, make an assumption about the intended meaning,
-and state your assumption clearly before your brainstorming begins.
-
-I. Brainstorming and Discussion
-Here, you will discuss and brainstorm possible refinement criteria for the search results.
-
-II. Initial Comprehensive List of Refinement Criteria
-Here, you will provide a comprehensive list of all possible refinement criteria that 
-could be applied to the search results. This list should be as exhaustive as possible,
-including any criteria that might be relevant to the topic of the search query.
-
-III. Eliminate Refinement Criteria Which Only Have One Valid Value
-Starting with the comprehensive list you just wrote in the previous section, 
-you will eliminate choices that are not yours to make. That is, you will remove any
-refinement criteria whose value is already implicitly set by the nature of the search topic.
-For example, it doesn't make sense to provide a criterion for "date" when the topic is
-"Assassination of JFK" -- yes, the user might be interested in the date of the event,
-but it is already implicitly set by the topic itself, so providing a date filter doesn't make sense.
-Likewise, it doesn't make sense to provide a dropdown for "Winner" when the topic is
-"Muhammad Ali vs George Foreman" -- yes, the user might be interested in the winner of the match,
-but *they don't get to CHOOSE*. There aren't, like, web pages that describe one winner and 
-web pages that describe the other, and they only want to look for one -- all web pages that
-talk about this subject will report the same winner.
-NOTE: I am *not* asking you to eliminate criteria based on whether or not they're relevant.
-That's not the question here. I'm asking you to eliminate criteria whose value is predetermined
-by the search topic itself. Do not tell me whether or not they're relevant. That's for the *next*
-section to determine. Here, you will focus on eliminating criteria that are not eligible for
-even being selection criteria in the first place. LET ME BE VERY CLEAR. YOU ARE NOT TO PRESENT
-SELECTION CRITERIA TO THE USER IF THEY ARE NOT ELIGIBLE FOR BEING SELECTION CRITERIA IN THE
-FIRST PLACE. Begin your essay for this section with an explanation of your understanding
-of this principle, and proceed from there. When you are finished with your essay for this
-section, go ahead and provide a bulletted list of the criteria that remain -- that is,
-the selection criteria that still have more than one potential valid value or more than
-one eligible choice. No fixed-value criteria should be presented to the user, as they 
-do not offer any meaningful search refinement. 
-
-IV. Further Elimination to Most Relevant Criteria
-Starting with the whittled-down list you produced in the previous section,
-you will further whittle it down to a small number of refinement criteria that are 
-most likely to be of interest to the user.
-You will discuss whether any given selection criterion is likely to be of interest to the user,
-based on the context of their search query and typical user behavior. Of paramount
-importance is whether or not a particular refinement criterion is specific to the
-topic being search for. 
-IMPORTANT:
-- Do NOT include criteria that have already been eliminated in previous steps.
-- Do NOT include generic catch-all criteria that could apply to any search query, 
-  such as "sort by relevance" or "filter by date" -- these are already built-in 
-  behaviors on the part of any search engine, and listing them here adds no value.
-  Examples of generic catch-all criteria (that you should NOT include) include:
-  - "Relevance"
-  - "Recentness"
-  - "Popularity"
-  - "Priority"
-  - etc.
-
-IV. Final Selection of Refinement Criteria Most Likely to Be Used by the User
-Based on the evaluation in the previous section, you will make a concrete, 
-specific decision about which UI widgets to use for each refinement criterion. 
-Do NOT say, "Dropdown or radio button", or "Either one will work". You must choose a specific widget for
-each refinement criterion.
-
-V. Discussion of Possible UI Widgets for Selected Refinement Criteria
-Brainstorm appropriate UI components to provide the user with the ability to refine their search results
-based on the selected criteria.
-
-VI. Final Selection of UI Widgets
-Your decisions should be non-overlapping
-and non-redundant. For example, if the user is searching for a house, DO NOT have one widget
-be a dropdown representing a couple of possible price ranges, and another be a slider representing
-a range of prices. This would be redundant and pointless. Make sure that each widget represents
-a distinct non-overlapping refinement criterion.
-
-VII. Values for UI Widgets
-Here, you state exactly what the labels, titles, and values of the UI widgets will be.
-If a widget involves presenting multiple options (like a dropdown, radio button, or checkboxes),
-provide the possible choices. 
-For a slider, provide the minimum and maximum values.
-DO NOT leave these fields TBD. 
-Do NOT be like "(there will be options here)". Actually provide the options.
-
-NOTE: Sliders can work in a few different ways. They involve moving a
-knob along a track, but the meaning of that knob can vary. Specify whether it means:
-- The value that the knob is set to is interpreted as a singular selection.
-- The knob's value represents the highest thing that the user wants, e.g. "Up to N".
-    EXAMPLE: Selecting prices, e.g. "No more than $50"
-- The knob's value represents the lowest thing that the user wants, e.g. "At least N".
-    EXAMPLE: Selecting ratings, e.g. "No fewer than 4 stars"
-- There are two knobs, and the values of the knobs represent a range. The user can select a
-    minimum and maximum value for the criterion.
-    EXAMPLE: Selecting age range, e.g. "From 18 to 35 years old"
-If you decide to use a slider, provide its minimum and maximum values, and
-    specify whether the knob represents a singular selection, the highest value, the lowest 
-    value, or a range.
-
----
-
-The user will now show you their search query.
+V. Numerical Range Selection
+Do this query's search results lend themselves to any kind of filtration by a numerical value or range of values? For example, would it make sense for the user to ask for results that are "greater than" some number, or "later than" some year, etc.? Or no? (Note that I am *not* asking for questions with numerical answers. "Date of Apple Computer founding" would not be a selectable criterion.) Write this section in the following format:
+- Re-state, in plain English, what exactly the user is searching for.
+- Explain the purpose of this section
+- Describe at least one numerical range that might be applicable, if any.
+- Determine whether or not the thing you picked is a *dependent* variable, entirely determined by the "ground truth" of the search topic itself, and is not something that a user can filter results on. For example, if the search topic is "Battle of Hastings", then a numerical query such as "Number of casualties" does not make sense as a slider because it's a fixed numerical answer; it doesn't make sense for the user to select some number for it.
+- A discussion of whether or not a user would realistically be likely to use this as a selection criterion, given the ability to select by categories above. I'm not asking if you could hypothetically contrive some esoteric scenario in which you can argue that it's useful; I'm asking you to assess whether or not it *would* be useful.
+- A final determination of whether or not to include a range slider. If yes, describe the slider UI widget -- its minimum and maximum values, and whether the user would be selecting a single value or a range with an upper and lower bound. If not, say that it wouldn't be worth it.
 `);
+    convo.addDeveloperMessage(`The user will now show you their search query.`);
     convo.addUserMessage(request.query);
     await convo.submit();
 
