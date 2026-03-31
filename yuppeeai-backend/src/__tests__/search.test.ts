@@ -42,6 +42,7 @@ describe("search handler", () => {
           title: "Sample Result",
           url: "https://example.com/result",
           snippet: "Sample snippet",
+          summary: "A sample summary.",
         },
       ],
       totalCount: 1,
@@ -65,6 +66,8 @@ describe("search handler", () => {
           title: "Sample Result",
           url: "https://example.com/result",
           snippet: "Sample snippet",
+          summary: "A sample summary.",
+          thumbnail_url: "https://example.com/thumb.jpg",
         },
       ],
       totalCount: 1,
@@ -80,6 +83,8 @@ describe("search handler", () => {
     expect(firstResult).toHaveProperty("title");
     expect(firstResult).toHaveProperty("url");
     expect(firstResult).toHaveProperty("snippet");
+    expect(firstResult).toHaveProperty("summary");
+    expect(firstResult).toHaveProperty("thumbnail_url");
   });
 
   it("returns provider results for a valid query", async () => {
@@ -90,12 +95,14 @@ describe("search handler", () => {
           title: "Book Result",
           url: "https://example.com/book-1",
           snippet: "Book snippet",
+          summary: "A book summary.",
         },
         {
           id: "book-2",
           title: "Another Book Result",
           url: "https://example.com/book-2",
           snippet: "Another book snippet",
+          summary: "Another book summary.",
         },
       ],
       totalCount: 2,

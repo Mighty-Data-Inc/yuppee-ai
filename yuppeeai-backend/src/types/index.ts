@@ -13,8 +13,9 @@ export interface SearchResult {
   id: string;
   title: string;
   url: string;
-  snippet: string;
-  score?: number;
+  snippet?: string;
+  summary?: string;
+  thumbnail_url?: string;
 }
 
 export interface SearchResponse {
