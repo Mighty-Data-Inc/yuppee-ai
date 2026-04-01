@@ -1,4 +1,3 @@
-import { beforeEach, describe, expect, it } from "@jest/globals";
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { handler } from "../handlers/preferences";
 

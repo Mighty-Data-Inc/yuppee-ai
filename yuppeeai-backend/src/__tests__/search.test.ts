@@ -1,4 +1,3 @@
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { handler } from "../handlers/search";
 import { SearchProvider } from "../services/searchProvider";
@@ -18,7 +17,7 @@ function makeEvent(body?: object | null): Partial<APIGatewayProxyEvent> {
 
 describe("search handler", () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("returns 400 when query is missing", async () => {
@@ -36,7 +35,7 @@ describe("search handler", () => {
   });
 
   it("returns 200 with results when query is provided", async () => {
-    jest.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
+    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
       results: [
         {
           id: "r1",
@@ -59,7 +58,7 @@ describe("search handler", () => {
   });
 
   it("results contain expected fields", async () => {
-    jest.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
+    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
       results: [
         {
           id: "r1",
@@ -85,7 +84,7 @@ describe("search handler", () => {
   });
 
   it("returns provider results for a valid query", async () => {
-    jest.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
+    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
       results: [
         {
           id: "book-1",
@@ -114,9 +113,9 @@ describe("search handler", () => {
   });
 
   it("returns 500 when provider throws", async () => {
-    jest
-      .spyOn(SearchProvider.prototype, "getSearchResults")
-      .mockRejectedValue(new Error("search backend unavailable"));
+    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockRejectedValue(
+      new Error("search backend unavailable"),
+    );
 
     const event = makeEvent({ query: "top rated movie 2023" });
     const result = await handler(event as APIGatewayProxyEvent, mockContext);

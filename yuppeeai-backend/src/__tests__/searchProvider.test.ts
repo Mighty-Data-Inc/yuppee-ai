@@ -1,19 +1,18 @@
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import OpenAI from "openai";
 import { SearchProvider } from "../services/searchProvider";
 
-jest.mock("openai", () => ({
+vi.mock("openai", () => ({
   __esModule: true,
-  default: jest.fn(),
+  default: vi.fn(),
 }));
 
 describe("SearchProvider", () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("strips utm_source=openai from returned result URLs", async () => {
-    const createMock = jest
+    const createMock = vi
       .fn<() => Promise<any>>()
       .mockResolvedValueOnce({ id: "reasoning-1", output_text: "reasoning" })
       .mockResolvedValueOnce({
@@ -42,7 +41,11 @@ describe("SearchProvider", () => {
         }),
       });
 
-    (OpenAI as unknown as jest.Mock).mockImplementation(() => ({
+    (
+      vi.mocked(OpenAI) as unknown as {
+        mockImplementation: (impl: () => unknown) => void;
+      }
+    ).mockImplementation(() => ({
       responses: {
         create: createMock,
       },

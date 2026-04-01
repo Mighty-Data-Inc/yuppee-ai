@@ -1,4 +1,3 @@
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { handler } from "../handlers/refine";
 import { SearchRefiner } from "../services/searchRefiner";
@@ -18,7 +17,7 @@ function makeEvent(body?: object | null): Partial<APIGatewayProxyEvent> {
 
 describe("search refinements handler", () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("returns 400 when query is missing", async () => {
@@ -47,7 +46,7 @@ describe("search refinements handler", () => {
   });
 
   it("returns inferred refinements for a valid query", async () => {
-    const inferSpy = jest
+    const inferSpy = vi
       .spyOn(SearchRefiner.prototype, "inferSearchRefinements")
       .mockResolvedValue({
         query: "best books about startup fundraising",

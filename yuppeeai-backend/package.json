@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc",
-    "typecheck": "npm run typecheck:app && npm run typecheck:test",
-    "typecheck:app": "tsc --noEmit",
-    "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
     "api:local": "npm run build && node dist/localApi.js",
     "api:local:start": "node dist/localApi.js",
-    "test": "jest --passWithNoTests",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
@@ -21,26 +20,8 @@
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.130",
-    "@types/jest": "^30.0.0",
     "@types/node": "^20.11.0",
-    "jest": "^30.3.0",
-    "ts-jest": "^29.4.6",
-    "typescript": "^5.3.0"
-  },
-  "overrides": {
-    "glob": "^13.0.6",
-    "test-exclude": "^8.0.0"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/__tests__/**/*.test.ts"
-    ],
-    "moduleFileExtensions": [
-      "ts",
-      "js",
-      "json"
-    ]
+    "typescript": "^5.3.0",
+    "vitest": "^3.2.4"
   }
 }
