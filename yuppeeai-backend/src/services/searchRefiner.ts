@@ -135,8 +135,17 @@ const WIDGET_JSON_SCHEMA = {
                       },
                     },
                   },
+                  choices_concat_abbrev: {
+                    type: "string",
+                    description:
+                      `A very short (under 30 chars) concatenated abbreviation of the choices for display purposes. ` +
+                      `For example: If the choices are "Paris", "London", "New York City", this might be "Paris/London/NYC". ` +
+                      `If the choices are "Steve Jobs", "Bill Gates", "Elon Musk", this might be "Steve Jobs, Bill Gates, etc.". ` +
+                      `If the choices are "In Search of Lost Time", "Don Quixote", "Ulysses", this might be "e.g. Don Quixote...". ` +
+                      `Use your judgment, but keep it under 30 characters.`,
+                  },
                 },
-                required: ["choices"],
+                required: ["choices", "choices_concat_abbrev"],
                 additionalProperties: false,
               },
               {
