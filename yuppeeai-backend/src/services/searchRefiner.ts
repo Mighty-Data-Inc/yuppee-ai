@@ -9,7 +9,7 @@ interface SearchRefinerConfig {
 const GPT_MODEL_FAST = "gpt-4.1-nano";
 
 const WIDGET_JSON_SCHEMA = {
-  required: ["disambiguation", "widgets"],
+  required: ["disambiguation", "describe_current_query", "widgets"],
   additionalProperties: false,
   type: "object",
   properties: {
@@ -64,6 +64,17 @@ const WIDGET_JSON_SCHEMA = {
         "other_alternative_potential_meanings",
       ],
       additionalProperties: false,
+    },
+    describe_current_query: {
+      type: "string",
+      description:
+        `A very concise description of the current query that incorporates ` +
+        `selected filters and any extra user instructions. Uses verbiage such as ` +
+        `"Showing results for ...", or "Now displaying ...", or something ` +
+        `to that effect. If the user is currently using any filters or search refinements, ` +
+        `then this description should especially emphasize them. IMPORTANT: **DO NOT** ` +
+        `repeat yourself; use *plain natural language* to describe the current query and/or filters, ` +
+        `being as concise as possible.`,
     },
     widgets: {
       type: "array",
@@ -193,6 +204,7 @@ const WIDGET_JSON_SCHEMA = {
           "widget_label",
           "widget_tooltip",
           "widget_params",
+          "sanity_check",
         ],
         additionalProperties: false,
       },
@@ -263,11 +275,33 @@ Do this query's search results lend themselves to any kind of filtration by a nu
 `);
     convo.addDeveloperMessage(`The user will now show you their search query.`);
     convo.addUserMessage(request.query);
+
+    if (request.filters) {
+      // Filter the filters. Remove anything falsy or nullsy, and remove any empty arrays.
+      for (const key of Object.keys(request.filters)) {
+        const filterValue = request.filters[key];
+        if (
+          !filterValue ||
+          (Array.isArray(filterValue) && filterValue.length === 0)
+        ) {
+          delete request.filters[key];
+        }
+      }
+
+      if (Object.keys(request.filters).length > 0) {
+        convo.addUserMessage(
+          `Also, I'm currently applying the following filters:\n` +
+            `${JSON.stringify(request.filters, null, 2)}`,
+        );
+      }
+    }
+
     await convo.submit();
 
     const retval: SearchRefinementsResponse = {
       query: request.query,
       disambiguation: "",
+      describe_current_query: "",
       widgets: null,
     };
 
@@ -288,6 +322,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
 
       const cleaned = this.cleanRefinements(refinements);
       retval.disambiguation = cleaned.disambiguation;
+      retval.describe_current_query = cleaned.describe_current_query;
       retval.widgets = cleaned.widgets;
     } catch (error) {
       console.error(
@@ -388,6 +423,10 @@ Do this query's search results lend themselves to any kind of filtration by a nu
 
     const retval = {
       disambiguation,
+      describe_current_query:
+        typeof raw.describe_current_query === "string"
+          ? raw.describe_current_query
+          : "",
       widgets: cleanedWidgets,
     };
     return retval;

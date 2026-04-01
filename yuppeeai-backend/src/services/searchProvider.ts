@@ -45,7 +45,7 @@ const SERP_JSON_SCHEMA = {
     result_summary: {
       type: "string",
       description:
-        "A concise summary of the search results for the query, in a way that can be presented as a short intro at the top of the page before listing the SERP results. You may use <strong> and <em> tags to emphasize key points, but use them sparingly.",
+        "A concise summary of the search results for the query, in a way that can be presented as a short intro at the top of the page before listing the SERP results. PRO TIP: Use <strong> tags to make specific keywords or phrases stand out, particularly any terms that the user has specifically requested to search for. PRO TIP: Use <em> tags to italicize book and movie titles, scientific names, names of ships and vessels, etc. (per the Chicago Manual of Style).",
     },
     results: {
       type: "array",

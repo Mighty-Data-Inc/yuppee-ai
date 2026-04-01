@@ -51,6 +51,7 @@ describe("search refinements handler", () => {
       .mockResolvedValue({
         query: "best books about startup fundraising",
         disambiguation: "analysis",
+        describe_current_query: "Startup fundraising books in English",
         widgets: [],
       });
 
@@ -64,6 +65,9 @@ describe("search refinements handler", () => {
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
     expect(body.disambiguation).toBe("analysis");
+    expect(body.describe_current_query).toBe(
+      "Startup fundraising books in English",
+    );
     expect(body.widgets).toEqual([]);
     expect(inferSpy).toHaveBeenCalledWith({
       query: "best books about startup fundraising",

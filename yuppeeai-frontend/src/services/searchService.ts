@@ -62,7 +62,7 @@ export async function search(
     throw new Error(`Search request failed: ${response.status}`);
   }
   const data = await response.json();
-  console.log("[SERP] /search payload\n" + JSON.stringify(data, undefined, 2));
+  console.log("[SERP] /search payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
   const payload = data as { results?: unknown; result_summary?: unknown };
   return {
     results: normalizeSearchResults(payload.results),
@@ -91,6 +91,7 @@ export async function generateWidgets(
   }
 
   const data = await response.json();
+  console.log("[SERP] /refine payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
   return normalizeWidgets(
     Array.isArray(data) ? data : data.widgets,
     currentFilters,

@@ -25,6 +25,7 @@ export interface SearchResponse {
 export interface SearchRefinementsResponse {
   query: string;
   disambiguation: string;
+  describe_current_query: string;
   widgets: unknown;
 }
 

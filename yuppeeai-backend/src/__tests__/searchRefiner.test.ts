@@ -9,6 +9,7 @@ describe("SearchRefiner cleanRefinements", () => {
         query_rephrased_with_assumption: "",
         other_alternative_potential_meanings: [],
       },
+      describe_current_query: "sample query description",
       widgets: [] as any[],
     };
   }

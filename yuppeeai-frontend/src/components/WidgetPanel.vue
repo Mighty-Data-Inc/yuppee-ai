@@ -123,7 +123,7 @@ const canSearchAgain = computed(() => {
       </div>
 
       <div class="widget-panel__freeform">
-        <p class="widget-panel__freeform-label">Additional instructions..</p>
+        <p class="widget-panel__freeform-label">Additional instructions...</p>
         <FreeformTextWidget
           :model-value="refinementText"
           placeholder="Modify the search results per your explanation, e.g. 'written by a British author, published after 2000'"
