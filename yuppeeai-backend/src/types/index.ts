@@ -15,7 +15,6 @@ export interface SearchResult {
   url?: string;
   snippet?: string;
   summary?: string;
-  thumbnail_url?: string;
 }
 
 export interface SearchResponse {

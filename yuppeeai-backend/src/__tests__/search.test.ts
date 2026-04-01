@@ -66,7 +66,6 @@ describe("search handler", () => {
           url: "https://example.com/result",
           snippet: "Sample snippet",
           summary: "A sample summary.",
-          thumbnail_url: "https://example.com/thumb.jpg",
         },
       ],
       query: "interesting topics",
@@ -82,7 +81,6 @@ describe("search handler", () => {
     expect(firstResult).toHaveProperty("url");
     expect(firstResult).toHaveProperty("snippet");
     expect(firstResult).toHaveProperty("summary");
-    expect(firstResult).toHaveProperty("thumbnail_url");
   });
 
   it("returns provider results for a valid query", async () => {

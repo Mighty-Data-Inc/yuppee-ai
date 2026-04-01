@@ -23,7 +23,7 @@ const SERP_JSON_SCHEMA = {
       description: "The list of search results matching the query.",
       items: {
         type: "object",
-        required: ["title", "url", "snippet", "summary", "thumbnail_url"],
+        required: ["title", "url", "snippet", "summary"],
         additionalProperties: false,
         properties: {
           title: {
@@ -45,11 +45,6 @@ const SERP_JSON_SCHEMA = {
             type: "string",
             description:
               "A concise, neutral summary of the result page's content — longer and more informative than the snippet, written in plain prose. Optional but strongly encouraged; leave blank if none available.",
-          },
-          thumbnail_url: {
-            type: "string",
-            description:
-              "A URL pointing to an image corresponding to this result. This could be a thumbnail or any representative image for the result; it will be shown as a thumbnail on the search results page, but the URL can be an image of any size. Optional; leave blank if none available. Be very careful to avoid hallucinations when specifying image URLs; it's much better to just leave this blank than to provide a fabricated URL.",
           },
         },
       },

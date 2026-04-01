@@ -34,7 +34,7 @@ const emit = defineEmits<{
           @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
         />
         <span class="widget__switch-track" :class="{ 'widget__switch-track--on': modelValue }">
-          <span class="widget__switch-thumb" :class="{ 'widget__switch-thumb--on': modelValue }" />
+          <span class="widget__switch-knob" :class="{ 'widget__switch-knob--on': modelValue }" />
         </span>
       </span>
     </label>
@@ -111,7 +111,7 @@ const emit = defineEmits<{
   border-color: var(--color-primary-light);
 }
 
-.widget__switch-thumb {
+.widget__switch-knob {
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -121,7 +121,7 @@ const emit = defineEmits<{
   transition: transform var(--transition), background var(--transition);
 }
 
-.widget__switch-thumb--on {
+.widget__switch-knob--on {
   transform: translateX(18px);
   background: var(--color-primary);
 }
