@@ -56,7 +56,7 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
   <div class="search-view">
     <header class="search-header">
       <router-link to="/" class="search-header__logo">
-        <img class="search-header__logo-icon" src="/favicon.svg" alt="Yuppee.AI logo" />
+        <img class="search-header__logo-icon" :src="'/favicon.svg'" alt="Yuppee.AI logo" />
         <span class="search-header__wordmark">Yuppee<span>.AI</span></span>
       </router-link>
 

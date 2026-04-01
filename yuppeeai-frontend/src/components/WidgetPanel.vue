@@ -70,8 +70,8 @@ const canSearchAgain = computed(() => {
       <h2 class="widget-panel__title">Refine Your Search</h2>
     </div>
 
-    <!-- Loading state -->
-    <template v-if="isLoading">
+    <!-- Loading state (initial load only) -->
+    <template v-if="isLoading && widgets.length === 0">
       <p class="widget-panel__loading-message">Analyzing results and devising refinement criteria...</p>
       <div v-for="i in 4" :key="i" class="widget-skeleton">
         <div class="skeleton-line skeleton-line--label" />
