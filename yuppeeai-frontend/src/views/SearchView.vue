@@ -56,11 +56,7 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
   <div class="search-view">
     <header class="search-header">
       <router-link to="/" class="search-header__logo">
-        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
-          <circle cx="15" cy="15" r="10" stroke="#6366f1" stroke-width="2.5" fill="none"/>
-          <circle cx="15" cy="15" r="4.5" fill="#6366f1"/>
-          <line x1="22.5" y1="22.5" x2="33" y2="33" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
+        <img class="search-header__logo-icon" src="/favicon.svg" alt="Yuppee.AI logo" />
         <span class="search-header__wordmark">Yuppee<span>.AI</span></span>
       </router-link>
 
@@ -121,6 +117,11 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
   gap: 0.5rem;
   text-decoration: none;
   flex-shrink: 0;
+}
+
+.search-header__logo-icon {
+  width: 28px;
+  height: 28px;
 }
 
 .search-header__wordmark {

@@ -15,12 +15,7 @@ function handleSearch(query: string) {
   <main class="home">
     <div class="home__content">
       <div class="home__logo">
-        <svg class="home__logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="20" cy="20" r="14" fill="#6366f1" opacity="0.15"/>
-          <circle cx="20" cy="20" r="14" stroke="#6366f1" stroke-width="3" fill="none"/>
-          <circle cx="20" cy="20" r="6" fill="#6366f1"/>
-          <line x1="30" y1="30" x2="44" y2="44" stroke="#6366f1" stroke-width="3.5" stroke-linecap="round"/>
-        </svg>
+        <img class="home__logo-icon" src="/favicon.svg" alt="Yuppee.AI logo" />
         <span class="home__wordmark">Yuppee<span class="home__wordmark-ai">.AI</span></span>
       </div>
 
