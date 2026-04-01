@@ -123,4 +123,46 @@ describe("SearchRefiner cleanRefinements", () => {
     });
     expect(cleaned.widgets[0]).not.toHaveProperty("params");
   });
+
+  it("removes widgets flagged as hidden by sanity_check", () => {
+    const provider = new SearchRefiner();
+    const raw = makeBaseRaw();
+    raw.widgets = [
+      {
+        widget_type: "dropdown",
+        widget_variable_name: "visible_widget",
+        widget_label: "Visible Widget",
+        widget_tooltip: "Visible",
+        widget_params: {
+          choices: [
+            { choice_variable_value: "one", choice_ui_label: "One" },
+            { choice_variable_value: "two", choice_ui_label: "Two" },
+          ],
+        },
+        sanity_check: {
+          effect_of_user_selecting_value_for_this_widget: "Narrows results",
+          does_selecting_this_value_make_sense_for_this_search_query: "Yes",
+          should_we_hide_this_widget_based_on_the_current_search_query: false,
+        },
+      },
+      {
+        widget_type: "dropdown",
+        widget_variable_name: "hidden_widget",
+        widget_label: "Hidden Widget",
+        widget_tooltip: "Hidden",
+        widget_params: {
+          choices: [{ choice_variable_value: "one", choice_ui_label: "One" }],
+        },
+        sanity_check: {
+          effect_of_user_selecting_value_for_this_widget: "Not relevant",
+          does_selecting_this_value_make_sense_for_this_search_query: "No",
+          should_we_hide_this_widget_based_on_the_current_search_query: true,
+        },
+      },
+    ];
+
+    const cleaned = (provider as any).cleanRefinements(raw);
+    expect(cleaned.widgets).toHaveLength(1);
+    expect(cleaned.widgets[0].variable_name).toBe("visible_widget");
+  });
 });

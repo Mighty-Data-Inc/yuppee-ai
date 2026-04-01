@@ -157,6 +157,35 @@ const WIDGET_JSON_SCHEMA = {
               },
             ],
           },
+          sanity_check: {
+            type: "object",
+            description: "Sanity check for the widget configuration.",
+            properties: {
+              effect_of_user_selecting_value_for_this_widget: {
+                type: "string",
+                description:
+                  "An explanation of how the selection of a value for this widget will affect the search results.",
+              },
+              does_selecting_this_value_make_sense_for_this_search_query: {
+                type: "string",
+                description:
+                  `Having described the effect of selecting this value, discuss whether it makes sense ` +
+                  `in the context of the current search query. Maybe it's better suited to another query or context?`,
+              },
+              should_we_hide_this_widget_based_on_the_current_search_query: {
+                type: "boolean",
+                description:
+                  `Indicates whether this widget should be hidden based on the current search query. ` +
+                  `Set this to true if the widget is not relevant for the current query.`,
+              },
+            },
+            required: [
+              "effect_of_user_selecting_value_for_this_widget",
+              "does_selecting_this_value_make_sense_for_this_search_query",
+              "should_we_hide_this_widget_based_on_the_current_search_query",
+            ],
+            additionalProperties: false,
+          },
         },
         required: [
           "widget_type",
@@ -277,8 +306,14 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     }
 
     const widgets: any[] = Array.isArray(raw.widgets) ? raw.widgets : [];
+    const visibleWidgets = widgets.filter(
+      (w) =>
+        w?.sanity_check
+          ?.should_we_hide_this_widget_based_on_the_current_search_query !==
+        true,
+    );
 
-    const cleanedWidgets = widgets.map((w) => {
+    const cleanedWidgets = visibleWidgets.map((w) => {
       const {
         does_this_criterion_make_sense_for_this_search: _arg,
         widget_type: type,
