@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
 import { handler } from "../handlers/search";
 import { SearchProvider } from "../services/searchProvider";

@@ -68,13 +68,8 @@ const WIDGET_JSON_SCHEMA = {
     describe_current_query: {
       type: "string",
       description:
-        `A very concise description of the current query that incorporates ` +
-        `selected filters and any extra user instructions. Uses verbiage such as ` +
-        `"Showing results for ...", or "Now displaying ...", or something ` +
-        `to that effect. If the user is currently using any filters or search refinements, ` +
-        `then this description should especially emphasize them. IMPORTANT: **DO NOT** ` +
-        `repeat yourself; use *plain natural language* to describe the current query and/or filters, ` +
-        `being as concise as possible.`,
+        `A plain-language description of the filters being applied to the current search query, ` +
+        `phrased along the lines of "Showing results based on..." or "Displaying matches for..."`,
     },
     widgets: {
       type: "array",

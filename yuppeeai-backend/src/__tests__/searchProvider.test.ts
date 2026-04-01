@@ -1,3 +1,4 @@
+import { afterEach, describe, expect, it, jest } from "@jest/globals";
 import OpenAI from "openai";
 import { SearchProvider } from "../services/searchProvider";
 
@@ -13,7 +14,7 @@ describe("SearchProvider", () => {
 
   it("strips utm_source=openai from returned result URLs", async () => {
     const createMock = jest
-      .fn()
+      .fn<() => Promise<any>>()
       .mockResolvedValueOnce({ id: "reasoning-1", output_text: "reasoning" })
       .mockResolvedValueOnce({
         output_text: JSON.stringify({

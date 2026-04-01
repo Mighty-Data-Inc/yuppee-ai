@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "build": "tsc",
+    "typecheck": "npm run typecheck:app && npm run typecheck:test",
+    "typecheck:app": "tsc --noEmit",
+    "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
     "api:local": "npm run build && node dist/localApi.js",
     "api:local:start": "node dist/localApi.js",
     "test": "jest --passWithNoTests",
