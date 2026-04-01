@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSearchStore } from '@/stores/searchStore'
 import SearchBar from '@/components/SearchBar.vue'
@@ -9,6 +9,7 @@ import WidgetPanel from '@/components/WidgetPanel.vue'
 const route = useRoute()
 const router = useRouter()
 const store = useSearchStore()
+const pendingRefinementChanges = ref<string[]>([])
 
 function getQuery(): string {
   const q = route.query.q
@@ -17,6 +18,7 @@ function getQuery(): string {
 
 async function doSearch(q: string) {
   if (q.trim()) {
+    pendingRefinementChanges.value = []
     await store.performSearch(q.trim())
   }
 }
@@ -29,6 +31,7 @@ onMounted(() => {
 watch(() => route.query.q, (newQ) => {
   const q = Array.isArray(newQ) ? (newQ[0] ?? '') : (newQ ?? '')
   if (q.trim()) {
+    pendingRefinementChanges.value = []
     store.performSearch(q.trim(), {})
   }
 })
@@ -39,8 +42,13 @@ function handleSearch(q: string) {
   }
 }
 
-async function handleRefine(widgetValues: Record<string, any>, refinementText: string) {
+async function handleRefine(
+  widgetValues: Record<string, any>,
+  refinementText: string,
+  refinementChanges: string[],
+) {
   store.refinement = refinementText
+  pendingRefinementChanges.value = refinementChanges
   const filters = { ...widgetValues }
   const trimmedRefinement = refinementText.trim()
 
@@ -48,7 +56,11 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
     filters.additionalInstructions = trimmedRefinement
   }
 
-  await store.performSearch(store.query, filters)
+  try {
+    await store.performSearch(store.query, filters)
+  } finally {
+    pendingRefinementChanges.value = []
+  }
 }
 </script>
 
@@ -76,6 +88,7 @@ async function handleRefine(widgetValues: Record<string, any>, refinementText: s
           :is-loading="store.isLoadingResults"
           :query="store.query"
           :result-summary="store.resultSummary"
+          :refinement-changes="pendingRefinementChanges"
         />
       </main>
 

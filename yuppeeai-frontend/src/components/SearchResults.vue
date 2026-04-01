@@ -6,6 +6,7 @@ defineProps<{
   isLoading: boolean
   query: string
   resultSummary: string
+  refinementChanges: string[]
 }>()
 
 function formatUrl(url: string): string {
@@ -22,6 +23,14 @@ function formatUrl(url: string): string {
   <div class="results">
     <!-- Loading skeletons -->
     <template v-if="isLoading">
+      <div v-if="refinementChanges.length" class="results__changes">
+        <p class="results__changes-title">Changed filters...</p>
+        <ul class="results__changes-list">
+          <li v-for="change in refinementChanges" :key="change" class="results__changes-item">
+            {{ change }}
+          </li>
+        </ul>
+      </div>
       <div class="results__meta skeleton-line skeleton-line--short" />
       <div v-for="i in 5" :key="i" class="result-card result-card--skeleton">
         <div class="skeleton-line skeleton-line--title" />
@@ -79,6 +88,34 @@ function formatUrl(url: string): string {
   font-size: 0.85rem;
   color: var(--color-text-muted);
   padding: 0.25rem 0 0.5rem;
+}
+
+.results__changes {
+  padding: 0.9rem 1rem;
+  background: #f8fafc;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+}
+
+.results__changes-title {
+  margin: 0 0 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.results__changes-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.results__changes-item {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
 }
 
 .results__meta strong {

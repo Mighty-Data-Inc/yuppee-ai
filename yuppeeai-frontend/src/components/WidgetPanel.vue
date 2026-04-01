@@ -15,7 +15,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  refine: [widgetValues: Record<string, any>, refinementText: string]
+  refine: [
+    widgetValues: Record<string, any>,
+    refinementText: string,
+    refinementChanges: string[],
+  ]
 }>()
 
 const widgetValues = ref<Record<string, any>>({})
@@ -123,8 +127,9 @@ function describeSearchRefinementChanges(): string[] {
 
 function handleSearchAgain() {
   if (!canSearchAgain.value) return
-  console.log('Changed filters:', describeSearchRefinementChanges())
-  emit('refine', { ...widgetValues.value }, refinementText.value)
+  const refinementChanges = describeSearchRefinementChanges()
+  console.log('Changed filters:', refinementChanges)
+  emit('refine', { ...widgetValues.value }, refinementText.value, refinementChanges)
 }
 
 const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform')
