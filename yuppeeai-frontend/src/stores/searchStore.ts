@@ -57,19 +57,33 @@ export const useSearchStore = defineStore("search", () => {
     return "general";
   }
 
+  function resetTransientSearchState() {
+    results.value = [];
+    resultSummary.value = "";
+    widgets.value = [];
+    refinement.value = "";
+  }
+
   async function performSearch(q: string, widgetValues?: Record<string, any>) {
     const requestId = ++activeRequestId.value;
+    const normalizedQuery = q.trim();
+    const isNewQuery = normalizedQuery !== query.value;
+
+    if (isNewQuery) {
+      resetTransientSearchState();
+    }
+
     query.value = q;
     isLoadingResults.value = true;
     isLoadingWidgets.value = true;
     error.value = null;
 
-    const category = getCategoryKey(q);
+    const category = getCategoryKey(normalizedQuery);
     const savedPrefs = preferences.value[category] ?? {};
     const effectiveFilters = widgetValues ?? savedPrefs;
     const knownResults = [...results.value];
 
-    const searchRequest = search(q, effectiveFilters)
+    const searchRequest = search(normalizedQuery, effectiveFilters)
       .then((searchResponse) => {
         if (activeRequestId.value !== requestId) return;
         results.value = searchResponse.results;
@@ -87,7 +101,11 @@ export const useSearchStore = defineStore("search", () => {
         isLoadingResults.value = false;
       });
 
-    const refinementRequest = generateWidgets(q, effectiveFilters, knownResults)
+    const refinementRequest = generateWidgets(
+      normalizedQuery,
+      effectiveFilters,
+      knownResults,
+    )
       .then((generatedWidgets) => {
         if (activeRequestId.value !== requestId) return;
         widgets.value = generatedWidgets;
@@ -127,10 +145,7 @@ export const useSearchStore = defineStore("search", () => {
   function clearSearch() {
     activeRequestId.value += 1;
     query.value = "";
-    results.value = [];
-    resultSummary.value = "";
-    widgets.value = [];
-    refinement.value = "";
+    resetTransientSearchState();
     isLoadingResults.value = false;
     isLoadingWidgets.value = false;
     error.value = null;

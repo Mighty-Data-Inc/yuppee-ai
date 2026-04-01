@@ -2,6 +2,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import SearchView from "../views/SearchView.vue";
 
+const searchResultsStub = {
+  props: [
+    "results",
+    "isLoading",
+    "query",
+    "resultSummary",
+    "refinementChanges",
+  ],
+  template: "<div class='search-results-stub' />",
+};
+
 const mockPerformSearch = vi.fn().mockResolvedValue(undefined);
 const mockLoadPreferences = vi.fn();
 const mockPush = vi.fn();
@@ -46,7 +57,7 @@ describe("SearchView refine behavior", () => {
       global: {
         stubs: {
           SearchBar: true,
-          SearchResults: true,
+          SearchResults: searchResultsStub,
           "router-link": { template: "<a><slot /></a>" },
           WidgetPanel: {
             template:
@@ -71,7 +82,7 @@ describe("SearchView refine behavior", () => {
       global: {
         stubs: {
           SearchBar: true,
-          SearchResults: true,
+          SearchResults: searchResultsStub,
           "router-link": { template: "<a><slot /></a>" },
           WidgetPanel: {
             template:

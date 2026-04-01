@@ -12,6 +12,7 @@ import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 const props = defineProps<{
   widgets: Widget[]
   isLoading: boolean
+  query: string
 }>()
 
 const emit = defineEmits<{
@@ -37,6 +38,19 @@ function hasValueChanges(
 ): boolean {
   return JSON.stringify(current) !== JSON.stringify(baseline)
 }
+
+function resetLocalState() {
+  widgetValues.value = {}
+  refinementText.value = ''
+  baselineWidgetValues.value = {}
+  baselineRefinementText.value = ''
+}
+
+watch(() => props.query, (newQuery, oldQuery) => {
+  if (newQuery !== oldQuery) {
+    resetLocalState()
+  }
+})
 
 watch(() => props.widgets, (newWidgets) => {
   const newValues: Record<string, any> = {}

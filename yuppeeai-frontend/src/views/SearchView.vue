@@ -96,6 +96,7 @@ async function handleRefine(
         <WidgetPanel
           :widgets="store.widgets"
           :is-loading="store.isLoadingWidgets"
+          :query="store.query"
           @refine="handleRefine"
         />
       </aside>

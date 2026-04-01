@@ -181,6 +181,59 @@ describe("searchStore", () => {
     expect(updated?.value).toBe(newValue);
   });
 
+  it("clears filters, results, and refinement immediately when the query changes", async () => {
+    const searchDeferred = deferred<{
+      results: typeof MOCK_SEARCH_RESULTS;
+      totalCount: number;
+      query: string;
+      result_summary: string;
+    }>();
+    const refinementDeferred = deferred<{ widgets: typeof MOCK_WIDGETS }>();
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/refine")) {
+          return Promise.resolve({
+            ok: true,
+            json: () => refinementDeferred.promise,
+          });
+        }
+
+        return Promise.resolve({
+          ok: true,
+          json: () => searchDeferred.promise,
+        });
+      }),
+    );
+
+    const store = useSearchStore();
+    store.results = [...MOCK_SEARCH_RESULTS];
+    store.resultSummary = "Existing summary";
+    store.widgets = [...MOCK_WIDGETS];
+    store.refinement = "keep British authors only";
+    store.query = "crimean war books";
+
+    const pendingSearch = store.performSearch("new science books", {});
+
+    expect(store.query).toBe("new science books");
+    expect(store.results).toEqual([]);
+    expect(store.resultSummary).toBe("");
+    expect(store.widgets).toEqual([]);
+    expect(store.refinement).toBe("");
+
+    searchDeferred.resolve({
+      results: MOCK_SEARCH_RESULTS,
+      totalCount: MOCK_SEARCH_RESULTS.length,
+      query: "new science books",
+      result_summary: "Fresh summary",
+    });
+    refinementDeferred.resolve({ widgets: MOCK_WIDGETS });
+
+    await pendingSearch;
+  });
+
   it("clears state with clearSearch", async () => {
     const store = useSearchStore();
     await store.performSearch("books");
