@@ -14,6 +14,10 @@ const emit = defineEmits<{
 const hasEmptyOption = computed(() =>
   (props.widget.options ?? []).some((option) => option.value === ''),
 )
+
+const isPlaceholderActive = computed(
+  () => !hasEmptyOption.value && props.modelValue === '',
+)
 </script>
 
 <template>
@@ -32,11 +36,11 @@ const hasEmptyOption = computed(() =>
     </div>
     <div class="widget__select-wrapper">
       <select
-        class="widget__select"
+        :class="['widget__select', { 'widget__select--placeholder': isPlaceholderActive }]"
         :value="modelValue"
         @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
       >
-        <option v-if="!hasEmptyOption" value=""></option>
+        <option v-if="!hasEmptyOption" value="" disabled hidden>Select an option</option>
         <option
           v-for="option in props.widget.options"
           :key="option.value"
@@ -45,6 +49,16 @@ const hasEmptyOption = computed(() =>
           {{ option.label }}
         </option>
       </select>
+      <button
+        v-if="modelValue !== ''"
+        type="button"
+        class="widget__clear"
+        aria-label="Clear selection"
+        @mousedown.prevent
+        @click.stop="emit('update:modelValue', '')"
+      >
+        x
+      </button>
       <svg class="widget__select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="m6 9 6 6 6-6"/>
       </svg>
@@ -94,7 +108,7 @@ const hasEmptyOption = computed(() =>
 
 .widget__select {
   width: 100%;
-  padding: 0.55rem 2.5rem 0.55rem 0.75rem;
+  padding: 0.55rem 3.9rem 0.55rem 0.75rem;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
@@ -106,6 +120,14 @@ const hasEmptyOption = computed(() =>
   transition: border-color var(--transition), box-shadow var(--transition);
 }
 
+.widget__select--placeholder {
+  color: var(--color-text-muted);
+}
+
+.widget__select option {
+  color: var(--color-text);
+}
+
 .widget__select:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
@@ -113,6 +135,44 @@ const hasEmptyOption = computed(() =>
 
 .widget__select:hover {
   border-color: var(--color-primary-light);
+}
+
+.widget__clear {
+  position: absolute;
+  right: 1.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition), color var(--transition), background-color var(--transition);
+  z-index: 1;
+}
+
+.widget:hover .widget__clear,
+.widget:focus-within .widget__clear {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.widget__clear:hover {
+  color: var(--color-text);
+  background-color: rgba(15, 23, 42, 0.08);
+}
+
+.widget__clear:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 1px;
 }
 
 .widget__select-arrow {
