@@ -45,7 +45,9 @@ const normalizedValue = computed<number | [number, number]>(() => {
 const internalValue = ref<number | [number, number]>(normalizedValue.value)
 
 watch(normalizedValue, (val) => {
-  internalValue.value = val
+  if (JSON.stringify(val) !== JSON.stringify(internalValue.value)) {
+    internalValue.value = val
+  }
 }, { immediate: true })
 
 watch(internalValue, (val) => {

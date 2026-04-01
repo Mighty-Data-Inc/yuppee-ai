@@ -48,8 +48,82 @@ function updateValue(widgetId: string, value: any) {
   widgetValues.value[widgetId] = value
 }
 
+function resolveLabel(widget: Widget, value: any): any {
+  if (widget.type === 'dropdown' && widget.options) {
+    const match = widget.options.find(o => o.value === value)
+    return match ? match.label : value
+  }
+  return value
+}
+
+function describeSearchRefinementChanges(): string[] {
+  const lines: string[] = []
+  for (const widget of props.widgets) {
+    const previousWidgetValue = baselineWidgetValues.value[widget.id]
+    const currentWidgetValue = widgetValues.value[widget.id]
+    if (JSON.stringify(previousWidgetValue) !== JSON.stringify(currentWidgetValue)) {
+      if (widget.type === 'dropdown') {
+        const previousLabel = resolveLabel(widget, previousWidgetValue)
+        const currentLabel = resolveLabel(widget, currentWidgetValue)
+        if (!previousLabel) {
+          lines.push(`${widget.label}: Applying criterion "${currentLabel}"`)
+        } else if (!currentLabel) {
+          lines.push(`${widget.label}: Removing criterion "${previousLabel}"`)
+        } else {
+          lines.push(`${widget.label}: "${previousLabel}" → "${currentLabel}"`)
+        }
+      } else if (widget.type === 'switch') {
+        if (currentWidgetValue) {
+          lines.push(`Applying criterion "${widget.label}"`)
+        } else {
+          lines.push(`Removing criterion "${widget.label}"`)
+        }
+      } else if (widget.type === 'chipgroup') {
+        const previousChips: string[] = previousWidgetValue ?? []
+        const currentChips: string[] = currentWidgetValue ?? []
+        const resolveChipLabel = (value: string) =>
+          widget.options?.find(o => o.value === value)?.label ?? value
+        const added = currentChips
+          .filter(v => !previousChips.includes(v))
+          .map(resolveChipLabel)
+        const removed = previousChips
+          .filter(v => !currentChips.includes(v))
+          .map(resolveChipLabel)
+        if (added.length) lines.push(`${widget.label}: Adding "${added.join('", "')}"`)
+        if (removed.length) lines.push(`${widget.label}: Removing "${removed.join('", "')}"`)
+
+      } else if (widget.type === 'range-slider') {
+        const mode = widget.sliderMode ?? 'range'
+        if (mode === 'exact') {
+          lines.push(`${widget.label}: Changing value from ${previousWidgetValue} to ${currentWidgetValue}`)
+        } else if (mode === 'lte') {
+          lines.push(`${widget.label}: Changing upper bound from ${previousWidgetValue} to ${currentWidgetValue}`)
+        } else if (mode === 'gte') {
+          lines.push(`${widget.label}: Changing lower bound from ${previousWidgetValue} to ${currentWidgetValue}`)
+        } else if (mode === 'range') {
+          if (Array.isArray(previousWidgetValue) && Array.isArray(currentWidgetValue)) {
+            const [prevLow, prevHigh] = previousWidgetValue as [number, number]
+            const [currLow, currHigh] = currentWidgetValue as [number, number]
+            if (prevLow !== currLow) lines.push(`${widget.label}: Changing lower bound from ${prevLow} to ${currLow}`)
+            if (prevHigh !== currHigh) lines.push(`${widget.label}: Changing upper bound from ${prevHigh} to ${currHigh}`)
+          }
+        }
+      }
+    }
+  }
+  if (refinementText.value !== baselineRefinementText.value) {
+    if (refinementText.value) {
+      lines.push(`Applying additional instructions: "${refinementText.value}"`)
+    } else {
+      lines.push(`Removing additional instructions`)
+    }
+  }
+  return lines
+}
+
 function handleSearchAgain() {
   if (!canSearchAgain.value) return
+  console.log('Changed filters:', describeSearchRefinementChanges())
   emit('refine', { ...widgetValues.value }, refinementText.value)
 }
 
