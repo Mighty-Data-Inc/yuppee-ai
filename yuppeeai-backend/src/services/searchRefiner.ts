@@ -86,25 +86,10 @@ const WIDGET_JSON_SCHEMA = {
               `We already know damn well that we're here to pick, choose, select, or specify something, because we're using ` +
               `this UI in the first place. The label must simply state the thing being chosen, selected, picked, or specified.`,
           },
-          widget_descriptive_title: {
-            type: "object",
-            description: `Similar to "widget_label", but more verbose and detailed. We'll offer a few different variants on phrasing.`,
-            properties: {
-              teleological: {
-                type: "string",
-                description: `An explanation of what objectives the user might achieve by specifying these filter criteria.`,
-              },
-              provides_examples: {
-                type: "string",
-                description: `Provides examples of some of the filter values that the user might want to specify.`,
-              },
-              direct: {
-                type: "string",
-                description: `A version of the descriptive title that is neither teleological nor provides examples.`,
-              },
-            },
-            required: ["teleological", "provides_examples", "direct"],
-            additionalProperties: false,
+          widget_tooltip: {
+            type: "string",
+            description:
+              "A concise tooltip for the widget that explains what filtering objective it helps accomplish.",
           },
           widget_params: {
             anyOf: [
@@ -177,7 +162,7 @@ const WIDGET_JSON_SCHEMA = {
           "widget_type",
           "widget_variable_name",
           "widget_label",
-          "widget_descriptive_title",
+          "widget_tooltip",
           "widget_params",
         ],
         additionalProperties: false,
@@ -299,7 +284,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
         widget_type: type,
         widget_variable_name: variable_name,
         widget_label: label,
-        widget_descriptive_title,
+        widget_tooltip,
         widget_params,
       } = w;
 
@@ -348,7 +333,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
         type: emittedType,
         variable_name,
         label: emittedLabel,
-        tooltip: widget_descriptive_title?.teleological ?? "",
+        tooltip: widget_tooltip ?? "",
       } as Record<string, unknown>;
 
       if (emittedType !== "switch") {

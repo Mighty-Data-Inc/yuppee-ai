@@ -21,11 +21,7 @@ describe("SearchRefiner cleanRefinements", () => {
         widget_type: "dropdown",
         widget_variable_name: "topic",
         widget_label: "Topic",
-        widget_descriptive_title: {
-          teleological: "Limit to one topic",
-          provides_examples: "",
-          direct: "",
-        },
+        widget_tooltip: "Limit to one topic",
         widget_params: {
           choices: [
             {
@@ -55,11 +51,7 @@ describe("SearchRefiner cleanRefinements", () => {
         widget_type: "dropdown",
         widget_variable_name: "category",
         widget_label: "Category",
-        widget_descriptive_title: {
-          teleological: "Filter by category",
-          provides_examples: "",
-          direct: "",
-        },
+        widget_tooltip: "Filter by category",
         widget_params: {
           choices: [
             { choice_variable_value: "trial", choice_ui_label: "Trial" },
@@ -92,11 +84,7 @@ describe("SearchRefiner cleanRefinements", () => {
         widget_type: "checkboxes",
         widget_variable_name: "topics",
         widget_label: "Topics",
-        widget_descriptive_title: {
-          teleological: "Filter topics",
-          provides_examples: "",
-          direct: "",
-        },
+        widget_tooltip: "Filter topics",
         widget_params: {
           choices: [
             { choice_variable_value: "trial", choice_ui_label: "Trial" },
@@ -118,11 +106,7 @@ describe("SearchRefiner cleanRefinements", () => {
         widget_type: "switch",
         widget_variable_name: "in_stock",
         widget_label: "In Stock",
-        widget_descriptive_title: {
-          teleological: "Only show available items",
-          provides_examples: "",
-          direct: "",
-        },
+        widget_tooltip: "Only show available items",
         widget_params: {
           label_for_switch_on: "Show only in-stock items",
           label_for_switch_off: "Show all items regardless of stock status",
