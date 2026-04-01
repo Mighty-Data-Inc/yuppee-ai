@@ -212,7 +212,7 @@ describe("searchStore", () => {
     store.results = [...MOCK_SEARCH_RESULTS];
     store.resultSummary = "Existing summary";
     store.widgets = [...MOCK_WIDGETS];
-    store.refinement = "keep British authors only";
+    store.refinement = ["keep British authors only"];
     store.query = "crimean war books";
 
     const pendingSearch = store.performSearch("new science books", {});
@@ -221,7 +221,7 @@ describe("searchStore", () => {
     expect(store.results).toEqual([]);
     expect(store.resultSummary).toBe("");
     expect(store.widgets).toEqual([]);
-    expect(store.refinement).toBe("");
+    expect(store.refinement).toEqual([]);
 
     searchDeferred.resolve({
       results: MOCK_SEARCH_RESULTS,

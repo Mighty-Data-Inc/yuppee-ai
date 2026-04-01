@@ -18,15 +18,15 @@ const props = defineProps<{
 const emit = defineEmits<{
   refine: [
     widgetValues: Record<string, any>,
-    refinementText: string,
+    additionalInstructions: string[],
     refinementChanges: string[],
   ]
 }>()
 
 const widgetValues = ref<Record<string, any>>({})
-const refinementText = ref('')
+const instructionInput = ref('')
+const additionalInstructions = ref<string[]>([])
 const baselineWidgetValues = ref<Record<string, any>>({})
-const baselineRefinementText = ref('')
 
 function cloneValues(values: Record<string, any>): Record<string, any> {
   return JSON.parse(JSON.stringify(values))
@@ -41,9 +41,9 @@ function hasValueChanges(
 
 function resetLocalState() {
   widgetValues.value = {}
-  refinementText.value = ''
+  instructionInput.value = ''
+  additionalInstructions.value = []
   baselineWidgetValues.value = {}
-  baselineRefinementText.value = ''
 }
 
 watch(() => props.query, (newQuery, oldQuery) => {
@@ -59,8 +59,16 @@ watch(() => props.widgets, (newWidgets) => {
   }
   widgetValues.value = newValues
   baselineWidgetValues.value = cloneValues(newValues)
-  baselineRefinementText.value = refinementText.value
 }, { immediate: true, deep: true })
+
+function getNextInstructions(): string[] {
+  const nextInstructions = [...additionalInstructions.value]
+  const trimmedInput = instructionInput.value.trim()
+  if (trimmedInput) {
+    nextInstructions.push(trimmedInput)
+  }
+  return nextInstructions
+}
 
 function updateValue(widgetId: string, value: any) {
   widgetValues.value[widgetId] = value
@@ -129,28 +137,33 @@ function describeSearchRefinementChanges(): string[] {
       }
     }
   }
-  if (refinementText.value !== baselineRefinementText.value) {
-    if (refinementText.value) {
-      lines.push(`Applying additional instructions: "${refinementText.value}"`)
-    } else {
-      lines.push(`Removing additional instructions`)
-    }
+  const trimmedInput = instructionInput.value.trim()
+  if (trimmedInput) {
+    lines.push(`Adding additional instructions: "${trimmedInput}"`)
   }
+
   return lines
 }
 
 function handleSearchAgain() {
   if (!canSearchAgain.value) return
+  const nextInstructions = getNextInstructions()
   const refinementChanges = describeSearchRefinementChanges()
   console.log('Changed filters:', refinementChanges)
-  emit('refine', { ...widgetValues.value }, refinementText.value, refinementChanges)
+  emit('refine', { ...widgetValues.value }, nextInstructions, refinementChanges)
+  additionalInstructions.value = nextInstructions
+  instructionInput.value = ''
+}
+
+function removeInstruction(index: number) {
+  additionalInstructions.value = additionalInstructions.value.filter((_, i) => i !== index)
 }
 
 const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform')
 const canSearchAgain = computed(() => {
   if (props.isLoading) return false
   if (hasValueChanges(widgetValues.value, baselineWidgetValues.value)) return true
-  return refinementText.value !== baselineRefinementText.value
+  return Boolean(instructionInput.value.trim())
 })
 </script>
 
@@ -217,10 +230,34 @@ const canSearchAgain = computed(() => {
 
       <div class="widget-panel__freeform">
         <p class="widget-panel__freeform-label">Additional instructions...</p>
+
+        <transition-group
+          v-if="additionalInstructions.length"
+          name="instruction-card"
+          tag="div"
+          class="widget-panel__instruction-list"
+        >
+          <div
+            v-for="(instruction, index) in additionalInstructions"
+            :key="`${instruction}-${index}`"
+            class="widget-panel__instruction-card"
+          >
+            <button
+              class="widget-panel__instruction-remove"
+              type="button"
+              aria-label="Remove additional instruction"
+              @click="removeInstruction(index)"
+            >
+              x
+            </button>
+            <p class="widget-panel__instruction-text">{{ instruction }}</p>
+          </div>
+        </transition-group>
+
         <FreeformTextWidget
-          :model-value="refinementText"
+          :model-value="instructionInput"
           placeholder="Modify the search results per your explanation, e.g. 'written by a British author, published after 2000'"
-          @update:model-value="refinementText = $event"
+          @update:model-value="instructionInput = $event"
         />
       </div>
 
@@ -289,6 +326,78 @@ const canSearchAgain = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
+}
+
+.widget-panel__instruction-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.widget-panel__instruction-card {
+  position: relative;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  padding: 0.6rem 0.6rem 0.5rem 0.95rem;
+  max-width: 100%;
+}
+
+.instruction-card-enter-active,
+.instruction-card-leave-active {
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.instruction-card-enter-from,
+.instruction-card-leave-to {
+  opacity: 0;
+  transform: translateY(4px) scale(0.98);
+}
+
+.instruction-card-move {
+  transition: transform 180ms ease;
+}
+
+.widget-panel__instruction-text {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.widget-panel__instruction-remove {
+  position: absolute;
+  top: -0.35rem;
+  left: -0.35rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.widget-panel__instruction-card:hover .widget-panel__instruction-remove,
+.widget-panel__instruction-remove:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.widget-panel__instruction-remove:hover,
+.widget-panel__instruction-remove:focus-visible {
+  color: #b91c1c;
+  border-color: #fecaca;
 }
 
 .widget-panel__freeform-label {

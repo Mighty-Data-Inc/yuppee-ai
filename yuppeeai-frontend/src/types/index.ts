@@ -38,7 +38,7 @@ export interface SearchState {
   results: SearchResult[];
   resultSummary: string;
   widgets: Widget[];
-  refinement: string;
+  refinement: string[];
   isLoading: boolean;
   preferences: Record<string, any>;
 }

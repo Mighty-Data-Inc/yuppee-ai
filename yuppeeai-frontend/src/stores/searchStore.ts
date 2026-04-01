@@ -10,7 +10,7 @@ export const useSearchStore = defineStore("search", () => {
   const results = ref<SearchResult[]>([]);
   const resultSummary = ref("");
   const widgets = ref<Widget[]>([]);
-  const refinement = ref("");
+  const refinement = ref<string[]>([]);
   const isLoadingResults = ref(false);
   const isLoadingWidgets = ref(false);
   const isLoading = computed(
@@ -61,7 +61,7 @@ export const useSearchStore = defineStore("search", () => {
     results.value = [];
     resultSummary.value = "";
     widgets.value = [];
-    refinement.value = "";
+    refinement.value = [];
   }
 
   async function performSearch(q: string, widgetValues?: Record<string, any>) {

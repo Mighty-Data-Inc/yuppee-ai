@@ -26,7 +26,7 @@ const mockStore = {
   results: [],
   resultSummary: "",
   widgets: [],
-  refinement: "",
+  refinement: [] as string[],
   isLoadingResults: false,
   isLoadingWidgets: false,
   performSearch: mockPerformSearch,
@@ -46,13 +46,13 @@ describe("SearchView refine behavior", () => {
   beforeEach(() => {
     routeState.query = {};
     mockStore.query = "crimean war books";
-    mockStore.refinement = "";
+    mockStore.refinement = [];
     mockPerformSearch.mockClear();
     mockLoadPreferences.mockClear();
     mockPush.mockClear();
   });
 
-  it("submits refinementText as additionalInstructions filter without changing query", async () => {
+  it("submits additional instructions list without changing query", async () => {
     const wrapper = mount(SearchView, {
       global: {
         stubs: {
@@ -61,7 +61,7 @@ describe("SearchView refine behavior", () => {
           "router-link": { template: "<a><slot /></a>" },
           WidgetPanel: {
             template:
-              "<button class='refine-trigger' @click=\"$emit('refine', { genre: 'history' }, 'written by a British author')\">Refine</button>",
+              "<button class='refine-trigger' @click=\"$emit('refine', { genre: 'history' }, ['written by a British author', 'published after 2000'])\">Refine</button>",
           },
         },
       },
@@ -69,15 +69,21 @@ describe("SearchView refine behavior", () => {
 
     await wrapper.find(".refine-trigger").trigger("click");
 
-    expect(mockStore.refinement).toBe("written by a British author");
+    expect(mockStore.refinement).toEqual([
+      "written by a British author",
+      "published after 2000",
+    ]);
     expect(mockPerformSearch).toHaveBeenCalledTimes(1);
     expect(mockPerformSearch).toHaveBeenCalledWith("crimean war books", {
       genre: "history",
-      additionalInstructions: "written by a British author",
+      additionalInstructions: [
+        "written by a British author",
+        "published after 2000",
+      ],
     });
   });
 
-  it("omits additionalInstructions when refinementText is blank", async () => {
+  it("omits additionalInstructions when instruction list is empty", async () => {
     const wrapper = mount(SearchView, {
       global: {
         stubs: {
@@ -86,7 +92,7 @@ describe("SearchView refine behavior", () => {
           "router-link": { template: "<a><slot /></a>" },
           WidgetPanel: {
             template:
-              "<button class='refine-trigger' @click=\"$emit('refine', { genre: 'history' }, '   ')\">Refine</button>",
+              "<button class='refine-trigger' @click=\"$emit('refine', { genre: 'history' }, [])\">Refine</button>",
           },
         },
       },

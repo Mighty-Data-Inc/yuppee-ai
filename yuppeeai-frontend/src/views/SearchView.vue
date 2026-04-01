@@ -44,16 +44,15 @@ function handleSearch(q: string) {
 
 async function handleRefine(
   widgetValues: Record<string, any>,
-  refinementText: string,
+  additionalInstructions: string[],
   refinementChanges: string[],
 ) {
-  store.refinement = refinementText
+  store.refinement = [...additionalInstructions]
   pendingRefinementChanges.value = refinementChanges
   const filters = { ...widgetValues }
-  const trimmedRefinement = refinementText.trim()
 
-  if (trimmedRefinement) {
-    filters.additionalInstructions = trimmedRefinement
+  if (additionalInstructions.length) {
+    filters.additionalInstructions = [...additionalInstructions]
   }
 
   try {
