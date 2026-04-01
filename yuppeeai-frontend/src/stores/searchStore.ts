@@ -1,7 +1,10 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type { SearchResult, Widget } from "@/types";
-import { search, generateWidgets } from "@/services/searchService";
+import {
+  submitSearchQuery,
+  submitSearchRefinement,
+} from "@/services/searchService";
 
 const PREFS_KEY = "yuppee_search_preferences";
 
@@ -83,7 +86,7 @@ export const useSearchStore = defineStore("search", () => {
     const effectiveFilters = widgetValues ?? savedPrefs;
     const knownResults = [...results.value];
 
-    const searchRequest = search(normalizedQuery, effectiveFilters)
+    const searchRequest = submitSearchQuery(normalizedQuery, effectiveFilters)
       .then((searchResponse) => {
         if (activeRequestId.value !== requestId) return;
         results.value = searchResponse.results;
@@ -101,7 +104,7 @@ export const useSearchStore = defineStore("search", () => {
         isLoadingResults.value = false;
       });
 
-    const refinementRequest = generateWidgets(
+    const refinementRequest = submitSearchRefinement(
       normalizedQuery,
       effectiveFilters,
       knownResults,

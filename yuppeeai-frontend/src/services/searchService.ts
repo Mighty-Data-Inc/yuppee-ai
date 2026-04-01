@@ -43,7 +43,7 @@ function normalizeSearchResults(rawResults: unknown): SearchResult[] {
   return normalized;
 }
 
-export async function search(
+export async function submitSearchQuery(
   query: string,
   filters?: Record<string, any>,
 ): Promise<SearchResponse> {
@@ -71,7 +71,7 @@ export async function search(
   };
 }
 
-export async function generateWidgets(
+export async function submitSearchRefinement(
   query: string,
   currentFilters?: Record<string, any>,
   knownResults?: SearchResult[],

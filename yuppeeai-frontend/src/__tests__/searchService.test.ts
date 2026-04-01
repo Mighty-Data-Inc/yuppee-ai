@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { search, generateWidgets } from "@/services/searchService";
+import {
+  submitSearchQuery,
+  submitSearchRefinement,
+} from "@/services/searchService";
 
 const MOCK_RESULTS = [
   {
@@ -98,7 +101,7 @@ describe("searchService.search", () => {
   });
 
   it("returns results for book-related queries", async () => {
-    const response = await search("Books about Crimean War");
+    const response = await submitSearchQuery("Books about Crimean War");
     expect(response.results.length).toBeGreaterThan(0);
     expect(response.results[0]).toHaveProperty("title");
     expect(response.results[0]).toHaveProperty("url");
@@ -107,17 +110,17 @@ describe("searchService.search", () => {
   });
 
   it("returns results for movie-related queries", async () => {
-    const response = await search("best sci-fi movies");
+    const response = await submitSearchQuery("best sci-fi movies");
     expect(response.results.length).toBeGreaterThan(0);
   });
 
   it("returns default results for generic queries", async () => {
-    const response = await search("artificial intelligence search");
+    const response = await submitSearchQuery("artificial intelligence search");
     expect(response.results.length).toBeGreaterThan(0);
   });
 
   it("returns 6 results", async () => {
-    const response = await search("books about history");
+    const response = await submitSearchQuery("books about history");
     expect(response.results).toHaveLength(6);
   });
 
@@ -149,7 +152,7 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await search("duplicate test");
+    const response = await submitSearchQuery("duplicate test");
 
     expect(response.results).toHaveLength(2);
     expect(response.results[0]).toMatchObject({
@@ -183,7 +186,7 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await search("dual text test");
+    const response = await submitSearchQuery("dual text test");
 
     expect(response.results).toHaveLength(1);
     expect(response.results[0]).toMatchObject({
@@ -212,7 +215,7 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await search("summary only test");
+    const response = await submitSearchQuery("summary only test");
 
     expect(response.results).toHaveLength(1);
     expect(response.results[0]).toMatchObject({
@@ -225,7 +228,7 @@ describe("searchService.search", () => {
 
   it("sends a POST request with query and filters to /search", async () => {
     const filters = { genre: "history" };
-    await search("books about history", filters);
+    await submitSearchQuery("books about history", filters);
     const fetchMock = vi.mocked(fetch);
     expect(fetchMock).toHaveBeenCalledOnce();
     const call = fetchMock.mock.calls[0]!;
@@ -243,7 +246,7 @@ describe("searchService.search", () => {
       additionalInstructions: "written by a British author",
     };
 
-    await search("books about history", filters);
+    await submitSearchQuery("books about history", filters);
 
     const fetchMock = vi.mocked(fetch);
     const call = fetchMock.mock.calls[0]!;
@@ -260,13 +263,13 @@ describe("searchService.search", () => {
       "fetch",
       vi.fn().mockResolvedValue({ ok: false, status: 500 }),
     );
-    await expect(search("test query")).rejects.toThrow(
+    await expect(submitSearchQuery("test query")).rejects.toThrow(
       "Search request failed: 500",
     );
   });
 });
 
-describe("searchService.generateWidgets", () => {
+describe("searchService.submitSearchRefinement", () => {
   beforeEach(() => {
     mockFetch();
   });
@@ -333,7 +336,7 @@ describe("searchService.generateWidgets", () => {
       }),
     );
 
-    const widgets = await generateWidgets("best novels");
+    const widgets = await submitSearchRefinement("best novels");
 
     expect(widgets).toHaveLength(4);
     expect(widgets[0]).toMatchObject({
@@ -366,7 +369,7 @@ describe("searchService.generateWidgets", () => {
   });
 
   it("returns widgets from /refine", async () => {
-    const widgets = await generateWidgets("artificial intelligence");
+    const widgets = await submitSearchRefinement("artificial intelligence");
     expect(widgets).toHaveLength(2);
     expect(widgets[0]?.id).toBe("date-range");
   });
@@ -438,7 +441,7 @@ describe("searchService.generateWidgets", () => {
       }),
     );
 
-    const widgets = await generateWidgets("prices");
+    const widgets = await submitSearchRefinement("prices");
 
     expect(widgets[0]).toMatchObject({ sliderMode: "exact", value: 0 });
     expect(widgets[1]).toMatchObject({ sliderMode: "lte", value: 100 });
@@ -481,7 +484,7 @@ describe("searchService.generateWidgets", () => {
       }),
     );
 
-    const widgets = await generateWidgets("formats");
+    const widgets = await submitSearchRefinement("formats");
     expect(widgets).toHaveLength(1);
     expect(widgets[0]?.dropdownPlaceholder).toBeUndefined();
   });
@@ -496,7 +499,7 @@ describe("searchService.generateWidgets", () => {
         snippet: "Known snippet",
       },
     ];
-    await generateWidgets("books about history", filters, knownResults);
+    await submitSearchRefinement("books about history", filters, knownResults);
 
     const fetchMock = vi.mocked(fetch);
     const refinementCall = fetchMock.mock.calls.find((call) =>
@@ -529,7 +532,7 @@ describe("searchService.generateWidgets", () => {
       }),
     );
 
-    await expect(generateWidgets("test query")).rejects.toThrow(
+    await expect(submitSearchRefinement("test query")).rejects.toThrow(
       "Refinements request failed: 500",
     );
   });
