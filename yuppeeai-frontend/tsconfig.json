@@ -12,6 +12,7 @@
     "lib": ["ESNext", "DOM"],
     "types": ["vite/client", "node"],
     "skipLibCheck": true,
+    "ignoreDeprecations": "6.0",
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
