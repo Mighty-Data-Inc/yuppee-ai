@@ -65,13 +65,6 @@ const singleInputLabel = computed(() => {
   return 'Exactly'
 })
 
-const modeDescription = computed(() => {
-  if (sliderMode.value === 'range') return 'Between two values (inclusive)'
-  if (sliderMode.value === 'lte') return 'Select values up to and including this point'
-  if (sliderMode.value === 'gte') return 'Select values at or above this point'
-  return 'Select one exact value'
-})
-
 const lowerBoundValue = computed(() => {
   if (Array.isArray(internalValue.value)) return internalValue.value[0]
   if (sliderMode.value === 'lte') return props.widget.min ?? 0
@@ -99,7 +92,6 @@ const upperBoundValue = computed(() => {
         i
       </span>
     </div>
-    <p class="widget__mode-hint">{{ modeDescription }}</p>
     <div class="widget__range">
       <div v-if="sliderMode === 'range'" class="widget__range-inputs">
         <div class="widget__range-group">
@@ -196,13 +188,6 @@ const upperBoundValue = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-}
-
-.widget__mode-hint {
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-  margin-bottom: 0.1rem;
-  line-height: 1.4;
 }
 
 .widget__range-inputs {
