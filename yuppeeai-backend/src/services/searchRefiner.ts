@@ -178,11 +178,28 @@ const WIDGET_JSON_SCHEMA = {
                   `Indicates whether this widget should be hidden based on the current search query. ` +
                   `Set this to true if the widget is not relevant for the current query.`,
               },
+              discuss_how_widget_is_redundant_with_other_widgets: {
+                type: "string",
+                description:
+                  `Talk about how this widget might be redundant with other widgets in the current search context. ` +
+                  `If there are other widgets that provide similar functionality or overlap in purpose, ` +
+                  `describe the redundancy. For example, if this is a switch widget that filters results by ` +
+                  `some kind of status, and there is already a drop-down that selects this same status, ` +
+                  `then this widget is redundant and unnecessary.`,
+              },
+              is_widget_redundant: {
+                type: "boolean",
+                description:
+                  `Indicates whether this widget is redundant with other widgets in the current search context. ` +
+                  `Set this to true if the widget is redundant and unnecessary.`,
+              },
             },
             required: [
               "effect_of_user_selecting_value_for_this_widget",
               "does_selecting_this_value_make_sense_for_this_search_query",
               "should_we_hide_this_widget_based_on_the_current_search_query",
+              "discuss_how_widget_is_redundant_with_other_widgets",
+              "is_widget_redundant",
             ],
             additionalProperties: false,
           },
@@ -332,7 +349,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
       (w) =>
         w?.sanity_check
           ?.should_we_hide_this_widget_based_on_the_current_search_query !==
-        true,
+          true && w?.is_widget_redundant !== true,
     );
 
     const cleanedWidgets = visibleWidgets.map((w) => {
