@@ -8,6 +8,35 @@ interface SearchProviderConfig {
 
 const GPT_MODEL_SMART = "gpt-4.1";
 
+function stripOpenAiUtmSource(url?: string): string | undefined {
+  if (!url) {
+    return url;
+  }
+
+  try {
+    const parsed = new URL(url);
+    const utmSourceValues = parsed.searchParams.getAll("utm_source");
+    const hasOpenAiSource = utmSourceValues.some(
+      (value) => value.toLowerCase() === "openai",
+    );
+
+    if (!hasOpenAiSource) {
+      return url;
+    }
+
+    parsed.searchParams.delete("utm_source");
+    for (const value of utmSourceValues) {
+      if (value.toLowerCase() !== "openai") {
+        parsed.searchParams.append("utm_source", value);
+      }
+    }
+
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 const SERP_JSON_SCHEMA = {
   type: "object",
   required: ["result_summary", "results"],
@@ -158,7 +187,12 @@ Return only valid JSON matching the provided schema. Preserve relevance ordering
       };
 
       retval.result_summary = parsed.result_summary ?? "";
-      retval.results = Array.isArray(parsed.results) ? parsed.results : [];
+      retval.results = Array.isArray(parsed.results)
+        ? parsed.results.map((result) => ({
+            ...result,
+            url: stripOpenAiUtmSource(result.url),
+          }))
+        : [];
     } catch (error) {
       console.error("Error during structured output request:", error);
       throw error;
