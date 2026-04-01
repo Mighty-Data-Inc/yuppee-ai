@@ -18,6 +18,11 @@ const hasEmptyOption = computed(() =>
 const isPlaceholderActive = computed(
   () => !hasEmptyOption.value && props.modelValue === '',
 )
+
+const placeholderText = computed(() => {
+  const customPlaceholder = props.widget.dropdownPlaceholder?.trim()
+  return customPlaceholder || 'Select an option'
+})
 </script>
 
 <template>
@@ -40,7 +45,7 @@ const isPlaceholderActive = computed(
         :value="modelValue"
         @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
       >
-        <option v-if="!hasEmptyOption" value="" disabled hidden>Select an option</option>
+        <option v-if="!hasEmptyOption" value="" disabled hidden>{{ placeholderText }}</option>
         <option
           v-for="option in props.widget.options"
           :key="option.value"

@@ -17,6 +17,7 @@ type BackendWidget = {
   step?: number;
   params?: {
     choices?: BackendWidgetChoice[];
+    choices_concat_abbrev?: string;
     value_min?: number;
     value_max?: number;
     user_selects_lowest_value_of_range?: boolean;
@@ -147,11 +148,14 @@ export function normalizeWidgets(
       }
 
       if (type === "dropdown") {
+        const placeholderCandidate =
+          widget.params?.choices_concat_abbrev?.trim();
         return {
           id,
           type,
           label: widget.label ?? id,
           tooltip: widget.tooltip,
+          dropdownPlaceholder: placeholderCandidate || undefined,
           options,
           value: currentFilters?.[id] ?? widget.value ?? "",
         };

@@ -293,6 +293,7 @@ describe("searchService.generateWidgets", () => {
                         { value: "classics", label: "Classics" },
                         { value: "modern", label: "Modern" },
                       ],
+                      choices_concat_abbrev: "Classics/Modern",
                     },
                   },
                   {
@@ -339,6 +340,7 @@ describe("searchService.generateWidgets", () => {
       id: "novel_type",
       type: "dropdown",
       label: "Type of Novel",
+      dropdownPlaceholder: "Classics/Modern",
       value: "",
     });
     expect(widgets[1]).toMatchObject({
@@ -445,6 +447,43 @@ describe("searchService.generateWidgets", () => {
       sliderMode: "range",
       value: [0, 100],
     });
+  });
+
+  it("ignores blank choices_concat_abbrev for dropdown placeholders", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/refine")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                widgets: [
+                  {
+                    type: "dropdown",
+                    variable_name: "format",
+                    label: "Format",
+                    params: {
+                      choices: [{ value: "ebook", label: "Ebook" }],
+                      choices_concat_abbrev: "   ",
+                    },
+                  },
+                ],
+              }),
+          });
+        }
+
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ results: MOCK_RESULTS }),
+        });
+      }),
+    );
+
+    const widgets = await generateWidgets("formats");
+    expect(widgets).toHaveLength(1);
+    expect(widgets[0]?.dropdownPlaceholder).toBeUndefined();
   });
 
   it("sends a POST request with query, filters, and known results to /refine", async () => {

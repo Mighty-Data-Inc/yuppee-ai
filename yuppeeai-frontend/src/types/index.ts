@@ -24,6 +24,7 @@ export interface Widget {
   type: WidgetType;
   label: string;
   tooltip?: string;
+  dropdownPlaceholder?: string;
   options?: WidgetOption[];
   min?: number;
   max?: number;

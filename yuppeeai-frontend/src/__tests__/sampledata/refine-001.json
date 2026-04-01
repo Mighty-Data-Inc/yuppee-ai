@@ -1,89 +1,100 @@
 {
+  "query": "Books about Crimean War",
   "disambiguation": null,
   "widgets": [
     {
       "type": "dropdown",
-      "variable_name": "novel_type",
-      "label": "Type of Novel",
-      "tooltip": "Help users filter recommendations based on the classic, modern, or lesser-known status of the novel.",
+      "variable_name": "historical_analysis",
+      "label": "Historical Analysis",
+      "tooltip": "Filter books based on aspects like diplomatic history or military campaigns.",
       "params": {
         "choices": [
           {
-            "value": "classics",
-            "label": "Classics"
+            "value": "diplomatic_history",
+            "label": "Diplomatic history"
           },
           {
-            "value": "modern",
-            "label": "Modern"
-          },
-          {
-            "value": "hidden_gems",
-            "label": "Hidden Gems"
+            "value": "military_campaigns",
+            "label": "Military campaigns"
           }
-        ]
+        ],
+        "choices_concat_abbrev": "Diplomacy/Military"
       }
     },
     {
       "type": "chipgroup",
-      "variable_name": "recognition",
-      "label": "Recognition/Recognition Type",
-      "tooltip": "Allow users to filter based on awards, popularity, or critical acclaim to find highly regarded novels.",
+      "variable_name": "personal_accounts",
+      "label": "Personal Accounts",
+      "tooltip": "Select personal perspectives like soldier memoirs or civilian stories.",
       "params": {
         "choices": [
           {
-            "value": "award_winning",
-            "label": "Award-winning"
+            "value": "soldier_memoirs",
+            "label": "Soldier memoirs"
           },
           {
-            "value": "best_selling",
-            "label": "Best-sellers"
-          },
-          {
-            "value": "critically_acclaimed",
-            "label": "Critically acclaimed"
+            "value": "civilian_perspectives",
+            "label": "Civilian perspectives"
           }
-        ]
+        ],
+        "choices_concat_abbrev": "Soldier/Civilian"
+      }
+    },
+    {
+      "type": "chipgroup",
+      "variable_name": "social_cultural_impact",
+      "label": "Social and Cultural Impact",
+      "tooltip": "Filter books on topics like medical advances or media coverage.",
+      "params": {
+        "choices": [
+          {
+            "value": "medical_advances",
+            "label": "Medical advances"
+          },
+          {
+            "value": "media_coverage",
+            "label": "Media coverage and propaganda"
+          }
+        ],
+        "choices_concat_abbrev": "MedAdv/Media"
       }
     },
     {
       "type": "dropdown",
-      "variable_name": "time_frame",
-      "label": "Time Frame",
-      "tooltip": "Help users specify the publication period or influence period of the novels.",
+      "variable_name": "biographies",
+      "label": "Biographies",
+      "tooltip": "Select notable figures like Florence Nightingale or military leaders.",
       "params": {
         "choices": [
           {
-            "value": "last_decade",
-            "label": "Last decade"
+            "value": "florence_nightingale",
+            "label": "Florence Nightingale"
           },
           {
-            "value": "historical_influential",
-            "label": "Historical influential"
-          },
-          {
-            "value": "upcoming",
-            "label": "Upcoming/recent releases"
+            "value": "military_leaders",
+            "label": "Military leaders (e.g., Lord Raglan)"
           }
-        ]
+        ],
+        "choices_concat_abbrev": "Nightingale/Leaders"
       }
     },
     {
-      "type": "switch",
-      "variable_name": "award_winners_only",
-      "label": "Award Winners Only",
-      "tooltip": "Toggle to limit results to novels that have received major literary awards.",
-      "value": false
-    },
-    {
-      "type": "slider",
-      "variable_name": "rating",
-      "label": "Rating",
-      "tooltip": "Filter novels based on user ratings to find highly-rated books.",
+      "type": "dropdown",
+      "variable_name": "technological_developments",
+      "label": "Technological Developments",
+      "tooltip": "Filter books on innovations like logistics or weaponry.",
       "params": {
-        "value_min": 1,
-        "value_max": 5,
-        "user_selects_lowest_value_of_range": true,
-        "user_selects_highest_value_of_range": false
+        "choices": [
+          {
+            "value": "logistics_innovations",
+            "label": "Logistics innovations"
+          },
+          {
+            "value": "weaponry",
+            "label": "Weaponry and logistics"
+          }
+        ],
+        "choices_concat_abbrev": "Logistics/Weaponry"
       }
     }
   ]
