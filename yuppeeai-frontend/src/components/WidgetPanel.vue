@@ -346,7 +346,7 @@ const canSearchAgain = computed(() => {
 .widget-panel__instruction-remove {
   position: absolute;
   top: -0.35rem;
-  left: -0.35rem;
+  right: -0.35rem;
   width: 1.1rem;
   height: 1.1rem;
   border-radius: 999px;
