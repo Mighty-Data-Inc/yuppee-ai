@@ -4,8 +4,8 @@ const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
 export interface SearchResponse {
-  results: SearchResult[];
-  resultSummary: string;
+  serpResults: SearchResult[];
+  serpSummary: string;
 }
 
 function cleanUpSERPResults(rawResults: unknown): SearchResult[] {
@@ -64,8 +64,8 @@ export async function submitSearchQuery(
   console.log("[SERP] /search payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
   const payload = data as { results?: unknown; result_summary?: unknown };
   return {
-    results: cleanUpSERPResults(payload.results),
-    resultSummary:
+    serpResults: cleanUpSERPResults(payload.results),
+    serpSummary:
       typeof payload.result_summary === "string" ? payload.result_summary : "",
   };
 }

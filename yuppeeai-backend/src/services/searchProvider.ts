@@ -39,10 +39,10 @@ function stripOpenAiUtmSource(url?: string): string | undefined {
 
 const SERP_JSON_SCHEMA = {
   type: "object",
-  required: ["result_summary", "results"],
+  required: ["summary", "results"],
   additionalProperties: false,
   properties: {
-    result_summary: {
+    summary: {
       type: "string",
       description:
         "A concise summary of the search results for the query, in a way that can be presented as a short intro at the top of the page before listing the SERP results. PRO TIP: Use <strong> tags to make specific keywords or phrases stand out, particularly any terms that the user has specifically requested to search for. PRO TIP: Use <em> tags to italicize book and movie titles, scientific names, names of ships and vessels, etc. (per the Chicago Manual of Style).",
@@ -147,7 +147,7 @@ Do not return JSON yet; first reason through likely user intent and source selec
 
     const retval = {
       query: request.query,
-      result_summary: "",
+      summary: "",
       results: [] as SearchResponse["results"],
     };
 
@@ -182,11 +182,11 @@ Return only valid JSON matching the provided schema. Preserve relevance ordering
       }
 
       const parsed = JSON.parse(structuredResponse.output_text) as {
-        result_summary?: string;
+        summary?: string;
         results?: SearchResponse["results"];
       };
 
-      retval.result_summary = parsed.result_summary ?? "";
+      retval.summary = parsed.summary ?? "";
       retval.results = Array.isArray(parsed.results)
         ? parsed.results.map((result) => ({
             ...result,

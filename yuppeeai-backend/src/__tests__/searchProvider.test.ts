@@ -17,7 +17,7 @@ describe("SearchProvider", () => {
       .mockResolvedValueOnce({ id: "reasoning-1", output_text: "reasoning" })
       .mockResolvedValueOnce({
         output_text: JSON.stringify({
-          result_summary: "summary",
+          summary: "summary",
           results: [
             {
               title: "No query string",

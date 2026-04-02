@@ -97,8 +97,8 @@ export const useSearchStore = defineStore("search", () => {
     const searchRequest = submitSearchQuery(normalizedQuery, effectiveFilters)
       .then((searchResponse) => {
         if (activeRequestId.value !== requestId) return;
-        serpResults.value = searchResponse.results;
-        serpSummary.value = searchResponse.resultSummary;
+        serpResults.value = searchResponse.serpResults;
+        serpSummary.value = searchResponse.serpSummary;
       })
       .catch((e) => {
         if (activeRequestId.value !== requestId) return;

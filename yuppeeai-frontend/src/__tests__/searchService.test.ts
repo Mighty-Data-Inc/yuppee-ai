@@ -102,26 +102,26 @@ describe("searchService.search", () => {
 
   it("returns results for book-related queries", async () => {
     const response = await submitSearchQuery("Books about Crimean War");
-    expect(response.results.length).toBeGreaterThan(0);
-    expect(response.results[0]).toHaveProperty("title");
-    expect(response.results[0]).toHaveProperty("url");
-    expect(response.results[0]).toHaveProperty("snippet");
-    expect(response.resultSummary).toBe("Summary for test query");
+    expect(response.serpResults.length).toBeGreaterThan(0);
+    expect(response.serpResults[0]).toHaveProperty("title");
+    expect(response.serpResults[0]).toHaveProperty("url");
+    expect(response.serpResults[0]).toHaveProperty("snippet");
+    expect(response.serpSummary).toBe("Summary for test query");
   });
 
   it("returns results for movie-related queries", async () => {
     const response = await submitSearchQuery("best sci-fi movies");
-    expect(response.results.length).toBeGreaterThan(0);
+    expect(response.serpResults.length).toBeGreaterThan(0);
   });
 
   it("returns default results for generic queries", async () => {
     const response = await submitSearchQuery("artificial intelligence search");
-    expect(response.results.length).toBeGreaterThan(0);
+    expect(response.serpResults.length).toBeGreaterThan(0);
   });
 
   it("returns 6 results", async () => {
     const response = await submitSearchQuery("books about history");
-    expect(response.results).toHaveLength(6);
+    expect(response.serpResults).toHaveLength(6);
   });
 
   it("deduplicates results by URL and keeps the first occurrence", async () => {
@@ -154,13 +154,13 @@ describe("searchService.search", () => {
 
     const response = await submitSearchQuery("duplicate test");
 
-    expect(response.results).toHaveLength(2);
-    expect(response.results[0]).toMatchObject({
+    expect(response.serpResults).toHaveLength(2);
+    expect(response.serpResults[0]).toMatchObject({
       title: "First title",
       url: "https://example.com/duplicate",
       snippet: "First snippet",
     });
-    expect(response.results[1]).toMatchObject({
+    expect(response.serpResults[1]).toMatchObject({
       title: "Unique title",
       url: "https://example.com/unique",
       snippet: "Unique snippet",
@@ -188,8 +188,8 @@ describe("searchService.search", () => {
 
     const response = await submitSearchQuery("dual text test");
 
-    expect(response.results).toHaveLength(1);
-    expect(response.results[0]).toMatchObject({
+    expect(response.serpResults).toHaveLength(1);
+    expect(response.serpResults[0]).toMatchObject({
       title: "Dual text result",
       url: "https://example.com/dual",
       snippet: "Short snippet",
@@ -217,8 +217,8 @@ describe("searchService.search", () => {
 
     const response = await submitSearchQuery("summary only test");
 
-    expect(response.results).toHaveLength(1);
-    expect(response.results[0]).toMatchObject({
+    expect(response.serpResults).toHaveLength(1);
+    expect(response.serpResults[0]).toMatchObject({
       title: "Summary-only result",
       url: "https://example.com/summary-only",
       snippet: "",
