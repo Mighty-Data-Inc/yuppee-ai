@@ -10,18 +10,25 @@ const PREFS_KEY = "yuppee_search_preferences";
 
 export const useSearchStore = defineStore("search", () => {
   const query = ref("");
-  const results = ref<SearchResult[]>([]);
-  const resultSummary = ref("");
+
+  const serpResults = ref<SearchResult[]>([]);
+  const serpSummary = ref("");
+
+  const disambiguation = ref<string>();
+
   const widgets = ref<Widget[]>([]);
-  const refinement = ref<string[]>([]);
+  const additionalInstructionPoints = ref<string[]>([]);
+
+  const activeRequestId = ref(0);
   const isLoadingResults = ref(false);
   const isLoadingWidgets = ref(false);
+
   const isLoading = computed(
     () => isLoadingResults.value || isLoadingWidgets.value,
   );
+
   const error = ref<string | null>(null);
   const preferences = ref<Record<string, any>>({});
-  const activeRequestId = ref(0);
 
   function loadPreferences() {
     try {
@@ -61,10 +68,11 @@ export const useSearchStore = defineStore("search", () => {
   }
 
   function resetTransientSearchState() {
-    results.value = [];
-    resultSummary.value = "";
+    serpResults.value = [];
+    serpSummary.value = "";
     widgets.value = [];
-    refinement.value = [];
+    disambiguation.value = "";
+    additionalInstructionPoints.value = [];
   }
 
   async function performSearch(q: string, widgetValues?: Record<string, any>) {
@@ -84,20 +92,20 @@ export const useSearchStore = defineStore("search", () => {
     const category = getCategoryKey(normalizedQuery);
     const savedPrefs = preferences.value[category] ?? {};
     const effectiveFilters = widgetValues ?? savedPrefs;
-    const knownResults = [...results.value];
+    const knownResults = [...serpResults.value];
 
     const searchRequest = submitSearchQuery(normalizedQuery, effectiveFilters)
       .then((searchResponse) => {
         if (activeRequestId.value !== requestId) return;
-        results.value = searchResponse.results;
-        resultSummary.value = searchResponse.resultSummary;
+        serpResults.value = searchResponse.results;
+        serpSummary.value = searchResponse.resultSummary;
       })
       .catch((e) => {
         if (activeRequestId.value !== requestId) return;
         error.value =
           e instanceof Error ? e.message : "An error occurred during search";
-        results.value = [];
-        resultSummary.value = "";
+        serpResults.value = [];
+        serpSummary.value = "";
       })
       .finally(() => {
         if (activeRequestId.value !== requestId) return;
@@ -109,9 +117,12 @@ export const useSearchStore = defineStore("search", () => {
       effectiveFilters,
       knownResults,
     )
-      .then((generatedWidgets) => {
+      .then((refinementResponse) => {
         if (activeRequestId.value !== requestId) return;
-        widgets.value = generatedWidgets;
+        widgets.value = refinementResponse.widgets;
+        if (refinementResponse.disambiguation) {
+          disambiguation.value = refinementResponse.disambiguation;
+        }
       })
       .catch((e) => {
         if (activeRequestId.value !== requestId) return;
@@ -156,10 +167,10 @@ export const useSearchStore = defineStore("search", () => {
 
   return {
     query,
-    results,
-    resultSummary,
+    results: serpResults,
+    resultSummary: serpSummary,
     widgets,
-    refinement,
+    refinement: disambiguation,
     isLoadingResults,
     isLoadingWidgets,
     isLoading,

@@ -157,7 +157,8 @@ function removeInstruction(index: number) {
   additionalInstructions.value = additionalInstructions.value.filter((_, i) => i !== index)
 }
 
-const nonFreeformWidgets = () => props.widgets.filter(w => w.type !== 'freeform')
+const dynamicWidgets = () => props.widgets.filter(w => w.type !== 'freeform')
+
 const canSearchAgain = computed(() => {
   if (props.isLoading) return false
   if (hasValueChanges(widgetValues.value, baselineWidgetValues.value)) return true
@@ -186,7 +187,7 @@ const canSearchAgain = computed(() => {
     <!-- Widgets -->
     <template v-else-if="widgets.length > 0">
       <div class="widget-panel__widgets">
-        <template v-for="widget in nonFreeformWidgets()" :key="widget.id">
+        <template v-for="widget in dynamicWidgets()" :key="widget.id">
           <RangeSliderWidget
             v-if="widget.type === 'range-slider'"
             :widget="widget"

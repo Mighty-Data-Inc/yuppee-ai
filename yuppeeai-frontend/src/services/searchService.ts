@@ -74,7 +74,10 @@ export async function submitSearchRefinement(
   query: string,
   currentFilters?: Record<string, any>,
   knownResults?: SearchResult[],
-): Promise<Widget[]> {
+): Promise<{
+  disambiguation: string;
+  widgets: Widget[];
+}> {
   const response = await fetch(`${API_BASE_URL}/refine`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -91,5 +94,10 @@ export async function submitSearchRefinement(
 
   const data = await response.json();
   console.log("[SERP] /refine payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
-  return [];
+
+  const retval = {
+    disambiguation: data.disambiguation || "",
+    widgets: data.widgets || [],
+  };
+  return retval;
 }
