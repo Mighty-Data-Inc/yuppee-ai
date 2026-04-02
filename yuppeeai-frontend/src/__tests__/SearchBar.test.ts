@@ -3,9 +3,9 @@ import { mount } from "@vue/test-utils";
 import SearchBar from "@/components/SearchBar.vue";
 
 const pushMock = vi.fn();
-const replaceMock = vi.fn();
 const searchMock = vi.fn();
 const resetMock = vi.fn();
+const assignMock = vi.fn();
 const routeMock = {
   name: "home",
   query: {},
@@ -14,7 +14,6 @@ const routeMock = {
 vi.mock("vue-router", () => ({
   useRouter: () => ({
     push: pushMock,
-    replace: replaceMock,
   }),
   useRoute: () => routeMock,
 }));
@@ -30,11 +29,12 @@ vi.mock("@/stores/searchStore", () => ({
 describe("SearchBar", () => {
   beforeEach(() => {
     pushMock.mockReset();
-    replaceMock.mockReset();
     searchMock.mockReset();
     resetMock.mockReset();
+    assignMock.mockReset();
     routeMock.name = "home";
     routeMock.query = {};
+    vi.spyOn(window.location, "assign").mockImplementation(assignMock);
   });
 
   it("renders correctly", () => {
@@ -89,7 +89,7 @@ describe("SearchBar", () => {
 
     expect((input.element as HTMLInputElement).value).toBe("");
     expect(resetMock).toHaveBeenCalled();
-    expect(replaceMock).not.toHaveBeenCalled();
+    expect(assignMock).not.toHaveBeenCalled();
   });
 
   it("clears route query when on search page", async () => {
@@ -102,10 +102,7 @@ describe("SearchBar", () => {
     await wrapper.find("button.search-bar__clear").trigger("click");
 
     expect(resetMock).toHaveBeenCalled();
-    expect(replaceMock).toHaveBeenCalledWith({
-      name: "search",
-      query: { page: "2" },
-    });
+    expect(assignMock).toHaveBeenCalledWith(window.location.pathname);
   });
 
   it("searches directly when already on same search route", async () => {

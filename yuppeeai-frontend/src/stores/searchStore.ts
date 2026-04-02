@@ -41,6 +41,8 @@ export const useSearchStore = defineStore("yuppee", () => {
     isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
 
+    // TODO: Set refinements in flight
+
     const filters = {
       widgets,
       additionalInstructionPoints,

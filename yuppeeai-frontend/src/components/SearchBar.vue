@@ -45,11 +45,9 @@ async function clearSearch() {
   inputValue.value = ''
   store.reset()
 
-  if (route.name === 'search' && route.query.q != null) {
-    const nextQuery = { ...route.query }
-    delete nextQuery.q
-    await router.replace({ name: 'search', query: nextQuery })
-  }
+  const url = new URL(window.location.href)
+  url.searchParams.delete('q')
+  window.history.replaceState({}, '', url)  
 }
 </script>
 
