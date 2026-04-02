@@ -8,7 +8,7 @@ import {
 
 const PREFS_KEY = "yuppee_search_preferences";
 
-export const useSearchStore = defineStore("search", () => {
+export const useSearchStore = defineStore("yuppee", () => {
   const query = ref("");
 
   const serpResults = ref<SearchResult[]>([]);

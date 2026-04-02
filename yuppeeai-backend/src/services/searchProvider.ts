@@ -43,9 +43,21 @@ const SERP_JSON_SCHEMA = {
   additionalProperties: false,
   properties: {
     summary: {
-      type: "string",
+      type: "object",
       description:
-        "A concise summary of the search results for the query, in a way that can be presented as a short intro at the top of the page before listing the SERP results. PRO TIP: Use <strong> tags to make specific keywords or phrases stand out, particularly any terms that the user has specifically requested to search for. PRO TIP: Use <em> tags to italicize book and movie titles, scientific names, names of ships and vessels, etc. (per the Chicago Manual of Style).",
+        "A concise summary of the search results for the query, in a way that can be presented as a short intro at the top of the page before listing the SERP results.",
+      properties: {
+        plaintext: {
+          type: "string",
+          description:
+            "A plain text version of the summary, without any HTML tags or formatting.",
+        },
+        with_light_html_formatting: {
+          type: "string",
+          description:
+            "An exact copy of the plaintext version of the summary, but with light HTML formatting such as <strong> and <em> tags. Use <strong> tags to make specific keywords or phrases stand out, particularly any terms that indicate the main topics and key search terms. Use <em> tags to italicize book and movie titles, scientific names, names of ships and vessels, etc. (per the Chicago Manual of Style).",
+        },
+      },
     },
     results: {
       type: "array",
@@ -182,11 +194,11 @@ Return only valid JSON matching the provided schema. Preserve relevance ordering
       }
 
       const parsed = JSON.parse(structuredResponse.output_text) as {
-        summary?: string;
+        summary?: any;
         results?: SearchResponse["results"];
       };
 
-      retval.summary = parsed.summary ?? "";
+      retval.summary = parsed.summary?.with_light_html_formatting || "";
       retval.results = Array.isArray(parsed.results)
         ? parsed.results.map((result) => ({
             ...result,
