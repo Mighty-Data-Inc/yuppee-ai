@@ -65,7 +65,7 @@ beforeEach(() => {
             results: MOCK_SEARCH_RESULTS,
             totalCount: MOCK_SEARCH_RESULTS.length,
             query: "test",
-            result_summary: "Store test summary",
+            summary: "Store test summary",
           }),
       });
     }),
@@ -80,8 +80,8 @@ describe("searchStore", () => {
   it("initializes with empty state", () => {
     const store = useSearchStore();
     expect(store.query).toBe("");
-    expect(store.results).toHaveLength(0);
-    expect(store.resultSummary).toBe("");
+    expect(store.serpResults).toHaveLength(0);
+    expect(store.serpSummary).toBe("");
     expect(store.widgets).toHaveLength(0);
     expect(store.isLoadingResults).toBe(false);
     expect(store.isLoadingWidgets).toBe(false);
@@ -135,15 +135,14 @@ describe("searchStore", () => {
     expect(store.isLoadingWidgets).toBe(true);
 
     searchDeferred.resolve({
-      results: MOCK_SEARCH_RESULTS,
-      totalCount: MOCK_SEARCH_RESULTS.length,
+      serpResults: MOCK_SEARCH_RESULTS,
       query: "test",
-      result_summary: "Deferred summary",
+      serpSummary: "Deferred summary",
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(store.results.length).toBeGreaterThan(0);
-    expect(store.resultSummary).toBe("Deferred summary");
+    expect(store.serpResults.length).toBeGreaterThan(0);
+    expect(store.serpSummary).toBe("Deferred summary");
     expect(store.isLoadingResults).toBe(false);
     expect(store.isLoadingWidgets).toBe(true);
 
@@ -158,8 +157,8 @@ describe("searchStore", () => {
   it("populates results after performSearch", async () => {
     const store = useSearchStore();
     await store.performSearch("books about Crimean War");
-    expect(store.results.length).toBeGreaterThan(0);
-    expect(store.resultSummary).toBe("Store test summary");
+    expect(store.serpResults.length).toBeGreaterThan(0);
+    expect(store.serpSummary).toBe("Store test summary");
     expect(store.query).toBe("books about Crimean War");
   });
 
@@ -186,7 +185,7 @@ describe("searchStore", () => {
       results: typeof MOCK_SEARCH_RESULTS;
       totalCount: number;
       query: string;
-      result_summary: string;
+      summary: string;
     }>();
     const refinementDeferred = deferred<{ widgets: typeof MOCK_WIDGETS }>();
 
@@ -209,8 +208,8 @@ describe("searchStore", () => {
     );
 
     const store = useSearchStore();
-    store.results = [...MOCK_SEARCH_RESULTS];
-    store.resultSummary = "Existing summary";
+    store.serpResults = [...MOCK_SEARCH_RESULTS];
+    store.serpSummary = "Existing summary";
     store.widgets = [...MOCK_WIDGETS];
     store.refinement = ["keep British authors only"];
     store.query = "crimean war books";
@@ -218,16 +217,16 @@ describe("searchStore", () => {
     const pendingSearch = store.performSearch("new science books", {});
 
     expect(store.query).toBe("new science books");
-    expect(store.results).toEqual([]);
-    expect(store.resultSummary).toBe("");
+    expect(store.serpResults).toEqual([]);
+    expect(store.serpSummary).toBe("");
     expect(store.widgets).toEqual([]);
-    expect(store.refinement).toEqual([]);
+    expect(store.).toEqual([]);
 
     searchDeferred.resolve({
       results: MOCK_SEARCH_RESULTS,
       totalCount: MOCK_SEARCH_RESULTS.length,
       query: "new science books",
-      result_summary: "Fresh summary",
+      summary: "Fresh summary",
     });
     refinementDeferred.resolve({ widgets: MOCK_WIDGETS });
 
@@ -240,8 +239,8 @@ describe("searchStore", () => {
     store.clearSearch();
 
     expect(store.query).toBe("");
-    expect(store.results).toHaveLength(0);
-    expect(store.resultSummary).toBe("");
+    expect(store.serpResults).toHaveLength(0);
+    expect(store.serpSummary).toBe("");
     expect(store.widgets).toHaveLength(0);
     expect(store.isLoading).toBe(false);
   });

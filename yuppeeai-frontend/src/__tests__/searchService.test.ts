@@ -82,9 +82,8 @@ function mockFetch(results = MOCK_RESULTS, widgets = MOCK_WIDGETS) {
         json: () =>
           Promise.resolve({
             results,
-            totalCount: results.length,
             query: "test",
-            result_summary: "Summary for test query",
+            summary: "Summary for test query",
           }),
       });
     }),
@@ -336,7 +335,7 @@ describe("searchService.submitSearchRefinement", () => {
       }),
     );
 
-    const widgets = await submitSearchRefinement("best novels");
+    const widgets = (await submitSearchRefinement("best novels")).widgets;
 
     expect(widgets).toHaveLength(4);
     expect(widgets[0]).toMatchObject({
@@ -369,7 +368,8 @@ describe("searchService.submitSearchRefinement", () => {
   });
 
   it("returns widgets from /refine", async () => {
-    const widgets = await submitSearchRefinement("artificial intelligence");
+    const widgets = (await submitSearchRefinement("artificial intelligence"))
+      .widgets;
     expect(widgets).toHaveLength(2);
     expect(widgets[0]?.id).toBe("date-range");
   });
@@ -441,7 +441,7 @@ describe("searchService.submitSearchRefinement", () => {
       }),
     );
 
-    const widgets = await submitSearchRefinement("prices");
+    const widgets = (await submitSearchRefinement("prices")).widgets;
 
     expect(widgets[0]).toMatchObject({ sliderMode: "exact", value: 0 });
     expect(widgets[1]).toMatchObject({ sliderMode: "lte", value: 100 });
@@ -484,7 +484,7 @@ describe("searchService.submitSearchRefinement", () => {
       }),
     );
 
-    const widgets = await submitSearchRefinement("formats");
+    const widgets = (await submitSearchRefinement("formats")).widgets;
     expect(widgets).toHaveLength(1);
     expect(widgets[0]?.dropdownPlaceholder).toBeUndefined();
   });
