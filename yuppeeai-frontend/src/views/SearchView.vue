@@ -1,65 +1,39 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useSearchStore } from '@/stores/searchStore'
 import SearchBar from '@/components/SearchBar.vue'
 import SearchResults from '@/components/SearchResults.vue'
 import WidgetPanel from '@/components/WidgetPanel.vue'
 
 const route = useRoute()
-const router = useRouter()
 const store = useSearchStore()
-const refinementChangesInFlight = ref<string[]>([])
 
 function getQuery(): string {
-  const q = route.query.q
-  return Array.isArray(q) ? (q[0] ?? '') : (q ?? '')
-}
-
-async function doSearch(q: string) {
-  if (q.trim()) {
-    refinementChangesInFlight.value = []
-    await store.search(q.trim())
+  let q = route.query.q;
+  if (Array.isArray(q)) {
+    if (q.length > 0) {
+      q = q[0];
+    } else {
+      q = '';
+    }
   }
+  q = q.trim();
+  return q;
 }
 
-onMounted(() => {
-  doSearch(getQuery())
+onMounted(async () => {
+  await submitSearch(getQuery());
 })
 
-watch(() => route.query.q, (newQ) => {
-  const q = Array.isArray(newQ) ? (newQ[0] ?? '') : (newQ ?? '')
-  if (q.trim()) {
-    refinementChangesInFlight.value = []
-    store.search(q.trim(), {})
-  }
+watch(() => route.query.q, async (newQ) => {
+  await submitSearch(getQuery());
 })
 
-function handleSearch(q: string) {
-  if (q.trim()) {
-    router.push({ name: 'search', query: { q: q.trim() } })
-  }
+async function submitSearch(q: string) {
+  await store.search(q);
 }
 
-async function handleRefine(
-  widgetValues: Record<string, any>,
-  additionalInstructions: string[],
-  refinementChanges: string[],
-) {
-  store.additionalInstructionPoints = [...additionalInstructions]
-  refinementChangesInFlight.value = refinementChanges
-  const filters = { ...widgetValues }
-
-  if (additionalInstructions.length) {
-    filters.additionalInstructions = [...additionalInstructions]
-  }
-
-  try {
-    await store.search(store.query, filters)
-  } finally {
-    refinementChangesInFlight.value = []
-  }
-}
 </script>
 
 <template>
@@ -74,29 +48,18 @@ async function handleRefine(
         <SearchBar
           :model-value="store.query"
           :compact="true"
-          @search="handleSearch"
+          @search="submitSearch"
         />
       </div>
     </header>
 
     <div class="search-layout">
       <main class="search-main">
-        <SearchResults
-          :serp-results="store.serpResults"
-          :is-loading="store.isLoadingSERP"
-          :query="store.query"
-          :serp-summary="store.serpSummary"
-          :refinement-changes="refinementChangesInFlight"
-        />
+        <SearchResults />
       </main>
 
       <aside class="search-aside">
-        <WidgetPanel
-          :widgets="store.widgets"
-          :is-loading="store.isLoadingWidgets"
-          :query="store.query"
-          @refine="handleRefine"
-        />
+        <WidgetPanel />
       </aside>
     </div>
   </div>

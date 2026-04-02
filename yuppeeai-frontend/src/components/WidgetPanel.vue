@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useSearchStore } from '@/stores/searchStore'
 import type { Widget } from '@/types'
 import RangeSliderWidget from '@/components/widgets/RangeSliderWidget.vue'
 import ChipGroupWidget from '@/components/widgets/ChipGroupWidget.vue'
@@ -7,19 +8,7 @@ import SwitchWidget from '@/components/widgets/SwitchWidget.vue'
 import DropdownWidget from '@/components/widgets/DropdownWidget.vue'
 import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 
-const props = defineProps<{
-  widgets: Widget[]
-  isLoading: boolean
-  query: string
-}>()
-
-const emit = defineEmits<{
-  refine: [
-    widgetValues: Record<string, any>,
-    additionalInstructions: string[],
-    refinementChanges: string[],
-  ]
-}>()
+const store = useSearchStore()
 
 const widgetValues = ref<Record<string, any>>({})
 const instructionInput = ref('')
@@ -44,13 +33,13 @@ function resetLocalState() {
   baselineWidgetValues.value = {}
 }
 
-watch(() => props.query, (newQuery, oldQuery) => {
+watch(() => store.query, (newQuery, oldQuery) => {
   if (newQuery !== oldQuery) {
     resetLocalState()
   }
 })
 
-watch(() => props.widgets, (newWidgets) => {
+watch(() => store.widgets, (newWidgets) => {
   const newValues: Record<string, any> = {}
   for (const widget of newWidgets) {
     newValues[widget.id] = widgetValues.value[widget.id] ?? widget.value
@@ -82,7 +71,7 @@ function resolveLabel(widget: Widget, value: any): any {
 
 function describeSearchRefinementChanges(): string[] {
   const lines: string[] = []
-  for (const widget of props.widgets) {
+  for (const widget of store.widgets) {
     const previousWidgetValue = baselineWidgetValues.value[widget.id]
     const currentWidgetValue = widgetValues.value[widget.id]
     if (JSON.stringify(previousWidgetValue) !== JSON.stringify(currentWidgetValue)) {
@@ -143,24 +132,24 @@ function describeSearchRefinementChanges(): string[] {
   return lines
 }
 
-function handleSearchAgain() {
+async function handleSearchAgain() {
   if (!canSearchAgain.value) return
   const nextInstructions = getNextInstructions()
-  const refinementChanges = describeSearchRefinementChanges()
-  console.log('Changed filters:', refinementChanges)
-  emit('refine', { ...widgetValues.value }, nextInstructions, refinementChanges)
+  console.log('Changed filters:', describeSearchRefinementChanges())
+  store.additionalInstructionPoints = nextInstructions
   additionalInstructions.value = nextInstructions
   instructionInput.value = ''
+  await store.search(store.query, { ...widgetValues.value })
 }
 
 function removeInstruction(index: number) {
   additionalInstructions.value = additionalInstructions.value.filter((_, i) => i !== index)
 }
 
-const dynamicWidgets = () => props.widgets.filter(w => w.type !== 'freeform')
+const dynamicWidgets = () => store.widgets.filter(w => w.type !== 'freeform')
 
 const canSearchAgain = computed(() => {
-  if (props.isLoading) return false
+  if (store.isLoadingWidgets) return false
   if (hasValueChanges(widgetValues.value, baselineWidgetValues.value)) return true
   return Boolean(instructionInput.value.trim())
 })
@@ -176,7 +165,7 @@ const canSearchAgain = computed(() => {
     </div>
 
     <!-- Loading state (initial load only) -->
-    <template v-if="isLoading && widgets.length === 0">
+    <template v-if="store.isLoadingWidgets && store.widgets.length === 0">
       <p class="widget-panel__loading-message">Analyzing results and devising refinement criteria...</p>
       <div v-for="i in 4" :key="i" class="widget-skeleton">
         <div class="skeleton-line skeleton-line--label" />
@@ -185,7 +174,7 @@ const canSearchAgain = computed(() => {
     </template>
 
     <!-- Widgets -->
-    <template v-else-if="widgets.length > 0">
+    <template v-else-if="store.widgets.length > 0">
       <div class="widget-panel__widgets">
         <template v-for="widget in dynamicWidgets()" :key="widget.id">
           <RangeSliderWidget

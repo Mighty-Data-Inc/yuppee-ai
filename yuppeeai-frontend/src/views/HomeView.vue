@@ -4,10 +4,12 @@ import SearchBar from '@/components/SearchBar.vue'
 
 const router = useRouter()
 
-function handleSearch(query: string) {
-  if (query.trim()) {
-    router.push({ name: 'search', query: { q: query.trim() } })
+function handleSearch(q: string) {
+  q = q.trim();
+  if (!q) {
+    return;
   }
+  router.push({ name: 'search', query: { q } })
 }
 </script>
 

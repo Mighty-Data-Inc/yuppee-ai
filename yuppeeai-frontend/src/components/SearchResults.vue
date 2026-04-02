@@ -1,13 +1,8 @@
 <script setup lang="ts">
-import type { SearchResult } from '@/types'
+import { useSearchStore } from '@/stores/searchStore'
 
-defineProps<{
-  serpResults: SearchResult[]
-  isLoadingSERP: boolean
-  query: string
-  serpSummary: string
-  refinementChanges: string[]
-}>()
+const store = useSearchStore()
+const refinementChangesInFlight: string[] = []
 
 // Show a compact display URL like example.com/path instead of the full raw link.
 function formatUrl(url: string): string {
@@ -23,11 +18,11 @@ function formatUrl(url: string): string {
 <template>
   <div class="results">
     <!-- Loading skeletons -->
-    <template v-if="isLoadingSERP">
-      <div v-if="refinementChanges.length" class="results__changes">
+    <template v-if="store.isLoadingSERP">
+      <div v-if="refinementChangesInFlight.length" class="results__changes">
         <p class="results__changes-title">Changed filters...</p>
         <ul class="results__changes-list">
-          <li v-for="change in refinementChanges" :key="change" class="results__changes-item">
+          <li v-for="change in refinementChangesInFlight" :key="change" class="results__changes-item">
             {{ change }}
           </li>
         </ul>
@@ -41,10 +36,10 @@ function formatUrl(url: string): string {
     </template>
 
     <!-- Results -->
-    <template v-else-if="serpResults.length > 0">
-      <p v-if="serpSummary" class="results__meta" v-html="serpSummary" />
+    <template v-else-if="store.serpResults.length > 0">
+      <p v-if="store.serpSummary" class="results__meta" v-html="store.serpSummary" />
       <a
-        v-for="result in serpResults"
+        v-for="result in store.serpResults"
         :key="result.url"
         :href="result.url"
         class="result-card"
@@ -66,7 +61,7 @@ function formatUrl(url: string): string {
     </template>
 
     <!-- Empty state -->
-    <div v-else-if="query" class="results__empty">
+    <div v-else-if="store.query" class="results__empty">
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
         <circle cx="28" cy="28" r="20" stroke="#cbd5e1" stroke-width="3" fill="none"/>
         <path d="m44 44 12 12" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
