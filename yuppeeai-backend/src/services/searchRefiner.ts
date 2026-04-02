@@ -72,7 +72,7 @@ const WIDGET_JSON_SCHEMA = {
         properties: {
           widget_type: {
             type: "string",
-            enum: ["dropdown", "switch", "checkboxes", "radio", "slider"],
+            enum: ["dropdown", "switch", "checkboxes", "slider"],
           },
           widget_variable_name: {
             type: "string",
@@ -113,7 +113,7 @@ const WIDGET_JSON_SCHEMA = {
               {
                 type: "object",
                 description:
-                  "Parameters for choice selector widgets, like dropdown, checkboxes, or radio buttons.",
+                  "Parameters for choice selector widgets, like dropdowns or checkboxes.",
                 properties: {
                   choices: {
                     type: "array",
@@ -350,96 +350,130 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     return retval;
   }
 
+  private isPlainObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null;
+  }
+
+  private normalizeWidgetChoices(
+    widgetParams: unknown,
+  ): Record<string, unknown> | unknown {
+    if (
+      !this.isPlainObject(widgetParams) ||
+      !Array.isArray((widgetParams as { choices?: unknown }).choices)
+    ) {
+      return widgetParams;
+    }
+
+    const rawChoices = (widgetParams as { choices: unknown[] }).choices;
+    const choices = rawChoices
+      .filter((choice) => this.isPlainObject(choice))
+      .map((choice) => {
+        const c = choice as {
+          choice_variable_value?: unknown;
+          choice_ui_label?: unknown;
+          choice_label?: unknown;
+        };
+
+        return {
+          value: c.choice_variable_value,
+          label: c.choice_ui_label ?? c.choice_label,
+        };
+      });
+
+    return { ...widgetParams, choices };
+  }
+
+  private shouldIncludeWidget(widget: any): boolean {
+    return (
+      widget?.sanity_check
+        ?.should_we_hide_this_widget_based_on_the_current_search_query !==
+        true && widget?.is_widget_redundant !== true
+    );
+  }
+
+  private resolveWidgetType(rawType: unknown): string {
+    return rawType === "checkboxes" ? "chipgroup" : String(rawType ?? "");
+  }
+
+  private hasSingleChoiceDropdown(
+    widgetType: string,
+    widgetParams: unknown,
+  ): boolean {
+    return (
+      widgetType === "dropdown" &&
+      this.isPlainObject(widgetParams) &&
+      Array.isArray((widgetParams as { choices?: unknown }).choices) &&
+      (widgetParams as { choices: unknown[] }).choices.length === 1
+    );
+  }
+
+  private normalizeWidget(widget: any): Record<string, unknown> {
+    const {
+      does_this_criterion_make_sense_for_this_search: _unused,
+      widget_type,
+      widget_variable_name,
+      widget_label,
+      widget_tooltip,
+      widget_params,
+    } = widget;
+
+    const params = this.normalizeWidgetChoices(widget_params);
+    const normalizedType = this.resolveWidgetType(widget_type);
+    const singleChoiceDropdown = this.hasSingleChoiceDropdown(
+      normalizedType,
+      params,
+    );
+
+    const emittedType = singleChoiceDropdown ? "switch" : normalizedType;
+    const isNativeSwitch = normalizedType === "switch";
+
+    // For single-choice dropdowns, switch wording is more user-friendly than
+    // exposing a dropdown with only one option.
+    const emittedLabel = singleChoiceDropdown
+      ? `Show only results about: ${widget_label}`
+      : isNativeSwitch && widget_params?.label_for_switch_on
+        ? widget_params.label_for_switch_on
+        : widget_label;
+
+    const cleanedWidget: Record<string, unknown> = {
+      type: emittedType,
+      variable_name: widget_variable_name,
+      label: emittedLabel,
+      tooltip: widget_tooltip ?? "",
+    };
+
+    if (emittedType !== "switch") {
+      cleanedWidget.params = params;
+    }
+
+    return cleanedWidget;
+  }
+
+  private cleanDisambiguation(rawDisambiguation: any): any {
+    if (
+      rawDisambiguation?.was_disambiguation_necessary === true &&
+      Array.isArray(rawDisambiguation.other_alternative_potential_meanings) &&
+      rawDisambiguation.other_alternative_potential_meanings.length > 0
+    ) {
+      return rawDisambiguation;
+    }
+
+    return null;
+  }
+
   private cleanRefinements(raw: any): any {
     if (!raw || typeof raw !== "object") {
       return raw;
     }
 
     const widgets: any[] = Array.isArray(raw.widgets) ? raw.widgets : [];
-    const visibleWidgets = widgets.filter(
-      (w) =>
-        w?.sanity_check
-          ?.should_we_hide_this_widget_based_on_the_current_search_query !==
-          true && w?.is_widget_redundant !== true,
-    );
+    const cleanedWidgets = widgets
+      .filter((widget) => this.shouldIncludeWidget(widget))
+      .map((widget) => this.normalizeWidget(widget));
 
-    const cleanedWidgets = visibleWidgets.map((w) => {
-      const {
-        does_this_criterion_make_sense_for_this_search: _arg,
-        widget_type: type,
-        widget_variable_name: variable_name,
-        widget_label: label,
-        widget_tooltip,
-        widget_params,
-      } = w;
-
-      let params = widget_params;
-      if (
-        params &&
-        typeof params === "object" &&
-        Array.isArray((params as { choices?: unknown }).choices)
-      ) {
-        const rawChoices = (params as { choices: unknown[] }).choices;
-        const choices = rawChoices
-          .filter((choice) => choice && typeof choice === "object")
-          .map((choice) => {
-            const c = choice as {
-              choice_variable_value?: unknown;
-              choice_ui_label?: unknown;
-              choice_label?: unknown;
-            };
-
-            return {
-              value: c.choice_variable_value,
-              label: c.choice_ui_label ?? c.choice_label,
-            };
-          });
-
-        params = { ...params, choices };
-      }
-
-      const normalizedType = type === "checkboxes" ? "chipgroup" : type;
-      const hasSingleChoiceDropdown =
-        normalizedType === "dropdown" &&
-        params &&
-        typeof params === "object" &&
-        Array.isArray((params as { choices?: unknown[] }).choices) &&
-        (params as { choices: unknown[] }).choices.length === 1;
-
-      const emittedType = hasSingleChoiceDropdown ? "switch" : normalizedType;
-      const isNativeSwitch = normalizedType === "switch";
-      const emittedLabel = hasSingleChoiceDropdown
-        ? `Show only results about: ${label}`
-        : isNativeSwitch && widget_params?.label_for_switch_on
-          ? widget_params.label_for_switch_on
-          : label;
-
-      const cleanedWidget = {
-        type: emittedType,
-        variable_name,
-        label: emittedLabel,
-        tooltip: widget_tooltip ?? "",
-      } as Record<string, unknown>;
-
-      if (emittedType !== "switch") {
-        cleanedWidget.params = params;
-      }
-
-      return cleanedWidget;
-    });
-
-    const d = raw.disambiguation;
-    const disambiguation =
-      d?.was_disambiguation_necessary === true &&
-      Array.isArray(d.other_alternative_potential_meanings) &&
-      d.other_alternative_potential_meanings.length > 0
-        ? d
-        : null;
-
-    const retval = {
-      disambiguation,
+    return {
+      disambiguation: this.cleanDisambiguation(raw.disambiguation),
       widgets: cleanedWidgets,
     };
-    return retval;
   }
 }
