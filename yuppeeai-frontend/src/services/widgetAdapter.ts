@@ -52,7 +52,6 @@ function normalizeWidgetType(type: string): Widget["type"] | null {
   if (type === "checkbox") return "checkbox";
   if (type === "switch") return "switch";
   if (type === "slider" || type === "range-slider") return "range-slider";
-  if (type === "radio") return "radio";
   if (type === "freeform") return "freeform";
   return null;
 }

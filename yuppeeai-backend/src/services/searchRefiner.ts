@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { LLMConversation } from "@mightydatainc/llm-conversation";
 import type { SearchRequest, SearchRefinementsResponse } from "../types";
+import { Widget, WidgetOption } from "../types/datatypes";
 
 interface SearchRefinerConfig {
   openaiApiKey?: string;
@@ -150,7 +151,8 @@ const WIDGET_JSON_SCHEMA = {
               },
               {
                 type: "object",
-                description: "Parameters for the switch widget.",
+                description:
+                  "Parameters for the switch widget. When turned on, this widget will apply a specific filter, constraining the search results accordingly. When turned off, the widget will remove the filter or constraint, permitting a less restricted view of results.",
                 properties: {
                   label_for_switch_on: {
                     type: "string",
@@ -225,6 +227,73 @@ const WIDGET_JSON_SCHEMA = {
       },
     },
   },
+};
+
+export const normalizeWidgetObjectFromLLM = (
+  llmWidgetObj: any,
+): Widget | null => {
+  // First we determine whether or not this widget is even worth keeping.
+  const sanityCheckObj = llmWidgetObj?.sanity_check;
+  if (
+    sanityCheckObj?.should_we_hide_this_widget_based_on_the_current_search_query ||
+    sanityCheckObj?.is_widget_redundant
+  ) {
+    return null;
+  }
+
+  const widget: Widget = {
+    id: llmWidgetObj.widget_variable_name,
+    type: llmWidgetObj.widget_type,
+    label: llmWidgetObj.widget_label,
+    tooltip: llmWidgetObj.widget_tooltip,
+    value: null,
+  };
+
+  if (llmWidgetObj.widget_type === "switch") {
+    widget.label = llmWidgetObj.widget_params.label_for_switch_on;
+    widget.value = false;
+  } else if (llmWidgetObj.widget_type === "checkboxes") {
+    widget.type = "chipgroup";
+    widget.value = [];
+  } else if (llmWidgetObj.widget_type === "dropdown") {
+    widget.type = "dropdown";
+    widget.value = "";
+    widget.dropdownPlaceholder =
+      llmWidgetObj.widget_params.choices_concat_abbrev;
+  } else if (llmWidgetObj.widget_type === "slider") {
+    widget.min = llmWidgetObj.widget_params.value_min;
+    widget.max = llmWidgetObj.widget_params.value_max;
+    widget.value = widget.min;
+
+    widget.sliderMode = "exact";
+    if (llmWidgetObj.widget_params.user_selects_lowest_value_of_range) {
+      if (llmWidgetObj.widget_params.user_selects_highest_value_of_range) {
+        widget.sliderMode = "range";
+        widget.value = [widget.min, widget.max];
+      } else {
+        widget.sliderMode = "gte";
+      }
+    } else if (llmWidgetObj.widget_params.user_selects_highest_value_of_range) {
+      widget.sliderMode = "lte";
+    }
+  }
+
+  if (widget.type === "dropdown" || widget.type === "chipgroup") {
+    widget.options = [];
+    for (const llmChoice of llmWidgetObj.widget_params.choices) {
+      const choice: WidgetOption = {
+        label: llmChoice.choice_ui_label,
+        value: llmChoice.choice_variable_value,
+      };
+      widget.options?.push(choice);
+    }
+
+    if (widget.type === "dropdown") {
+      widget.value = "";
+    }
+  }
+
+  return widget;
 };
 
 export class SearchRefiner {
@@ -336,9 +405,11 @@ Do this query's search results lend themselves to any kind of filtration by a nu
         },
       });
 
-      const cleaned = this.cleanRefinements(refinements);
-      retval.disambiguation = cleaned.disambiguation;
-      retval.widgets = cleaned.widgets;
+      retval.disambiguation = refinements.disambiguation;
+
+      retval.widgets = (refinements.widgets as any[])
+        .map(normalizeWidgetObjectFromLLM)
+        .filter((w) => w);
     } catch (error) {
       console.error(
         "Error during structured output request for refinements:",
@@ -348,132 +419,5 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     }
 
     return retval;
-  }
-
-  private isPlainObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null;
-  }
-
-  private normalizeWidgetChoices(
-    widgetParams: unknown,
-  ): Record<string, unknown> | unknown {
-    if (
-      !this.isPlainObject(widgetParams) ||
-      !Array.isArray((widgetParams as { choices?: unknown }).choices)
-    ) {
-      return widgetParams;
-    }
-
-    const rawChoices = (widgetParams as { choices: unknown[] }).choices;
-    const choices = rawChoices
-      .filter((choice) => this.isPlainObject(choice))
-      .map((choice) => {
-        const c = choice as {
-          choice_variable_value?: unknown;
-          choice_ui_label?: unknown;
-          choice_label?: unknown;
-        };
-
-        return {
-          value: c.choice_variable_value,
-          label: c.choice_ui_label ?? c.choice_label,
-        };
-      });
-
-    return { ...widgetParams, choices };
-  }
-
-  private shouldIncludeWidget(widget: any): boolean {
-    return (
-      widget?.sanity_check
-        ?.should_we_hide_this_widget_based_on_the_current_search_query !==
-        true && widget?.is_widget_redundant !== true
-    );
-  }
-
-  private resolveWidgetType(rawType: unknown): string {
-    return rawType === "checkboxes" ? "chipgroup" : String(rawType ?? "");
-  }
-
-  private hasSingleChoiceDropdown(
-    widgetType: string,
-    widgetParams: unknown,
-  ): boolean {
-    return (
-      widgetType === "dropdown" &&
-      this.isPlainObject(widgetParams) &&
-      Array.isArray((widgetParams as { choices?: unknown }).choices) &&
-      (widgetParams as { choices: unknown[] }).choices.length === 1
-    );
-  }
-
-  private normalizeWidget(widget: any): Record<string, unknown> {
-    const {
-      does_this_criterion_make_sense_for_this_search: _unused,
-      widget_type,
-      widget_variable_name,
-      widget_label,
-      widget_tooltip,
-      widget_params,
-    } = widget;
-
-    const params = this.normalizeWidgetChoices(widget_params);
-    const normalizedType = this.resolveWidgetType(widget_type);
-    const singleChoiceDropdown = this.hasSingleChoiceDropdown(
-      normalizedType,
-      params,
-    );
-
-    const emittedType = singleChoiceDropdown ? "switch" : normalizedType;
-    const isNativeSwitch = normalizedType === "switch";
-
-    // For single-choice dropdowns, switch wording is more user-friendly than
-    // exposing a dropdown with only one option.
-    const emittedLabel = singleChoiceDropdown
-      ? `Show only results about: ${widget_label}`
-      : isNativeSwitch && widget_params?.label_for_switch_on
-        ? widget_params.label_for_switch_on
-        : widget_label;
-
-    const cleanedWidget: Record<string, unknown> = {
-      type: emittedType,
-      variable_name: widget_variable_name,
-      label: emittedLabel,
-      tooltip: widget_tooltip ?? "",
-    };
-
-    if (emittedType !== "switch") {
-      cleanedWidget.params = params;
-    }
-
-    return cleanedWidget;
-  }
-
-  private cleanDisambiguation(rawDisambiguation: any): any {
-    if (
-      rawDisambiguation?.was_disambiguation_necessary === true &&
-      Array.isArray(rawDisambiguation.other_alternative_potential_meanings) &&
-      rawDisambiguation.other_alternative_potential_meanings.length > 0
-    ) {
-      return rawDisambiguation;
-    }
-
-    return null;
-  }
-
-  private cleanRefinements(raw: any): any {
-    if (!raw || typeof raw !== "object") {
-      return raw;
-    }
-
-    const widgets: any[] = Array.isArray(raw.widgets) ? raw.widgets : [];
-    const cleanedWidgets = widgets
-      .filter((widget) => this.shouldIncludeWidget(widget))
-      .map((widget) => this.normalizeWidget(widget));
-
-    return {
-      disambiguation: this.cleanDisambiguation(raw.disambiguation),
-      widgets: cleanedWidgets,
-    };
   }
 }
