@@ -45,6 +45,9 @@ export const useSearchStore = defineStore("yuppee", () => {
       additionalInstructionPoints,
     };
 
+    // TODO (low priority): Record the timestamp when the last query went out.
+    // Ignore the results of any resolved promise that has an earlier timestamp.
+
     const serpRequest = submitSearchQuery(q, filters)
       .then((searchResponse) => {
         serpResults.value = searchResponse.serpResults;

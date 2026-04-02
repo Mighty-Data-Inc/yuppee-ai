@@ -9,7 +9,7 @@ import WidgetPanel from '@/components/WidgetPanel.vue'
 const route = useRoute()
 const router = useRouter()
 const store = useSearchStore()
-const pendingRefinementChanges = ref<string[]>([])
+const refinementChangesInFlight = ref<string[]>([])
 
 function getQuery(): string {
   const q = route.query.q
@@ -18,7 +18,7 @@ function getQuery(): string {
 
 async function doSearch(q: string) {
   if (q.trim()) {
-    pendingRefinementChanges.value = []
+    refinementChangesInFlight.value = []
     await store.search(q.trim())
   }
 }
@@ -30,7 +30,7 @@ onMounted(() => {
 watch(() => route.query.q, (newQ) => {
   const q = Array.isArray(newQ) ? (newQ[0] ?? '') : (newQ ?? '')
   if (q.trim()) {
-    pendingRefinementChanges.value = []
+    refinementChangesInFlight.value = []
     store.search(q.trim(), {})
   }
 })
@@ -47,7 +47,7 @@ async function handleRefine(
   refinementChanges: string[],
 ) {
   store.additionalInstructionPoints = [...additionalInstructions]
-  pendingRefinementChanges.value = refinementChanges
+  refinementChangesInFlight.value = refinementChanges
   const filters = { ...widgetValues }
 
   if (additionalInstructions.length) {
@@ -57,7 +57,7 @@ async function handleRefine(
   try {
     await store.search(store.query, filters)
   } finally {
-    pendingRefinementChanges.value = []
+    refinementChangesInFlight.value = []
   }
 }
 </script>
@@ -86,7 +86,7 @@ async function handleRefine(
           :is-loading="store.isLoadingSERP"
           :query="store.query"
           :serp-summary="store.serpSummary"
-          :refinement-changes="pendingRefinementChanges"
+          :refinement-changes="refinementChangesInFlight"
         />
       </main>
 
