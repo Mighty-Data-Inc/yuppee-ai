@@ -6,126 +6,67 @@ import {
   submitSearchRefinement,
 } from "@/services/searchService";
 
-const PREFS_KEY = "yuppee_search_preferences";
-
 export const useSearchStore = defineStore("yuppee", () => {
   const query = ref("");
 
   const serpResults = ref<SearchResult[]>([]);
   const serpSummary = ref("");
 
-  const disambiguation = ref<string>();
-
   const widgets = ref<Widget[]>([]);
   const additionalInstructionPoints = ref<string[]>([]);
 
-  const activeRequestId = ref(0);
-  const isLoadingResults = ref(false);
+  const isLoadingSERP = ref(false);
   const isLoadingWidgets = ref(false);
 
-  const isLoading = computed(
-    () => isLoadingResults.value || isLoadingWidgets.value,
-  );
+  const error = ref("");
 
-  const error = ref<string | null>(null);
-  const preferences = ref<Record<string, any>>({});
-
-  function loadPreferences() {
-    try {
-      const stored = localStorage.getItem(PREFS_KEY);
-      if (stored) {
-        preferences.value = JSON.parse(stored);
-      }
-    } catch {
-      preferences.value = {};
-    }
-  }
-
-  function savePreferences() {
-    try {
-      localStorage.setItem(PREFS_KEY, JSON.stringify(preferences.value));
-    } catch {
-      // ignore storage errors
-    }
-  }
-
-  function getCategoryKey(q: string): string {
-    const lower = q.toLowerCase();
-    if (
-      lower.includes("book") ||
-      lower.includes("novel") ||
-      lower.includes("fiction") ||
-      lower.includes("literature")
-    )
-      return "books";
-    if (
-      lower.includes("movie") ||
-      lower.includes("film") ||
-      lower.includes("cinema")
-    )
-      return "movies";
-    return "general";
-  }
-
-  function resetTransientSearchState() {
+  function reset() {
     serpResults.value = [];
     serpSummary.value = "";
     widgets.value = [];
-    disambiguation.value = "";
     additionalInstructionPoints.value = [];
+    error.value = "";
   }
 
-  async function performSearch(q: string, widgetValues?: Record<string, any>) {
-    const requestId = ++activeRequestId.value;
-    const normalizedQuery = q.trim();
-    const isNewQuery = normalizedQuery !== query.value;
+  async function search(q: string, widgetValues?: Record<string, any>) {
+    q = q.trim();
+    const isNewQuery = q !== query.value;
 
     if (isNewQuery) {
-      resetTransientSearchState();
+      reset();
     }
 
     query.value = q;
-    isLoadingResults.value = true;
+    isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
-    error.value = null;
 
-    const category = getCategoryKey(normalizedQuery);
-    const savedPrefs = preferences.value[category] ?? {};
-    const effectiveFilters = widgetValues ?? savedPrefs;
-    const knownResults = [...serpResults.value];
+    const filters = {
+      widgets,
+      additionalInstructionPoints,
+    };
 
-    const searchRequest = submitSearchQuery(normalizedQuery, effectiveFilters)
+    const serpRequest = submitSearchQuery(q, filters)
       .then((searchResponse) => {
-        if (activeRequestId.value !== requestId) return;
         serpResults.value = searchResponse.serpResults;
         serpSummary.value = searchResponse.serpSummary;
       })
       .catch((e) => {
-        if (activeRequestId.value !== requestId) return;
         error.value =
           e instanceof Error ? e.message : "An error occurred during search";
         serpResults.value = [];
         serpSummary.value = "";
       })
       .finally(() => {
-        if (activeRequestId.value !== requestId) return;
-        isLoadingResults.value = false;
+        isLoadingSERP.value = false;
       });
 
-    const refinementRequest = submitSearchRefinement(
-      normalizedQuery,
-      effectiveFilters,
-      knownResults,
-    )
+    const refinementRequest = submitSearchRefinement(q, filters)
       .then((refinementResponse) => {
-        if (activeRequestId.value !== requestId) return;
         widgets.value = refinementResponse.widgets;
-        if (refinementResponse.disambiguation) {
-          disambiguation.value = refinementResponse.disambiguation;
-        }
+        // TODO: Handle preserving filters
+        // TODO: Handle disambiguation
       })
       .catch((e) => {
-        if (activeRequestId.value !== requestId) return;
         if (!error.value) {
           error.value =
             e instanceof Error
@@ -135,34 +76,10 @@ export const useSearchStore = defineStore("yuppee", () => {
         widgets.value = [];
       })
       .finally(() => {
-        if (activeRequestId.value !== requestId) return;
         isLoadingWidgets.value = false;
       });
 
-    await Promise.allSettled([searchRequest, refinementRequest]);
-
-    if (activeRequestId.value !== requestId) return;
-
-    if (widgetValues && Object.keys(widgetValues).length > 0) {
-      preferences.value[category] = widgetValues;
-      savePreferences();
-    }
-  }
-
-  function updateWidgetValue(widgetId: string, value: any) {
-    const widget = widgets.value.find((w) => w.id === widgetId);
-    if (widget) {
-      widget.value = value;
-    }
-  }
-
-  function clearSearch() {
-    activeRequestId.value += 1;
-    query.value = "";
-    resetTransientSearchState();
-    isLoadingResults.value = false;
-    isLoadingWidgets.value = false;
-    error.value = null;
+    await Promise.allSettled([serpRequest, refinementRequest]);
   }
 
   return {
@@ -170,17 +87,10 @@ export const useSearchStore = defineStore("yuppee", () => {
     serpResults,
     serpSummary,
     widgets,
-    disambiguation,
     additionalInstructionPoints,
-    isLoadingResults,
+    isLoadingSERP,
     isLoadingWidgets,
-    isLoading,
     error,
-    preferences,
-    loadPreferences,
-    savePreferences,
-    performSearch,
-    updateWidgetValue,
-    clearSearch,
+    search,
   };
 });

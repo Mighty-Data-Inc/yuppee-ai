@@ -19,12 +19,11 @@ function getQuery(): string {
 async function doSearch(q: string) {
   if (q.trim()) {
     pendingRefinementChanges.value = []
-    await store.performSearch(q.trim())
+    await store.search(q.trim())
   }
 }
 
 onMounted(() => {
-  store.loadPreferences()
   doSearch(getQuery())
 })
 
@@ -32,7 +31,7 @@ watch(() => route.query.q, (newQ) => {
   const q = Array.isArray(newQ) ? (newQ[0] ?? '') : (newQ ?? '')
   if (q.trim()) {
     pendingRefinementChanges.value = []
-    store.performSearch(q.trim(), {})
+    store.search(q.trim(), {})
   }
 })
 
@@ -47,7 +46,7 @@ async function handleRefine(
   additionalInstructions: string[],
   refinementChanges: string[],
 ) {
-  store.refinement = [...additionalInstructions]
+  store.additionalInstructionPoints = [...additionalInstructions]
   pendingRefinementChanges.value = refinementChanges
   const filters = { ...widgetValues }
 
@@ -56,7 +55,7 @@ async function handleRefine(
   }
 
   try {
-    await store.performSearch(store.query, filters)
+    await store.search(store.query, filters)
   } finally {
     pendingRefinementChanges.value = []
   }
@@ -84,7 +83,7 @@ async function handleRefine(
       <main class="search-main">
         <SearchResults
           :serp-results="store.serpResults"
-          :is-loading="store.isLoadingResults"
+          :is-loading="store.isLoadingSERP"
           :query="store.query"
           :serp-summary="store.serpSummary"
           :refinement-changes="pendingRefinementChanges"

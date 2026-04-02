@@ -3,12 +3,13 @@ import type { SearchResult } from '@/types'
 
 defineProps<{
   serpResults: SearchResult[]
-  isLoading: boolean
+  isLoadingSERP: boolean
   query: string
   serpSummary: string
   refinementChanges: string[]
 }>()
 
+// Show a compact display URL like example.com/path instead of the full raw link.
 function formatUrl(url: string): string {
   try {
     const u = new URL(url)
@@ -22,7 +23,7 @@ function formatUrl(url: string): string {
 <template>
   <div class="results">
     <!-- Loading skeletons -->
-    <template v-if="isLoading">
+    <template v-if="isLoadingSERP">
       <div v-if="refinementChanges.length" class="results__changes">
         <p class="results__changes-title">Changed filters...</p>
         <ul class="results__changes-list">
