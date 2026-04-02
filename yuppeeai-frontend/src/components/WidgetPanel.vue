@@ -10,24 +10,28 @@ import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 
 const store = useYuppeeStore()
 
-const widgetValues = ref<Record<string, any>>({})
 const instructionInput = ref('')
 const additionalInstructions = ref<string[]>([])
 const baselineWidgetValues = ref<Record<string, any>>({})
 
-function cloneValues(values: Record<string, any>): Record<string, any> {
-  return JSON.parse(JSON.stringify(values))
+function snapshotBaseline() {
+  const snapshot: Record<string, any> = {}
+  for (const widget of store.widgets) {
+    snapshot[widget.id] = JSON.parse(JSON.stringify(widget.value))
+  }
+  baselineWidgetValues.value = snapshot
 }
 
-function hasValueChanges(
-  current: Record<string, any>,
-  baseline: Record<string, any>,
-): boolean {
-  return JSON.stringify(current) !== JSON.stringify(baseline)
+function hasValueChanges(): boolean {
+  for (const widget of store.widgets) {
+    if (JSON.stringify(widget.value) !== JSON.stringify(baselineWidgetValues.value[widget.id])) {
+      return true
+    }
+  }
+  return false
 }
 
 function resetLocalState() {
-  widgetValues.value = {}
   instructionInput.value = ''
   additionalInstructions.value = []
   baselineWidgetValues.value = {}
@@ -39,14 +43,9 @@ watch(() => store.query, (newQuery, oldQuery) => {
   }
 })
 
-watch(() => store.widgets, (newWidgets) => {
-  const newValues: Record<string, any> = {}
-  for (const widget of newWidgets) {
-    newValues[widget.id] = widgetValues.value[widget.id] ?? widget.value
-  }
-  widgetValues.value = newValues
-  baselineWidgetValues.value = cloneValues(newValues)
-}, { immediate: true, deep: true })
+watch(() => store.widgets, () => {
+  snapshotBaseline()
+}, { immediate: true })
 
 function getNextInstructions(): string[] {
   const nextInstructions = [...additionalInstructions.value]
@@ -58,7 +57,10 @@ function getNextInstructions(): string[] {
 }
 
 function updateValue(widgetId: string, value: any) {
-  widgetValues.value[widgetId] = value
+  const widget = store.widgets.find(w => w.id === widgetId)
+  if (widget) {
+    widget.value = value
+  }
 }
 
 function resolveLabel(widget: Widget, value: any): any {
@@ -73,7 +75,7 @@ function describeSearchRefinementChanges(): string[] {
   const lines: string[] = []
   for (const widget of store.widgets) {
     const previousWidgetValue = baselineWidgetValues.value[widget.id]
-    const currentWidgetValue = widgetValues.value[widget.id]
+    const currentWidgetValue = widget.value
     if (JSON.stringify(previousWidgetValue) !== JSON.stringify(currentWidgetValue)) {
       if (widget.type === 'dropdown') {
         const previousLabel = resolveLabel(widget, previousWidgetValue)
@@ -139,7 +141,7 @@ async function handleSearchAgain() {
   store.additionalInstructionPoints = nextInstructions
   additionalInstructions.value = nextInstructions
   instructionInput.value = ''
-  await store.search(store.query, { ...widgetValues.value })
+  await store.search(store.query)
 }
 
 function removeInstruction(index: number) {
@@ -150,7 +152,7 @@ const dynamicWidgets = () => store.widgets.filter(w => w.type !== 'freeform')
 
 const canSearchAgain = computed(() => {
   if (store.isLoadingWidgets) return false
-  if (hasValueChanges(widgetValues.value, baselineWidgetValues.value)) return true
+  if (hasValueChanges()) return true
   return Boolean(instructionInput.value.trim())
 })
 </script>
@@ -180,25 +182,25 @@ const canSearchAgain = computed(() => {
           <RangeSliderWidget
             v-if="widget.type === 'range-slider'"
             :widget="widget"
-            :model-value="widgetValues[widget.id] ?? widget.value"
+            :model-value="widget.value"
             @update:model-value="updateValue(widget.id, $event)"
           />
           <ChipGroupWidget
             v-else-if="widget.type === 'chipgroup'"
             :widget="widget"
-            :model-value="widgetValues[widget.id] ?? widget.value"
+            :model-value="widget.value"
             @update:model-value="updateValue(widget.id, $event)"
           />
           <SwitchWidget
             v-else-if="widget.type === 'switch'"
             :widget="widget"
-            :model-value="widgetValues[widget.id] ?? widget.value"
+            :model-value="widget.value"
             @update:model-value="updateValue(widget.id, $event)"
           />
           <DropdownWidget
             v-else-if="widget.type === 'dropdown'"
             :widget="widget"
-            :model-value="widgetValues[widget.id] ?? widget.value"
+            :model-value="widget.value"
             @update:model-value="updateValue(widget.id, $event)"
           />
         </template>
