@@ -4,7 +4,7 @@ import SearchBar from '@/components/SearchBar.vue'
 
 const router = useRouter()
 
-function handleSearch(q: string) {
+function submitSearch(q: string) {
   q = q.trim();
   if (!q) {
     return;
@@ -24,13 +24,13 @@ function handleSearch(q: string) {
       <p class="home__tagline">Search smarter. Refine deeper.</p>
 
       <div class="home__search">
-        <SearchBar @search="handleSearch" />
+        <SearchBar />
       </div>
 
       <div class="home__hints">
-        <span class="home__hint" @click="handleSearch('Books about Crimean War')">Books about Crimean War</span>
-        <span class="home__hint" @click="handleSearch('Best sci-fi movies 2020s')">Best sci-fi movies 2020s</span>
-        <span class="home__hint" @click="handleSearch('AI search engines')">AI search engines</span>
+        <span class="home__hint" @click="submitSearch('Books about Crimean War')">Books about Crimean War</span>
+        <span class="home__hint" @click="submitSearch('Best sci-fi movies 2020s')">Best sci-fi movies 2020s</span>
+        <span class="home__hint" @click="submitSearch('AI search engines')">AI search engines</span>
       </div>
     </div>
 

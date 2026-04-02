@@ -31,6 +31,11 @@ watch(() => route.query.q, async (newQ) => {
 })
 
 async function submitSearch(q: string) {
+  if (!q) {
+    store.reset()
+    return
+  }
+
   await store.search(q);
 }
 
@@ -45,11 +50,7 @@ async function submitSearch(q: string) {
       </router-link>
 
       <div class="search-header__bar">
-        <SearchBar
-          :model-value="store.query"
-          :compact="true"
-          @search="submitSearch"
-        />
+        <SearchBar :compact="true" />
       </div>
     </header>
 

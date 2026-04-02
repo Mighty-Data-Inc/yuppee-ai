@@ -21,6 +21,7 @@ export const useSearchStore = defineStore("yuppee", () => {
   const error = ref("");
 
   function reset() {
+    query.value = "";
     serpResults.value = [];
     serpSummary.value = "";
     widgets.value = [];
@@ -94,6 +95,7 @@ export const useSearchStore = defineStore("yuppee", () => {
     isLoadingSERP,
     isLoadingWidgets,
     error,
+    reset,
     search,
   };
 });

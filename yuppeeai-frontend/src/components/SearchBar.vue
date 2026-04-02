@@ -1,33 +1,54 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useSearchStore } from '@/stores/searchStore'
 
 const props = withDefaults(defineProps<{
-  modelValue?: string
   compact?: boolean
 }>(), {
-  modelValue: '',
   compact: false
 })
 
-const emit = defineEmits<{
-  search: [query: string]
-}>()
+const route = useRoute()
+const router = useRouter()
+const store = useSearchStore()
 
-const inputValue = ref(props.modelValue)
+// Local draft text for the input. This lets users type without mutating
+// the global query on every keystroke.
+const inputValue = ref(store.query)
 
-watch(() => props.modelValue, (val) => {
+// Keep the input in sync when the committed query changes elsewhere
+// (route navigation, programmatic search, etc.).
+watch(() => store.query, (val) => {
   inputValue.value = val
 })
 
-function handleSubmit() {
-  if (inputValue.value.trim()) {
-    emit('search', inputValue.value.trim())
+async function submitSearch() {
+  const q = inputValue.value.trim()
+  if (!q) return
+
+  if (route.name === 'search' && route.query.q === q) {
+    await store.search(q)
+    return
   }
+
+  await router.push({ name: 'search', query: { q } })
 }
 
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter') {
-    handleSubmit()
+    submitSearch()
+  }
+}
+
+async function clearSearch() {
+  inputValue.value = ''
+  store.reset()
+
+  if (route.name === 'search' && route.query.q != null) {
+    const nextQuery = { ...route.query }
+    delete nextQuery.q
+    await router.replace({ name: 'search', query: nextQuery })
   }
 }
 </script>
@@ -54,14 +75,14 @@ function handleKeydown(e: KeyboardEvent) {
         class="search-bar__clear"
         type="button"
         aria-label="Clear search"
-        @click="inputValue = ''"
+        @click="clearSearch"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <path d="M18 6 6 18M6 6l12 12"/>
         </svg>
       </button>
     </div>
-    <button class="search-bar__btn" type="button" @click="handleSubmit">
+    <button class="search-bar__btn" type="button" @click="submitSearch">
       Search
     </button>
   </div>
