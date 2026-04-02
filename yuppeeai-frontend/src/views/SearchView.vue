@@ -83,10 +83,10 @@ async function handleRefine(
     <div class="search-layout">
       <main class="search-main">
         <SearchResults
-          :results="store.results"
+          :serp-results="store.serpResults"
           :is-loading="store.isLoadingResults"
           :query="store.query"
-          :result-summary="store.resultSummary"
+          :serp-summary="store.serpSummary"
           :refinement-changes="pendingRefinementChanges"
         />
       </main>
