@@ -105,6 +105,11 @@ export class SearchProvider {
   }
 
   async getSearchResults(request: SearchRequest): Promise<SearchResponse> {
+    const requestQuery = request.query || "";
+    if (!requestQuery) {
+      throw new Error("Search query is required.");
+    }
+
     if (!this.config.openaiApiKey) {
       throw new Error("OPENAI_API_KEY is not configured.");
     }
@@ -133,22 +138,40 @@ Do not return JSON yet; first reason through likely user intent and source selec
 
     // Clean up the filters object by removing anything falsy or nullsy.
     // If there's anything left, we'll use it as a focus.
-    if (request.filters) {
-      for (const key of Object.keys(request.filters)) {
-        const filterValue = request.filters[key];
+    const requestFilterWidgets = request.filters?.widgets ?? {};
+    if (requestFilterWidgets) {
+      let sAllWidgetFilters = "";
+      for (const widget of Object.values(requestFilterWidgets)) {
         if (
-          !filterValue ||
-          (Array.isArray(filterValue) && filterValue.length === 0)
+          !widget.value ||
+          (Array.isArray(widget.value) && widget.value.length === 0)
         ) {
-          delete request.filters[key];
+          continue;
         }
+        sAllWidgetFilters += `${widget.label}: ${JSON.stringify(widget.value)}\n`;
       }
-      if (Object.keys(request.filters).length > 0) {
+      if (sAllWidgetFilters) {
+        console.log(sAllWidgetFilters);
         convo.push({
           role: "user",
-          content: `I want the results filtered/specialized as follows:\n\n---\n\n${JSON.stringify(request.filters, null, 2)}`,
+          content:
+            `I want the results filtered/specialized as follows:` +
+            `\n\n---\n\n` +
+            `${sAllWidgetFilters}`,
         });
       }
+    }
+
+    const requestAdditionalInstructionPoints =
+      request.filters?.additionalInstructionPoints ?? [];
+    if (requestAdditionalInstructionPoints.length > 0) {
+      convo.push({
+        role: "user",
+        content:
+          `I want your search to take the following additional special instructions into consideration:` +
+          `\n\n---\n\n` +
+          `${requestAdditionalInstructionPoints.join("\n")}`,
+      });
     }
 
     const reasoningResponse = await openaiClient.responses.create({

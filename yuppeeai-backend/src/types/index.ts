@@ -3,10 +3,14 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
+import { Widget } from "./datatypes";
 
 export interface SearchRequest {
   query: string;
-  filters?: Record<string, unknown>;
+  filters?: {
+    widgets?: Record<string, Widget>;
+    additionalInstructionPoints?: string[];
+  };
 }
 
 export interface SearchResult {
@@ -25,7 +29,7 @@ export interface SearchResponse {
 export interface SearchRefinementsResponse {
   query: string;
   disambiguation: string;
-  widgets: unknown;
+  widgets: Record<string, Widget>;
 }
 
 export interface PreferencesRequest {
