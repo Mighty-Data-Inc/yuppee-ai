@@ -5,7 +5,7 @@ import SearchBar from "@/components/SearchBar.vue";
 const pushMock = vi.fn();
 const searchMock = vi.fn();
 const resetMock = vi.fn();
-const assignMock = vi.fn();
+const replaceStateMock = vi.fn();
 const routeMock = {
   name: "home",
   query: {},
@@ -18,8 +18,8 @@ vi.mock("vue-router", () => ({
   useRoute: () => routeMock,
 }));
 
-vi.mock("@/stores/searchStore", () => ({
-  useSearchStore: () => ({
+vi.mock("@/stores/yuppeeStore", () => ({
+  useYuppeeStore: () => ({
     query: "",
     search: searchMock,
     reset: resetMock,
@@ -31,10 +31,12 @@ describe("SearchBar", () => {
     pushMock.mockReset();
     searchMock.mockReset();
     resetMock.mockReset();
-    assignMock.mockReset();
+    replaceStateMock.mockReset();
     routeMock.name = "home";
     routeMock.query = {};
-    vi.spyOn(window.location, "assign").mockImplementation(assignMock);
+    vi.spyOn(window.history, "replaceState").mockImplementation(
+      replaceStateMock,
+    );
   });
 
   it("renders correctly", () => {
@@ -89,7 +91,7 @@ describe("SearchBar", () => {
 
     expect((input.element as HTMLInputElement).value).toBe("");
     expect(resetMock).toHaveBeenCalled();
-    expect(assignMock).not.toHaveBeenCalled();
+    expect(replaceStateMock).toHaveBeenCalledTimes(1);
   });
 
   it("clears route query when on search page", async () => {
@@ -102,7 +104,7 @@ describe("SearchBar", () => {
     await wrapper.find("button.search-bar__clear").trigger("click");
 
     expect(resetMock).toHaveBeenCalled();
-    expect(assignMock).toHaveBeenCalledWith(window.location.pathname);
+    expect(replaceStateMock).toHaveBeenCalledTimes(1);
   });
 
   it("searches directly when already on same search route", async () => {

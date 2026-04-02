@@ -6,7 +6,7 @@ import {
   submitSearchRefinement,
 } from "@/services/searchService";
 
-export const useSearchStore = defineStore("yuppee", () => {
+export const useYuppeeStore = defineStore("yuppee", () => {
   const query = ref("");
 
   const serpResults = ref<SearchResult[]>([]);

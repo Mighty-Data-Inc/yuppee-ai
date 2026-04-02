@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useSearchStore } from '@/stores/searchStore'
+import { useYuppeeStore } from '@/stores/yuppeeStore'
 import SearchBar from '@/components/SearchBar.vue'
 import SearchResults from '@/components/SearchResults.vue'
 import WidgetPanel from '@/components/WidgetPanel.vue'
 
 const route = useRoute()
-const store = useSearchStore()
+const store = useYuppeeStore()
 
 function getQuery(): string {
   let q = route.query.q;

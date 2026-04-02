@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
-import { useSearchStore } from "@/stores/searchStore";
+import { useYuppeeStore } from "@/stores/yuppeeStore";
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -76,9 +76,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("searchStore", () => {
+describe("yuppeeStore", () => {
   it("initializes with empty state", () => {
-    const store = useSearchStore();
+    const store = useYuppeeStore();
     expect(store.query).toBe("");
     expect(store.serpResults).toHaveLength(0);
     expect(store.serpSummary).toBe("");
@@ -89,7 +89,7 @@ describe("searchStore", () => {
   });
 
   it("sets loading state during performSearch", async () => {
-    const store = useSearchStore();
+    const store = useYuppeeStore();
     const loadingStates: boolean[] = [];
 
     const promise = store.performSearch("books about history");
@@ -128,7 +128,7 @@ describe("searchStore", () => {
       }),
     );
 
-    const store = useSearchStore();
+    const store = useYuppeeStore();
     const pendingSearch = store.performSearch("books about history");
 
     expect(store.isLoadingResults).toBe(true);
@@ -155,7 +155,7 @@ describe("searchStore", () => {
   });
 
   it("populates results after performSearch", async () => {
-    const store = useSearchStore();
+    const store = useYuppeeStore();
     await store.performSearch("books about Crimean War");
     expect(store.serpResults.length).toBeGreaterThan(0);
     expect(store.serpSummary).toBe("Store test summary");
@@ -163,13 +163,13 @@ describe("searchStore", () => {
   });
 
   it("populates widgets after performSearch", async () => {
-    const store = useSearchStore();
+    const store = useYuppeeStore();
     await store.performSearch("books about history");
     expect(store.widgets.length).toBeGreaterThan(0);
   });
 
   it("updates widget value with updateWidgetValue", async () => {
-    const store = useSearchStore();
+    const store = useYuppeeStore();
     await store.performSearch("books about history");
 
     const firstWidget = store.widgets[0];
@@ -207,7 +207,7 @@ describe("searchStore", () => {
       }),
     );
 
-    const store = useSearchStore();
+    const store = useYuppeeStore();
     store.serpResults = [...MOCK_SEARCH_RESULTS];
     store.serpSummary = "Existing summary";
     store.widgets = [...MOCK_WIDGETS];
@@ -234,7 +234,7 @@ describe("searchStore", () => {
   });
 
   it("clears state with clearSearch", async () => {
-    const store = useSearchStore();
+    const store = useYuppeeStore();
     await store.performSearch("books");
     store.clearSearch();
 

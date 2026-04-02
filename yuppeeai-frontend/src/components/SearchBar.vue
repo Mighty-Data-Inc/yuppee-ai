@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useSearchStore } from '@/stores/searchStore'
+import { useYuppeeStore } from '@/stores/yuppeeStore'
 
 const props = withDefaults(defineProps<{
   compact?: boolean
@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<{
 
 const route = useRoute()
 const router = useRouter()
-const store = useSearchStore()
+const store = useYuppeeStore()
 
 // Local draft text for the input. This lets users type without mutating
 // the global query on every keystroke.

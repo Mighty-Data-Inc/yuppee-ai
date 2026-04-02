@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useSearchStore } from '@/stores/searchStore'
+import { useYuppeeStore } from '@/stores/yuppeeStore'
 
-const store = useSearchStore()
+const store = useYuppeeStore()
 const refinementChangesInFlight: string[] = []
 
 // Show a compact display URL like example.com/path instead of the full raw link.

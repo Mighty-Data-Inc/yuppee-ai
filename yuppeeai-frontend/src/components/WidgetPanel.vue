@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { useSearchStore } from '@/stores/searchStore'
+import { useYuppeeStore } from '@/stores/yuppeeStore'
 import type { Widget } from '@/types'
 import RangeSliderWidget from '@/components/widgets/RangeSliderWidget.vue'
 import ChipGroupWidget from '@/components/widgets/ChipGroupWidget.vue'
@@ -8,7 +8,7 @@ import SwitchWidget from '@/components/widgets/SwitchWidget.vue'
 import DropdownWidget from '@/components/widgets/DropdownWidget.vue'
 import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 
-const store = useSearchStore()
+const store = useYuppeeStore()
 
 const widgetValues = ref<Record<string, any>>({})
 const instructionInput = ref('')

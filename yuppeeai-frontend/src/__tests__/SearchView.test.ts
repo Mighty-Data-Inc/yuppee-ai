@@ -33,8 +33,8 @@ const mockStore = {
   loadPreferences: mockLoadPreferences,
 };
 
-vi.mock("@/stores/searchStore", () => ({
-  useSearchStore: () => mockStore,
+vi.mock("@/stores/yuppeeStore", () => ({
+  useYuppeeStore: () => mockStore,
 }));
 
 vi.mock("vue-router", () => ({
