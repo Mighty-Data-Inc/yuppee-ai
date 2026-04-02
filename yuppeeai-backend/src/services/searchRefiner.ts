@@ -312,8 +312,6 @@ export class SearchRefiner {
       throw new Error("OPENAI_API_KEY is not configured.");
     }
 
-    console.log(JSON.stringify(request, null, 2));
-
     const openaiClient = new OpenAI({ apiKey: this.config.openaiApiKey });
 
     const convo = new LLMConversation(openaiClient, undefined, GPT_MODEL_FAST);

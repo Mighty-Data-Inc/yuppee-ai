@@ -127,7 +127,7 @@ Do not return JSON yet; first reason through likely user intent and source selec
       },
       {
         role: "user",
-        content: `Search query:\n${request.query}`,
+        content: `Search query:\n\n---\n\n${request.query}`,
       },
     ];
 
@@ -146,7 +146,7 @@ Do not return JSON yet; first reason through likely user intent and source selec
       if (Object.keys(request.filters).length > 0) {
         convo.push({
           role: "user",
-          content: `I want the results filtered/specialized as follows:\n${JSON.stringify(request.filters, null, 2)}`,
+          content: `I want the results filtered/specialized as follows:\n\n---\n\n${JSON.stringify(request.filters, null, 2)}`,
         });
       }
     }

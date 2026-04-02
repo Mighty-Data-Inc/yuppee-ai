@@ -316,7 +316,7 @@ const canSearchAgain = computed(() => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: #f8fafc;
-  padding: 0.6rem 0.6rem 0.5rem 0.95rem;
+  padding: 0.6rem 0.95rem 0.5rem 0.6rem;
   max-width: 100%;
 }
 
