@@ -9,34 +9,13 @@ import WidgetPanel from '@/components/WidgetPanel.vue'
 const route = useRoute()
 const store = useYuppeeStore()
 
-function getQuery(): string {
-  let q = route.query.q;
-  if (Array.isArray(q)) {
-    if (q.length > 0) {
-      q = q[0];
-    } else {
-      q = '';
-    }
-  }
-  q = q.trim();
-  return q;
-}
+onMounted(() => submitSearch(route.query.q))
+watch(() => route.query.q, submitSearch)
 
-onMounted(async () => {
-  await submitSearch(getQuery());
-})
-
-watch(() => route.query.q, async (newQ) => {
-  await submitSearch(getQuery());
-})
-
-async function submitSearch(q: string) {
-  if (!q) {
-    store.reset()
-    return
-  }
-
-  await store.search(q);
+async function submitSearch(q?: string | string[]) {
+  const query = (Array.isArray(q) ? (q[0] ?? '') : (q ?? '')).trim()
+  if (!query) { store.reset(); return }
+  await store.search(query)
 }
 
 </script>

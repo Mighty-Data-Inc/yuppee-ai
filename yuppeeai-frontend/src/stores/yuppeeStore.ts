@@ -33,6 +33,8 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     q = q.trim();
     const isNewQuery = q !== query.value;
 
+    console.log("Searching: ", q);
+
     if (isNewQuery) {
       reset();
     }
