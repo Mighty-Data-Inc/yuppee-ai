@@ -116,8 +116,8 @@ async function submitSearch(q?: string | string[]) {
   width: 340px;
   flex-shrink: 0;
   position: sticky;
-  top: 80px;
-  max-height: calc(100vh - 100px);
+  top: 95px;
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
 }
 

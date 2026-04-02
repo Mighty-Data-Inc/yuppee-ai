@@ -62,11 +62,10 @@ export async function submitSearchQuery(
   }
   const data = await response.json();
   console.log("[SERP] /search payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
-  const payload = data as { results?: unknown; result_summary?: unknown };
+  const payload = data as { results?: unknown; summary?: unknown };
   return {
     serpResults: cleanUpSERPResults(payload.results),
-    serpSummary:
-      typeof payload.result_summary === "string" ? payload.result_summary : "",
+    serpSummary: typeof payload.summary === "string" ? payload.summary : "",
   };
 }
 

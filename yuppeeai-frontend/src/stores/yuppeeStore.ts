@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import type { SearchResult, Widget } from "@/types";
 import {
   submitSearchQuery,
@@ -33,8 +33,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     q = q.trim();
     const isNewQuery = q !== query.value;
 
-    console.log("Searching: ", q);
-
     if (isNewQuery) {
       reset();
     }
@@ -46,8 +44,8 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     // TODO: Set refinements in flight
 
     const filters = {
-      widgets,
-      additionalInstructionPoints,
+      widgets: widgets.value,
+      additionalInstructionPoints: additionalInstructionPoints.value,
     };
 
     // TODO (low priority): Record the timestamp when the last query went out.
@@ -55,10 +53,12 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
     const serpRequest = submitSearchQuery(q, filters)
       .then((searchResponse) => {
+        console.log(searchResponse);
         serpResults.value = searchResponse.serpResults;
         serpSummary.value = searchResponse.serpSummary;
       })
       .catch((e) => {
+        console.error(e);
         error.value =
           e instanceof Error ? e.message : "An error occurred during search";
         serpResults.value = [];
@@ -75,12 +75,11 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         // TODO: Handle disambiguation
       })
       .catch((e) => {
-        if (!error.value) {
-          error.value =
-            e instanceof Error
-              ? e.message
-              : "An error occurred while loading refinements";
-        }
+        console.error(e);
+        error.value =
+          e instanceof Error
+            ? e.message
+            : "An error occurred while loading refinements";
         widgets.value = [];
       })
       .finally(() => {

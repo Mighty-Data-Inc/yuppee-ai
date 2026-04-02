@@ -58,6 +58,8 @@ const SERP_JSON_SCHEMA = {
             "An exact copy of the plaintext version of the summary, but with light HTML formatting such as <strong> and <em> tags. Use <strong> tags to make specific keywords or phrases stand out, particularly any terms that indicate the main topics and key search terms. Use <em> tags to italicize book and movie titles, scientific names, names of ships and vessels, etc. (per the Chicago Manual of Style).",
         },
       },
+      required: ["plaintext", "with_light_html_formatting"],
+      additionalProperties: false,
     },
     results: {
       type: "array",
