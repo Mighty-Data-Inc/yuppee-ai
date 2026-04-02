@@ -8,7 +8,7 @@ export interface SearchResponse {
   resultSummary: string;
 }
 
-function normalizeSearchResults(rawResults: unknown): SearchResult[] {
+function cleanUpSERPResults(rawResults: unknown): SearchResult[] {
   if (!Array.isArray(rawResults)) {
     return [];
   }
@@ -64,7 +64,7 @@ export async function submitSearchQuery(
   console.log("[SERP] /search payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
   const payload = data as { results?: unknown; result_summary?: unknown };
   return {
-    results: normalizeSearchResults(payload.results),
+    results: cleanUpSERPResults(payload.results),
     resultSummary:
       typeof payload.result_summary === "string" ? payload.result_summary : "",
   };

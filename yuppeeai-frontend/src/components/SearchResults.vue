@@ -2,10 +2,10 @@
 import type { SearchResult } from '@/types'
 
 defineProps<{
-  results: SearchResult[]
+  serpResults: SearchResult[]
   isLoading: boolean
   query: string
-  resultSummary: string
+  serpSummary: string
   refinementChanges: string[]
 }>()
 
@@ -40,10 +40,10 @@ function formatUrl(url: string): string {
     </template>
 
     <!-- Results -->
-    <template v-else-if="results.length > 0">
-      <p v-if="resultSummary" class="results__meta" v-html="resultSummary" />
+    <template v-else-if="serpResults.length > 0">
+      <p v-if="serpSummary" class="results__meta" v-html="serpSummary" />
       <a
-        v-for="result in results"
+        v-for="result in serpResults"
         :key="result.url"
         :href="result.url"
         class="result-card"

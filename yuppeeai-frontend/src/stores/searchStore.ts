@@ -167,10 +167,11 @@ export const useSearchStore = defineStore("search", () => {
 
   return {
     query,
-    results: serpResults,
-    resultSummary: serpSummary,
+    serpResults,
+    serpSummary,
     widgets,
-    refinement: disambiguation,
+    disambiguation,
+    additionalInstructionPoints,
     isLoadingResults,
     isLoadingWidgets,
     isLoading,
