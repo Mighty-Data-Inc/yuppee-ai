@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { Widget } from '@/types'
-import RadioWidget from '@/components/widgets/RadioWidget.vue'
 import RangeSliderWidget from '@/components/widgets/RangeSliderWidget.vue'
-import CheckboxWidget from '@/components/widgets/CheckboxWidget.vue'
 import ChipGroupWidget from '@/components/widgets/ChipGroupWidget.vue'
 import SwitchWidget from '@/components/widgets/SwitchWidget.vue'
 import DropdownWidget from '@/components/widgets/DropdownWidget.vue'
@@ -189,20 +187,8 @@ const canSearchAgain = computed(() => {
     <template v-else-if="widgets.length > 0">
       <div class="widget-panel__widgets">
         <template v-for="widget in nonFreeformWidgets()" :key="widget.id">
-          <RadioWidget
-            v-if="widget.type === 'radio'"
-            :widget="widget"
-            :model-value="widgetValues[widget.id] ?? widget.value"
-            @update:model-value="updateValue(widget.id, $event)"
-          />
           <RangeSliderWidget
-            v-else-if="widget.type === 'range-slider'"
-            :widget="widget"
-            :model-value="widgetValues[widget.id] ?? widget.value"
-            @update:model-value="updateValue(widget.id, $event)"
-          />
-          <CheckboxWidget
-            v-else-if="widget.type === 'checkbox'"
+            v-if="widget.type === 'range-slider'"
             :widget="widget"
             :model-value="widgetValues[widget.id] ?? widget.value"
             @update:model-value="updateValue(widget.id, $event)"

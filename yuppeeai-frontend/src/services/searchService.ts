@@ -1,5 +1,4 @@
 import type { SearchResult, Widget } from "@/types";
-import { normalizeWidgets } from "@/services/widgetAdapter";
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
@@ -92,8 +91,5 @@ export async function submitSearchRefinement(
 
   const data = await response.json();
   console.log("[SERP] /refine payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
-  return normalizeWidgets(
-    Array.isArray(data) ? data : data.widgets,
-    currentFilters,
-  );
+  return [];
 }
