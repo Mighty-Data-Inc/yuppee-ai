@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type { SearchResult, Widget } from "@/types";
 import {
-  submitSearchQuery,
+  submitSERPQuery,
   submitSearchRefinement,
 } from "@/services/searchService";
 import { showError } from "@/services/errorService";
@@ -53,7 +53,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
-    const serpRequest = submitSearchQuery(q, filters)
+    const serpRequest = submitSERPQuery(q, filters)
       .then((searchResponse) => {
         serpResults.value = searchResponse.results;
         serpSummary.value = searchResponse.summary ?? "";

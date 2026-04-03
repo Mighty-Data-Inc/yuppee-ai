@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
-  submitSearchQuery,
+  submitSERPQuery,
   submitSearchRefinement,
 } from "@/services/searchService";
 
@@ -50,7 +50,6 @@ const MOCK_WIDGETS = [
     label: "Date Range",
     min: 2000,
     max: 2024,
-    step: 1,
     value: [2010, 2024],
   },
   {
@@ -100,7 +99,7 @@ describe("searchService.search", () => {
   });
 
   it("returns results for book-related queries", async () => {
-    const response = await submitSearchQuery("Books about Crimean War");
+    const response = await submitSERPQuery("Books about Crimean War");
     expect(response.results.length).toBeGreaterThan(0);
     expect(response.results[0]).toHaveProperty("title");
     expect(response.results[0]).toHaveProperty("url");
@@ -109,21 +108,21 @@ describe("searchService.search", () => {
   });
 
   it("returns results for movie-related queries", async () => {
-    const response = await submitSearchQuery("best sci-fi movies");
+    const response = await submitSERPQuery("best sci-fi movies");
     expect(response.results.length).toBeGreaterThan(0);
   });
 
   it("returns default results for generic queries", async () => {
-    const response = await submitSearchQuery("artificial intelligence search");
+    const response = await submitSERPQuery("artificial intelligence search");
     expect(response.results.length).toBeGreaterThan(0);
   });
 
   it("returns 6 results", async () => {
-    const response = await submitSearchQuery("books about history");
+    const response = await submitSERPQuery("books about history");
     expect(response.results).toHaveLength(6);
   });
 
-  it("deduplicates results by URL and keeps the first occurrence", async () => {
+  it("returns duplicate results unchanged when backend includes them", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -151,15 +150,20 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await submitSearchQuery("duplicate test");
+    const response = await submitSERPQuery("duplicate test");
 
-    expect(response.results).toHaveLength(2);
+    expect(response.results).toHaveLength(3);
     expect(response.results[0]).toMatchObject({
       title: "First title",
       url: "https://example.com/duplicate",
       snippet: "First snippet",
     });
     expect(response.results[1]).toMatchObject({
+      title: "Second title",
+      url: "https://example.com/duplicate",
+      snippet: "Second snippet",
+    });
+    expect(response.results[2]).toMatchObject({
       title: "Unique title",
       url: "https://example.com/unique",
       snippet: "Unique snippet",
@@ -185,7 +189,7 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await submitSearchQuery("dual text test");
+    const response = await submitSERPQuery("dual text test");
 
     expect(response.results).toHaveLength(1);
     expect(response.results[0]).toMatchObject({
@@ -196,7 +200,7 @@ describe("searchService.search", () => {
     });
   });
 
-  it("does not use summary as snippet fallback", async () => {
+  it("does not inject missing snippet values", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -214,20 +218,20 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await submitSearchQuery("summary only test");
+    const response = await submitSERPQuery("summary only test");
 
     expect(response.results).toHaveLength(1);
     expect(response.results[0]).toMatchObject({
       title: "Summary-only result",
       url: "https://example.com/summary-only",
-      snippet: "",
       summary: "This should stay in summary only",
     });
+    expect(response.results[0]).not.toHaveProperty("snippet");
   });
 
   it("sends a POST request with query and filters to /search", async () => {
     const filters = { genre: "history" };
-    await submitSearchQuery("books about history", filters);
+    await submitSERPQuery("books about history", filters);
     const fetchMock = vi.mocked(fetch);
     expect(fetchMock).toHaveBeenCalledOnce();
     const call = fetchMock.mock.calls[0]!;
@@ -245,7 +249,7 @@ describe("searchService.search", () => {
       additionalInstructions: "written by a British author",
     };
 
-    await submitSearchQuery("books about history", filters);
+    await submitSERPQuery("books about history", filters);
 
     const fetchMock = vi.mocked(fetch);
     const call = fetchMock.mock.calls[0]!;
@@ -262,7 +266,7 @@ describe("searchService.search", () => {
       "fetch",
       vi.fn().mockResolvedValue({ ok: false, status: 500 }),
     );
-    await expect(submitSearchQuery("test query")).rejects.toThrow(
+    await expect(submitSERPQuery("test query")).rejects.toThrow(
       "Search request failed: 500",
     );
   });

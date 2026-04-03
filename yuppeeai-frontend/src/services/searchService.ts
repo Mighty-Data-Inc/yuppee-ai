@@ -3,41 +3,7 @@ import type { SearchResponse, SearchResult, Widget } from "@/types";
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
-function cleanUpSERPResults(rawResults: unknown): SearchResult[] {
-  if (!Array.isArray(rawResults)) {
-    return [];
-  }
-
-  const seenUrls = new Set<string>();
-  const normalized: SearchResult[] = [];
-
-  for (const rawResult of rawResults) {
-    const result = rawResult as Record<string, unknown>;
-    const url = typeof result.url === "string" ? result.url.trim() : "";
-    if (!url || seenUrls.has(url)) {
-      continue;
-    }
-    seenUrls.add(url);
-
-    const title =
-      typeof result.title === "string" && result.title.trim()
-        ? result.title
-        : url;
-    const summary = typeof result.summary === "string" ? result.summary : "";
-    const snippet = typeof result.snippet === "string" ? result.snippet : "";
-
-    normalized.push({
-      title,
-      url,
-      snippet,
-      summary,
-    });
-  }
-
-  return normalized;
-}
-
-export async function submitSearchQuery(
+export async function submitSERPQuery(
   query: string,
   filters?: Record<string, any>,
 ): Promise<SearchResponse> {
@@ -56,10 +22,10 @@ export async function submitSearchQuery(
     throw new Error(`Search request failed: ${response.status}`);
   }
   const data = await response.json();
-  const payload = data as { results?: unknown; summary?: unknown };
+  const payload = data as { results?: SearchResult[]; summary?: unknown };
   return {
     query,
-    results: cleanUpSERPResults(payload.results),
+    results: payload.results ?? [],
     summary: typeof payload.summary === "string" ? payload.summary : undefined,
   };
 }
