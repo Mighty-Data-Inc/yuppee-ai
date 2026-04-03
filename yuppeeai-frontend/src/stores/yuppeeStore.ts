@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import type { SearchResult, Widget } from "@/types";
 import {
   submitSearchQuery,
@@ -92,6 +92,16 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     await Promise.allSettled([serpRequest, refinementRequest]);
   }
 
+  const hasWidgetChanges = computed(() =>
+    widgets.value.some(
+      (w) =>
+        JSON.stringify(w.value) !==
+        JSON.stringify(
+          widgetsFromLastSubmit.value.find((b) => b.id === w.id)?.value,
+        ),
+    ),
+  );
+
   return {
     query,
     serpResults,
@@ -104,5 +114,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     error,
     reset,
     search,
+    hasWidgetChanges,
   };
 });

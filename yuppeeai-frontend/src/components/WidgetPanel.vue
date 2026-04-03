@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useYuppeeStore } from '@/stores/yuppeeStore'
-import type { Widget } from '@/types'
 import RangeSliderWidget from '@/components/widgets/RangeSliderWidget.vue'
 import ChipGroupWidget from '@/components/widgets/ChipGroupWidget.vue'
 import SwitchWidget from '@/components/widgets/SwitchWidget.vue'
@@ -12,46 +11,27 @@ const store = useYuppeeStore()
 
 const instructionInput = ref('')
 
-function hasValueChanges(): boolean {
-  for (const widget of store.widgets) {
-    const baseline = store.widgetsFromLastSubmit.find(w => w.id === widget.id)
-    if (JSON.stringify(widget.value) !== JSON.stringify(baseline?.value)) {
-      return true
-    }
-  }
-  return false
-}
-
+// Clear any unsubmitted freeform input when the user starts a new search from the
+// search bar. The handleSearchAgain path already clears it explicitly on submit,
+// so this only covers the case where the user changes the query mid-session.
 watch(() => store.query, (newQuery, oldQuery) => {
   if (newQuery !== oldQuery) {
     instructionInput.value = ''
   }
 })
 
-function updateValue(widgetId: string, value: any) {
-  const widget = store.widgets.find(w => w.id === widgetId)
-  if (widget) {
-    widget.value = value
-  }
-}
-
-function resolveLabel(widget: Widget, value: any): any {
-  if (widget.type === 'dropdown' && widget.options) {
-    const match = widget.options.find(o => o.value === value)
-    return match ? match.label : value
-  }
-  return value
-}
-
-function describeSearchRefinementChanges(): string[] {
+function describeWidgetChanges(): string[] {
   const lines: string[] = []
   for (const widget of store.widgets) {
     const previousWidgetValue = store.widgetsFromLastSubmit.find(w => w.id === widget.id)?.value
     const currentWidgetValue = widget.value
     if (JSON.stringify(previousWidgetValue) !== JSON.stringify(currentWidgetValue)) {
       if (widget.type === 'dropdown') {
-        const previousLabel = resolveLabel(widget, previousWidgetValue)
-        const currentLabel = resolveLabel(widget, currentWidgetValue)
+        // Map raw stored values to their display labels for the log message;
+        // fall back to the raw value if no matching option is found.
+        const toLabel = (v: any) => widget.options?.find(o => o.value === v)?.label ?? v
+        const previousLabel = toLabel(previousWidgetValue)
+        const currentLabel = toLabel(currentWidgetValue)
         if (!previousLabel) {
           lines.push(`${widget.label}: Applying criterion "${currentLabel}"`)
         } else if (!currentLabel) {
@@ -108,7 +88,7 @@ function describeSearchRefinementChanges(): string[] {
 
 async function handleSearchAgain() {
   if (!canSearchAgain.value) return
-  console.log('Changed filters:', describeSearchRefinementChanges())
+  console.log('Changed filters:', describeWidgetChanges())
   const trimmedInput = instructionInput.value.trim()
   if (trimmedInput) {
     store.additionalInstructionPoints.push(trimmedInput)
@@ -121,12 +101,17 @@ function removeInstruction(index: number) {
   store.additionalInstructionPoints.splice(index, 1)
 }
 
-const dynamicWidgets = () => store.widgets.filter(w => w.type !== 'freeform')
-
 const canSearchAgain = computed(() => {
-  if (store.isLoadingWidgets) return false
-  if (hasValueChanges()) return true
-  return Boolean(instructionInput.value.trim())
+  if (store.isLoadingWidgets) {
+    return false;
+  }
+  if (store.hasWidgetChanges) {
+    return true;
+  }
+  if (instructionInput.value.trim()) {
+    return true;
+  }
+  return false;
 })
 </script>
 
@@ -151,30 +136,26 @@ const canSearchAgain = computed(() => {
     <!-- Widgets -->
     <template v-else-if="store.widgets.length > 0">
       <div class="widget-panel__widgets">
-        <template v-for="widget in dynamicWidgets()" :key="widget.id">
+        <template v-for="widget in store.widgets" :key="widget.id">
           <RangeSliderWidget
             v-if="widget.type === 'range-slider'"
             :widget="widget"
-            :model-value="widget.value"
-            @update:model-value="updateValue(widget.id, $event)"
+            v-model="widget.value"
           />
           <ChipGroupWidget
             v-else-if="widget.type === 'chipgroup'"
             :widget="widget"
-            :model-value="widget.value"
-            @update:model-value="updateValue(widget.id, $event)"
+            v-model="widget.value"
           />
           <SwitchWidget
             v-else-if="widget.type === 'switch'"
             :widget="widget"
-            :model-value="widget.value"
-            @update:model-value="updateValue(widget.id, $event)"
+            v-model="widget.value"
           />
           <DropdownWidget
             v-else-if="widget.type === 'dropdown'"
             :widget="widget"
-            :model-value="widget.value"
-            @update:model-value="updateValue(widget.id, $event)"
+            v-model="widget.value"
           />
         </template>
       </div>
