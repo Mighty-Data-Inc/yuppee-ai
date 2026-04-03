@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { useYuppeeStore } from '@/stores/yuppeeStore'
 import RangeSliderWidget from '@/components/widgets/RangeSliderWidget.vue'
 import ChipGroupWidget from '@/components/widgets/ChipGroupWidget.vue'
@@ -9,91 +9,22 @@ import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 
 const store = useYuppeeStore()
 
-const instructionInput = ref('')
-
 // Clear any unsubmitted freeform input when the user starts a new search from the
 // search bar. The handleSearchAgain path already clears it explicitly on submit,
 // so this only covers the case where the user changes the query mid-session.
 watch(() => store.query, (newQuery, oldQuery) => {
   if (newQuery !== oldQuery) {
-    instructionInput.value = ''
+    store.newAdditionalInstruction = ''
   }
-})
-
-function describeWidgetChanges(): string[] {
-  const lines: string[] = []
-  for (const widget of store.widgets) {
-    const previousWidgetValue = store.widgetsFromLastSubmit.find(w => w.id === widget.id)?.value
-    const currentWidgetValue = widget.value
-    if (JSON.stringify(previousWidgetValue) !== JSON.stringify(currentWidgetValue)) {
-      if (widget.type === 'dropdown') {
-        // Map raw stored values to their display labels for the log message;
-        // fall back to the raw value if no matching option is found.
-        const toLabel = (v: any) => widget.options?.find(o => o.value === v)?.label ?? v
-        const previousLabel = toLabel(previousWidgetValue)
-        const currentLabel = toLabel(currentWidgetValue)
-        if (!previousLabel) {
-          lines.push(`${widget.label}: Applying criterion "${currentLabel}"`)
-        } else if (!currentLabel) {
-          lines.push(`${widget.label}: Removing criterion "${previousLabel}"`)
-        } else {
-          lines.push(`${widget.label}: "${previousLabel}" → "${currentLabel}"`)
-        }
-      } else if (widget.type === 'switch') {
-        if (currentWidgetValue) {
-          lines.push(`Applying criterion "${widget.label}"`)
-        } else {
-          lines.push(`Removing criterion "${widget.label}"`)
-        }
-      } else if (widget.type === 'chipgroup') {
-        const previousChips: string[] = previousWidgetValue ?? []
-        const currentChips: string[] = currentWidgetValue ?? []
-        const resolveChipLabel = (value: string) =>
-          widget.options?.find(o => o.value === value)?.label ?? value
-        const added = currentChips
-          .filter(v => !previousChips.includes(v))
-          .map(resolveChipLabel)
-        const removed = previousChips
-          .filter(v => !currentChips.includes(v))
-          .map(resolveChipLabel)
-        if (added.length) lines.push(`${widget.label}: Adding "${added.join('", "')}"`)
-        if (removed.length) lines.push(`${widget.label}: Removing "${removed.join('", "')}"`)
-
-      } else if (widget.type === 'range-slider') {
-        const mode = widget.sliderMode ?? 'range'
-        if (mode === 'exact') {
-          lines.push(`${widget.label}: Changing value from ${previousWidgetValue} to ${currentWidgetValue}`)
-        } else if (mode === 'lte') {
-          lines.push(`${widget.label}: Changing upper bound from ${previousWidgetValue} to ${currentWidgetValue}`)
-        } else if (mode === 'gte') {
-          lines.push(`${widget.label}: Changing lower bound from ${previousWidgetValue} to ${currentWidgetValue}`)
-        } else if (mode === 'range') {
-          if (Array.isArray(previousWidgetValue) && Array.isArray(currentWidgetValue)) {
-            const [prevLow, prevHigh] = previousWidgetValue as [number, number]
-            const [currLow, currHigh] = currentWidgetValue as [number, number]
-            if (prevLow !== currLow) lines.push(`${widget.label}: Changing lower bound from ${prevLow} to ${currLow}`)
-            if (prevHigh !== currHigh) lines.push(`${widget.label}: Changing upper bound from ${prevHigh} to ${currHigh}`)
-          }
-        }
-      }
-    }
-  }
-  const trimmedInput = instructionInput.value.trim()
-  if (trimmedInput) {
-    lines.push(`Adding additional instructions: "${trimmedInput}"`)
-  }
-
-  return lines
-}
+});
 
 async function handleSearchAgain() {
   if (!canSearchAgain.value) return
-  console.log('Changed filters:', describeWidgetChanges())
-  const trimmedInput = instructionInput.value.trim()
+  const trimmedInput = store.newAdditionalInstruction.trim()
   if (trimmedInput) {
     store.additionalInstructionPoints.push(trimmedInput)
   }
-  instructionInput.value = ''
+  store.newAdditionalInstruction = ''
   await store.search(store.query)
 }
 
@@ -108,7 +39,7 @@ const canSearchAgain = computed(() => {
   if (store.hasWidgetChanges) {
     return true;
   }
-  if (instructionInput.value.trim()) {
+  if (store.newAdditionalInstruction.trim()) {
     return true;
   }
   return false;
@@ -187,9 +118,9 @@ const canSearchAgain = computed(() => {
         </transition-group>
 
         <FreeformTextWidget
-          :model-value="instructionInput"
+          :model-value="store.newAdditionalInstruction"
           placeholder="Modify the search results per your explanation, e.g. 'written by a British author, published after 2000'"
-          @update:model-value="instructionInput = $event"
+          @update:model-value="store.newAdditionalInstruction = $event"
         />
       </div>
 

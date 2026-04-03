@@ -14,6 +14,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
   const widgets = ref<Widget[]>([]);
   const widgetsFromLastSubmit = ref<Widget[]>([]);
+  const newAdditionalInstruction = ref("");
   const additionalInstructionPoints = ref<string[]>([]);
 
   const isLoadingSERP = ref(false);
@@ -27,11 +28,12 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     serpSummary.value = "";
     widgets.value = [];
     widgetsFromLastSubmit.value = [];
+    newAdditionalInstruction.value = "";
     additionalInstructionPoints.value = [];
     error.value = "";
   }
 
-  async function search(q: string, widgetValues?: Record<string, any>) {
+  async function search(q: string) {
     q = q.trim();
     const isNewQuery = q !== query.value;
 
@@ -108,6 +110,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     serpSummary,
     widgets,
     widgetsFromLastSubmit,
+    newAdditionalInstruction,
     additionalInstructionPoints,
     isLoadingSERP,
     isLoadingWidgets,

@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useYuppeeStore } from '@/stores/yuppeeStore'
 
 const store = useYuppeeStore()
-const refinementChangesInFlight: string[] = []
 
 // Show a compact display URL like example.com/path instead of the full raw link.
 function formatUrl(url: string): string {
@@ -13,17 +13,83 @@ function formatUrl(url: string): string {
     return url
   }
 }
+
+const describeWidgetChanges = computed((): string[] => {
+  const lines: string[] = []
+  for (const widget of store.widgets) {
+    const previousWidgetValue = store.widgetsFromLastSubmit.find(w => w.id === widget.id)?.value
+    const currentWidgetValue = widget.value
+    if (JSON.stringify(previousWidgetValue) !== JSON.stringify(currentWidgetValue)) {
+      if (widget.type === 'dropdown') {
+        // Map raw stored values to their display labels for the log message;
+        // fall back to the raw value if no matching option is found.
+        const toLabel = (v: any) => widget.options?.find(o => o.value === v)?.label ?? v
+        const previousLabel = toLabel(previousWidgetValue)
+        const currentLabel = toLabel(currentWidgetValue)
+        if (!previousLabel) {
+          lines.push(`${widget.label}: Applying criterion "${currentLabel}"`)
+        } else if (!currentLabel) {
+          lines.push(`${widget.label}: Removing criterion "${previousLabel}"`)
+        } else {
+          lines.push(`${widget.label}: "${previousLabel}" → "${currentLabel}"`)
+        }
+      } else if (widget.type === 'switch') {
+        if (currentWidgetValue) {
+          lines.push(`Applying criterion "${widget.label}"`)
+        } else {
+          lines.push(`Removing criterion "${widget.label}"`)
+        }
+      } else if (widget.type === 'chipgroup') {
+        const previousChips: string[] = previousWidgetValue ?? []
+        const currentChips: string[] = currentWidgetValue ?? []
+        const resolveChipLabel = (value: string) =>
+          widget.options?.find(o => o.value === value)?.label ?? value
+        const added = currentChips
+          .filter(v => !previousChips.includes(v))
+          .map(resolveChipLabel)
+        const removed = previousChips
+          .filter(v => !currentChips.includes(v))
+          .map(resolveChipLabel)
+        if (added.length) lines.push(`${widget.label}: Adding "${added.join('", "')}"`)
+        if (removed.length) lines.push(`${widget.label}: Removing "${removed.join('", "')}"`)
+
+      } else if (widget.type === 'range-slider') {
+        const mode = widget.sliderMode ?? 'range'
+        if (mode === 'exact') {
+          lines.push(`${widget.label}: Changing value from ${previousWidgetValue} to ${currentWidgetValue}`)
+        } else if (mode === 'lte') {
+          lines.push(`${widget.label}: Changing upper bound from ${previousWidgetValue} to ${currentWidgetValue}`)
+        } else if (mode === 'gte') {
+          lines.push(`${widget.label}: Changing lower bound from ${previousWidgetValue} to ${currentWidgetValue}`)
+        } else if (mode === 'range') {
+          if (Array.isArray(previousWidgetValue) && Array.isArray(currentWidgetValue)) {
+            const [prevLow, prevHigh] = previousWidgetValue as [number, number]
+            const [currLow, currHigh] = currentWidgetValue as [number, number]
+            if (prevLow !== currLow) lines.push(`${widget.label}: Changing lower bound from ${prevLow} to ${currLow}`)
+            if (prevHigh !== currHigh) lines.push(`${widget.label}: Changing upper bound from ${prevHigh} to ${currHigh}`)
+          }
+        }
+      }
+    }
+  }
+  const trimmedInput = store.newAdditionalInstruction.trim()
+  if (trimmedInput) {
+    lines.push(`Adding additional instructions: "${trimmedInput}"`)
+  }
+
+  return lines
+})
 </script>
 
 <template>
   <div class="results">
     <!-- Loading skeletons -->
     <template v-if="store.isLoadingSERP">
-      <div v-if="refinementChangesInFlight.length" class="results__changes">
+      <div v-if="describeWidgetChanges.length" class="results__changes">
         <p class="results__changes-title">Changed filters...</p>
         <ul class="results__changes-list">
-          <li v-for="change in refinementChangesInFlight" :key="change" class="results__changes-item">
-            {{ change }}
+          <li v-for="widgetChange in describeWidgetChanges" :key="widgetChange" class="results__changes-item">
+            {{ widgetChange }}
           </li>
         </ul>
       </div>
