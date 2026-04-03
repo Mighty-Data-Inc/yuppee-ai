@@ -2,11 +2,11 @@
 import { computed, ref, watch } from 'vue'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
-import type { RefinementWidget } from '@/types'
+import type { RefinementWidget, RefinementWidgetValue } from '@yuppee-ai/contracts'
 
 const props = defineProps<{
   widget: RefinementWidget
-  modelValue: number | [number, number]
+  modelValue: RefinementWidgetValue
 }>()
 
 const emit = defineEmits<{

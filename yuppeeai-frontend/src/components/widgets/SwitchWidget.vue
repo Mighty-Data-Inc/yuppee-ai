@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import type { RefinementWidget } from '@/types'
+import type { RefinementWidget, RefinementWidgetValue } from '@yuppee-ai/contracts'
 
 const props = defineProps<{
   widget: RefinementWidget
-  modelValue: boolean
+  modelValue: RefinementWidgetValue
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
+  'update:modelValue': [value: RefinementWidgetValue]
 }>()
+
+function asBoolean(value: RefinementWidgetValue): boolean {
+  return typeof value === 'boolean' ? value : false
+}
 </script>
 
 <template>
@@ -30,11 +34,11 @@ const emit = defineEmits<{
         <input
           type="checkbox"
           class="widget__switch-input"
-          :checked="modelValue"
+          :checked="asBoolean(modelValue)"
           @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
         />
-        <span class="widget__switch-track" :class="{ 'widget__switch-track--on': modelValue }">
-          <span class="widget__switch-knob" :class="{ 'widget__switch-knob--on': modelValue }" />
+        <span class="widget__switch-track" :class="{ 'widget__switch-track--on': asBoolean(modelValue) }">
+          <span class="widget__switch-knob" :class="{ 'widget__switch-knob--on': asBoolean(modelValue) }" />
         </span>
       </span>
     </label>

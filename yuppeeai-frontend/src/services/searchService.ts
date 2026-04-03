@@ -1,4 +1,8 @@
-import type { SERPResponse, SERPResult, RefinementWidget } from "@/types";
+import type {
+  SERPResponse,
+  SERPResult,
+  RefinementWidget,
+} from "@yuppee-ai/contracts";
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";

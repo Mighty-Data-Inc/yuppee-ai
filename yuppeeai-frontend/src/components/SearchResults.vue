@@ -44,11 +44,10 @@ const describeWidgetChanges = computed((): string[] => {
           lines.push(`Removing criterion "${widget.label}"`)
         }
       } else if (widget.type === 'chipgroup') {
-        // TODO BUG: TypeError: previousChips.filter is not a function — previousWidgetValue
-        // is reaching this branch as a non-array truthy value. Log to identify its shape.
-        console.log('[BUG] chipgroup previousWidgetValue:', typeof previousWidgetValue, previousWidgetValue)
-        const previousChips: string[] = previousWidgetValue ?? []
-        const currentChips: string[] = currentWidgetValue ?? []
+        const asStringArray = (value: unknown): string[] =>
+          Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+        const previousChips = asStringArray(previousWidgetValue)
+        const currentChips = asStringArray(currentWidgetValue)
         const resolveChipLabel = (value: string) =>
           widget.options?.find(o => o.value === value)?.label ?? value
         const added = currentChips

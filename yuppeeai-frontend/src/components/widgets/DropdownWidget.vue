@@ -1,22 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { RefinementWidget } from '@/types'
+import type { RefinementWidget, RefinementWidgetValue } from '@yuppee-ai/contracts'
 
 const props = defineProps<{
   widget: RefinementWidget
-  modelValue: string
+  modelValue: RefinementWidgetValue
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:modelValue': [value: RefinementWidgetValue]
 }>()
+
+const normalizedModelValue = computed(() =>
+  typeof props.modelValue === 'string' ? props.modelValue : '',
+)
 
 const hasEmptyOption = computed(() =>
   (props.widget.options ?? []).some((option) => option.value === ''),
 )
 
 const isPlaceholderActive = computed(
-  () => !hasEmptyOption.value && props.modelValue === '',
+  () => !hasEmptyOption.value && normalizedModelValue.value === '',
 )
 
 const placeholderText = computed(() => {
@@ -42,7 +46,7 @@ const placeholderText = computed(() => {
     <div class="widget__select-wrapper">
       <select
         :class="['widget__select', { 'widget__select--placeholder': isPlaceholderActive }]"
-        :value="modelValue"
+        :value="normalizedModelValue"
         @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
       >
         <option v-if="!hasEmptyOption" value="" disabled hidden>{{ placeholderText }}</option>
@@ -55,7 +59,7 @@ const placeholderText = computed(() => {
         </option>
       </select>
       <button
-        v-if="modelValue !== ''"
+        v-if="normalizedModelValue !== ''"
         type="button"
         class="widget__clear"
         aria-label="Clear selection"

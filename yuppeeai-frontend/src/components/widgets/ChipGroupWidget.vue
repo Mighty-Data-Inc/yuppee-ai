@@ -1,17 +1,21 @@
 <script setup lang="ts">
-import type { RefinementWidget } from '@/types'
+import type { RefinementWidget, RefinementWidgetValue } from '@yuppee-ai/contracts'
 
 const props = defineProps<{
   widget: RefinementWidget
-  modelValue: string[]
+  modelValue: RefinementWidgetValue
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string[]]
+  'update:modelValue': [value: RefinementWidgetValue]
 }>()
 
+function asStringArray(value: RefinementWidgetValue): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+}
+
 function toggle(value: string) {
-  const current = [...(props.modelValue ?? [])]
+  const current = [...asStringArray(props.modelValue)]
   const idx = current.indexOf(value)
   if (idx === -1) {
     current.push(value)
@@ -22,7 +26,7 @@ function toggle(value: string) {
 }
 
 function isSelected(value: string): boolean {
-  return (props.modelValue ?? []).includes(value)
+  return asStringArray(props.modelValue).includes(value)
 }
 </script>
 

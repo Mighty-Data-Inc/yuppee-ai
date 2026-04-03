@@ -3,6 +3,7 @@ import {
   submitSERPQuery,
   submitRefinementQuery,
 } from "@/services/searchService";
+import type { RefinementWidget } from "@yuppee-ai/contracts";
 
 const MOCK_RESULTS = [
   {
@@ -230,7 +231,7 @@ describe("searchService.search", () => {
   });
 
   it("sends a POST request with query, widgets, and instructions to /search", async () => {
-    const widgets = [
+    const widgets: RefinementWidget[] = [
       {
         id: "test-widget",
         type: "dropdown",
@@ -519,7 +520,7 @@ describe("searchService.submitRefinementQuery", () => {
   });
 
   it("sends a POST request with query, widgets, instructions, and known results to /refine", async () => {
-    const widgets = [
+    const widgets: RefinementWidget[] = [
       {
         id: "genre",
         type: "dropdown",

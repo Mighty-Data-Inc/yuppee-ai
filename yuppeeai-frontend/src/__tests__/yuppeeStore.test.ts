@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useYuppeeStore } from "@/stores/yuppeeStore";
-import type { RefinementWidget } from "@/types";
+import type { RefinementWidget } from "@yuppee-ai/contracts";
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
