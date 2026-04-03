@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import ErrorStack from "@/components/ErrorStack.vue";
 </script>
 
 <template>
   <router-view />
+  <ErrorStack />
 </template>
 
 <style>

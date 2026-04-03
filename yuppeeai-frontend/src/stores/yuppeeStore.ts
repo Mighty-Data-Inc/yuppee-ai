@@ -5,6 +5,7 @@ import {
   submitSearchQuery,
   submitSearchRefinement,
 } from "@/services/searchService";
+import { showError } from "@/services/errorService";
 
 export const useYuppeeStore = defineStore("yuppee", () => {
   const query = ref("");
@@ -65,6 +66,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         console.error(e);
         error.value =
           e instanceof Error ? e.message : "An error occurred during search";
+        showError(error.value);
         serpResults.value = [];
         serpSummary.value = "";
       })
@@ -84,6 +86,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
           e instanceof Error
             ? e.message
             : "An error occurred while loading refinements";
+        showError(error.value);
         widgets.value = [];
       })
       .finally(() => {
