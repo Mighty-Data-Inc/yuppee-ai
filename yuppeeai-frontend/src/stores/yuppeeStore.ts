@@ -48,11 +48,11 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
-    const serpRequest = submitSERPQuery(
-      q,
-      widgets.value,
-      additionalInstructionPoints.value,
-    )
+    const serpRequest = submitSERPQuery({
+      query: q,
+      widgets: widgets.value,
+      instructions: additionalInstructionPoints.value,
+    })
       .then((searchResponse) => {
         serpResults.value = searchResponse.results;
         serpSummary.value = searchResponse.summary ?? "";
@@ -69,11 +69,11 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         isLoadingSERP.value = false;
       });
 
-    const refinementRequest = submitRefinementQuery(
-      q,
-      widgets.value,
-      additionalInstructionPoints.value,
-    )
+    const refinementRequest = submitRefinementQuery({
+      query: q,
+      widgets: widgets.value,
+      instructions: additionalInstructionPoints.value,
+    })
       .then((refinementResponse) => {
         widgets.value = refinementResponse.widgets;
         // TODO: Handle preserving filters
