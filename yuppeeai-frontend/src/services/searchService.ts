@@ -1,12 +1,7 @@
-import type { SearchResult, Widget } from "@/types";
+import type { SearchResponse, SearchResult, Widget } from "@/types";
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
-
-export interface SearchResponse {
-  serpResults: SearchResult[];
-  serpSummary: string;
-}
 
 function cleanUpSERPResults(rawResults: unknown): SearchResult[] {
   if (!Array.isArray(rawResults)) {
@@ -63,8 +58,9 @@ export async function submitSearchQuery(
   const data = await response.json();
   const payload = data as { results?: unknown; summary?: unknown };
   return {
-    serpResults: cleanUpSERPResults(payload.results),
-    serpSummary: typeof payload.summary === "string" ? payload.summary : "",
+    query,
+    results: cleanUpSERPResults(payload.results),
+    summary: typeof payload.summary === "string" ? payload.summary : undefined,
   };
 }
 
