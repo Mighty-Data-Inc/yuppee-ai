@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { LLMConversation } from "@mightydatainc/llm-conversation";
 import type { SearchRequest, SearchRefinementsResponse } from "../types";
-import { Widget, WidgetOption } from "../types/datatypes";
+import type { Widget, WidgetOption } from "../types/datatypes";
 
 interface SearchRefinerConfig {
   openaiApiKey?: string;

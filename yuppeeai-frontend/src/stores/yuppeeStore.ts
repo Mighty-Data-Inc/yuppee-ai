@@ -55,7 +55,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
     const serpRequest = submitSearchQuery(q, filters)
       .then((searchResponse) => {
-        console.log(searchResponse);
         serpResults.value = searchResponse.serpResults;
         serpSummary.value = searchResponse.serpSummary;
       })

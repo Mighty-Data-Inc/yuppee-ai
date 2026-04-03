@@ -273,7 +273,7 @@ describe("searchService.submitSearchRefinement", () => {
     mockFetch();
   });
 
-  it("normalizes backend refinement widget schema", async () => {
+  it("returns backend refinement widget schema unchanged", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
@@ -339,29 +339,23 @@ describe("searchService.submitSearchRefinement", () => {
 
     expect(widgets).toHaveLength(4);
     expect(widgets[0]).toMatchObject({
-      id: "novel_type",
       type: "dropdown",
+      variable_name: "novel_type",
       label: "Type of Novel",
-      dropdownPlaceholder: "Classics/Modern",
-      value: "",
     });
     expect(widgets[1]).toMatchObject({
-      id: "recognition",
       type: "chipgroup",
+      variable_name: "recognition",
       label: "Recognition",
-      value: [],
     });
     expect(widgets[2]).toMatchObject({
-      id: "rating",
-      type: "range-slider",
-      min: 1,
-      max: 5,
-      sliderMode: "range",
-      value: [1, 5],
+      type: "slider",
+      variable_name: "rating",
+      label: "Rating",
     });
     expect(widgets[3]).toMatchObject({
-      id: "in_stock",
       type: "switch",
+      variable_name: "in_stock",
       label: "In Stock Only",
       value: true,
     });
@@ -374,7 +368,7 @@ describe("searchService.submitSearchRefinement", () => {
     expect(widgets[0]?.id).toBe("date-range");
   });
 
-  it("maps slider mode semantics from backend range flags", async () => {
+  it("preserves slider range flags from backend", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
@@ -443,12 +437,33 @@ describe("searchService.submitSearchRefinement", () => {
 
     const widgets = (await submitSearchRefinement("prices")).widgets;
 
-    expect(widgets[0]).toMatchObject({ sliderMode: "exact", value: 0 });
-    expect(widgets[1]).toMatchObject({ sliderMode: "lte", value: 100 });
-    expect(widgets[2]).toMatchObject({ sliderMode: "gte", value: 0 });
+    expect(widgets[0]).toMatchObject({
+      variable_name: "exact_price",
+      params: {
+        user_selects_lowest_value_of_range: false,
+        user_selects_highest_value_of_range: false,
+      },
+    });
+    expect(widgets[1]).toMatchObject({
+      variable_name: "max_price",
+      params: {
+        user_selects_lowest_value_of_range: false,
+        user_selects_highest_value_of_range: true,
+      },
+    });
+    expect(widgets[2]).toMatchObject({
+      variable_name: "min_price",
+      params: {
+        user_selects_lowest_value_of_range: true,
+        user_selects_highest_value_of_range: false,
+      },
+    });
     expect(widgets[3]).toMatchObject({
-      sliderMode: "range",
-      value: [0, 100],
+      variable_name: "between_price",
+      params: {
+        user_selects_lowest_value_of_range: true,
+        user_selects_highest_value_of_range: true,
+      },
     });
   });
 
@@ -486,7 +501,10 @@ describe("searchService.submitSearchRefinement", () => {
 
     const widgets = (await submitSearchRefinement("formats")).widgets;
     expect(widgets).toHaveLength(1);
-    expect(widgets[0]?.dropdownPlaceholder).toBeUndefined();
+    expect(widgets[0]).toMatchObject({
+      type: "dropdown",
+      variable_name: "format",
+    });
   });
 
   it("sends a POST request with query, filters, and known results to /refine", async () => {

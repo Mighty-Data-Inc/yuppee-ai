@@ -1,0 +1,14 @@
+{
+  "name": "yuppee-ai",
+  "private": true,
+  "workspaces": [
+    "yuppeeai-backend",
+    "yuppeeai-frontend",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "typecheck": "npm run typecheck --workspace yuppeeai-backend && npm run build --workspace @yuppee-ai/contracts && npm run build --workspace yuppeeai-frontend"
+  }
+}

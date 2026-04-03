@@ -61,7 +61,6 @@ export async function submitSearchQuery(
     throw new Error(`Search request failed: ${response.status}`);
   }
   const data = await response.json();
-  console.log("[SERP] /search payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
   const payload = data as { results?: unknown; summary?: unknown };
   return {
     serpResults: cleanUpSERPResults(payload.results),
@@ -92,7 +91,6 @@ export async function submitSearchRefinement(
   }
 
   const data = await response.json();
-  console.log("[SERP] /refine payload\n" + JSON.stringify(data, undefined, 2)); // TODO DEBUG DELETE THIS
 
   const retval = {
     disambiguation: data.disambiguation || "",

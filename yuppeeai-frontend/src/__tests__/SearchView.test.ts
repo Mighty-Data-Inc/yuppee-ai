@@ -1,36 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { reactive, nextTick } from "vue";
 import SearchView from "../views/SearchView.vue";
 
-const searchResultsStub = {
-  props: [
-    "results",
-    "isLoading",
-    "query",
-    "resultSummary",
-    "refinementChanges",
-  ],
-  template: "<div class='search-results-stub' />",
-};
+const mockSearch = vi.fn().mockResolvedValue(undefined);
+const mockReset = vi.fn();
 
-const mockPerformSearch = vi.fn().mockResolvedValue(undefined);
-const mockLoadPreferences = vi.fn();
-const mockPush = vi.fn();
-
-const routeState: { query: Record<string, unknown> } = {
+const routeState = reactive<{ query: Record<string, unknown> }>({
   query: {},
-};
+});
 
 const mockStore = {
-  query: "crimean war books",
-  results: [],
-  resultSummary: "",
-  widgets: [],
-  refinement: [] as string[],
-  isLoadingResults: false,
-  isLoadingWidgets: false,
-  performSearch: mockPerformSearch,
-  loadPreferences: mockLoadPreferences,
+  search: mockSearch,
+  reset: mockReset,
 };
 
 vi.mock("@/stores/yuppeeStore", () => ({
@@ -39,70 +21,53 @@ vi.mock("@/stores/yuppeeStore", () => ({
 
 vi.mock("vue-router", () => ({
   useRoute: () => routeState,
-  useRouter: () => ({ push: mockPush }),
 }));
 
-describe("SearchView refine behavior", () => {
+describe("SearchView query handling", () => {
   beforeEach(() => {
     routeState.query = {};
-    mockStore.query = "crimean war books";
-    mockStore.refinement = [];
-    mockPerformSearch.mockClear();
-    mockLoadPreferences.mockClear();
-    mockPush.mockClear();
+    mockSearch.mockClear();
+    mockReset.mockClear();
   });
 
-  it("submits additional instructions list without changing query", async () => {
-    const wrapper = mount(SearchView, {
+  it("submits search on mount when q is present", async () => {
+    routeState.query = { q: "crimean war books" };
+
+    mount(SearchView, {
       global: {
         stubs: {
           SearchBar: true,
-          SearchResults: searchResultsStub,
+          SearchResults: true,
+          WidgetPanel: true,
           "router-link": { template: "<a><slot /></a>" },
-          WidgetPanel: {
-            template:
-              "<button class='refine-trigger' @click=\"$emit('refine', { genre: 'history' }, ['written by a British author', 'published after 2000'])\">Refine</button>",
-          },
         },
       },
     });
 
-    await wrapper.find(".refine-trigger").trigger("click");
+    await nextTick();
 
-    expect(mockStore.refinement).toEqual([
-      "written by a British author",
-      "published after 2000",
-    ]);
-    expect(mockPerformSearch).toHaveBeenCalledTimes(1);
-    expect(mockPerformSearch).toHaveBeenCalledWith("crimean war books", {
-      genre: "history",
-      additionalInstructions: [
-        "written by a British author",
-        "published after 2000",
-      ],
-    });
+    expect(mockSearch).toHaveBeenCalledTimes(1);
+    expect(mockSearch).toHaveBeenCalledWith("crimean war books");
+    expect(mockReset).not.toHaveBeenCalled();
   });
 
-  it("omits additionalInstructions when instruction list is empty", async () => {
-    const wrapper = mount(SearchView, {
+  it("resets store on mount when q is missing or blank", async () => {
+    routeState.query = { q: "   " };
+
+    mount(SearchView, {
       global: {
         stubs: {
           SearchBar: true,
-          SearchResults: searchResultsStub,
+          SearchResults: true,
+          WidgetPanel: true,
           "router-link": { template: "<a><slot /></a>" },
-          WidgetPanel: {
-            template:
-              "<button class='refine-trigger' @click=\"$emit('refine', { genre: 'history' }, [])\">Refine</button>",
-          },
         },
       },
     });
 
-    await wrapper.find(".refine-trigger").trigger("click");
+    await nextTick();
 
-    expect(mockPerformSearch).toHaveBeenCalledTimes(1);
-    expect(mockPerformSearch).toHaveBeenCalledWith("crimean war books", {
-      genre: "history",
-    });
+    expect(mockReset.mock.calls.length).toBeGreaterThan(0);
+    expect(mockSearch).not.toHaveBeenCalled();
   });
 });

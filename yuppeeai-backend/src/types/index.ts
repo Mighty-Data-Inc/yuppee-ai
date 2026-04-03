@@ -3,45 +3,18 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
-import { Widget } from "./datatypes";
 
-export interface SearchRequest {
-  query: string;
-  filters?: {
-    widgets?: Record<string, Widget>;
-    additionalInstructionPoints?: string[];
-  };
-}
-
-export interface SearchResult {
-  id?: string;
-  title: string;
-  url?: string;
-  snippet?: string;
-  summary?: string;
-}
-
-export interface SearchResponse {
-  results: SearchResult[];
-  query: string;
-}
-
-export interface SearchRefinementsResponse {
-  query: string;
-  disambiguation: string;
-  widgets: Widget[];
-}
-
-export interface PreferencesRequest {
-  userId: string;
-  queryCategory?: string;
-  preferences?: Record<string, unknown>;
-}
-
-export interface PreferencesResponse {
-  userId: string;
-  preferences: Record<string, Record<string, unknown>>;
-}
+export type {
+  PreferencesRequest,
+  PreferencesResponse,
+  SearchRefinementsResponse,
+  SearchRequest,
+  SearchResponse,
+  SearchResult,
+  Widget,
+  WidgetOption,
+  WidgetType,
+} from "@yuppee-ai/contracts";
 
 export type LambdaHandler = (
   event: APIGatewayProxyEvent,

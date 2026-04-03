@@ -1,30 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
+import { nextTick } from "vue";
 import WidgetPanel from "@/components/WidgetPanel.vue";
-
-const baseProps = {
-  isLoading: false,
-  query: "crimean war books",
-  widgets: [
-    {
-      id: "genre",
-      type: "radio",
-      label: "Genre",
-      options: [
-        { label: "History", value: "history" },
-        { label: "Fiction", value: "fiction" },
-      ],
-      value: "history",
-    },
-  ],
-};
+import { useYuppeeStore } from "@/stores/yuppeeStore";
 
 const globalStubs = {
-  RadioWidget: {
-    template: "<div class='radio-widget-stub'>Radio Widget</div>",
+  RangeSliderWidget: {
+    template: "<div class='range-slider-stub'>Range Slider</div>",
   },
-  RangeSliderWidget: true,
-  CheckboxWidget: true,
   ChipGroupWidget: true,
   SwitchWidget: true,
   DropdownWidget: true,
@@ -36,97 +20,116 @@ const globalStubs = {
 };
 
 describe("WidgetPanel loading behavior", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
   it("keeps existing widgets visible while loading", () => {
+    const store = useYuppeeStore();
+    store.widgets = [
+      {
+        id: "date-range",
+        type: "range-slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2010, 2024],
+      },
+    ];
+    store.isLoadingWidgets = true;
+
     const wrapper = mount(WidgetPanel, {
-      props: {
-        isLoading: true,
-        query: "crimean war books",
-        widgets: [
-          {
-            id: "genre",
-            type: "radio",
-            label: "Genre",
-            options: [
-              { label: "History", value: "history" },
-              { label: "Fiction", value: "fiction" },
-            ],
-            value: "history",
-          },
-        ],
-      },
-      global: {
-        stubs: {
-          RadioWidget: {
-            template: "<div class='radio-widget-stub'>Radio Widget</div>",
-          },
-          RangeSliderWidget: true,
-          CheckboxWidget: true,
-          ChipGroupWidget: true,
-          SwitchWidget: true,
-          DropdownWidget: true,
-          FreeformTextWidget: true,
-        },
-      },
+      global: { stubs: globalStubs },
     });
 
-    expect(wrapper.find(".radio-widget-stub").exists()).toBe(true);
+    expect(wrapper.find(".range-slider-stub").exists()).toBe(true);
     expect(wrapper.find(".widget-skeleton").exists()).toBe(false);
   });
 
-  it("clears additional instructions when the query changes", async () => {
+  it("clears unsubmitted additional instruction when query changes", async () => {
+    const store = useYuppeeStore();
+    store.widgets = [
+      {
+        id: "date-range",
+        type: "range-slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2010, 2024],
+      },
+    ];
+    store.query = "crimean war books";
+
     const wrapper = mount(WidgetPanel, {
-      props: baseProps,
       global: { stubs: globalStubs },
     });
 
     await wrapper
       .find(".freeform-stub")
       .setValue("written by a British author");
-    expect(
-      wrapper.find(".widget-panel__btn").attributes("disabled"),
-    ).toBeUndefined();
+    expect(store.newAdditionalInstruction).toBe("written by a British author");
 
-    await wrapper.setProps({ query: "astronomy books", widgets: [] });
+    store.query = "astronomy books";
+    await nextTick();
 
-    expect(wrapper.find(".freeform-stub").exists()).toBe(false);
-    expect(wrapper.find(".widget-panel__btn").exists()).toBe(false);
+    expect(store.newAdditionalInstruction).toBe("");
   });
 
   it("appends typed instruction on Search Again and clears input", async () => {
+    const store = useYuppeeStore();
+    store.query = "crimean war books";
+    store.widgets = [
+      {
+        id: "date-range",
+        type: "range-slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2010, 2024],
+      },
+    ];
+
+    const searchSpy = vi.spyOn(store, "search").mockResolvedValue(undefined);
+
     const wrapper = mount(WidgetPanel, {
-      props: baseProps,
       global: { stubs: globalStubs },
     });
 
     await wrapper.find(".freeform-stub").setValue("published after 2000");
     await wrapper.find(".widget-panel__btn").trigger("click");
 
-    const refineEvents = wrapper.emitted("refine") ?? [];
-    expect(refineEvents).toHaveLength(1);
-    expect(refineEvents[0]?.[1]).toEqual(["published after 2000"]);
-    expect(
-      (wrapper.find(".freeform-stub").element as HTMLInputElement).value,
-    ).toBe("");
-    expect(wrapper.find(".widget-panel__instruction-card").text()).toContain(
-      "published after 2000",
-    );
+    expect(store.additionalInstructionPoints).toEqual(["published after 2000"]);
+    expect(store.newAdditionalInstruction).toBe("");
+    expect(searchSpy).toHaveBeenCalledWith("crimean war books");
   });
 
   it("removes an instruction card when the close button is clicked", async () => {
+    const store = useYuppeeStore();
+    store.widgets = [
+      {
+        id: "date-range",
+        type: "range-slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2010, 2024],
+      },
+    ];
+    store.additionalInstructionPoints = ["written by a British author"];
+
     const wrapper = mount(WidgetPanel, {
-      props: baseProps,
       global: { stubs: globalStubs },
     });
-
-    await wrapper
-      .find(".freeform-stub")
-      .setValue("written by a British author");
-    await wrapper.find(".widget-panel__btn").trigger("click");
 
     expect(wrapper.findAll(".widget-panel__instruction-card")).toHaveLength(1);
 
     await wrapper.find(".widget-panel__instruction-remove").trigger("click");
 
+    expect(store.additionalInstructionPoints).toEqual([]);
     expect(wrapper.findAll(".widget-panel__instruction-card")).toHaveLength(0);
   });
 });
