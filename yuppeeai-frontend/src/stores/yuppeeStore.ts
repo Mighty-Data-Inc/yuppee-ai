@@ -13,6 +13,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   const serpSummary = ref("");
 
   const widgets = ref<Widget[]>([]);
+  const widgetsFromLastSubmit = ref<Widget[]>([]);
   const additionalInstructionPoints = ref<string[]>([]);
 
   const isLoadingSERP = ref(false);
@@ -25,6 +26,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     serpResults.value = [];
     serpSummary.value = "";
     widgets.value = [];
+    widgetsFromLastSubmit.value = [];
     additionalInstructionPoints.value = [];
     error.value = "";
   }
@@ -83,6 +85,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         widgets.value = [];
       })
       .finally(() => {
+        widgetsFromLastSubmit.value = JSON.parse(JSON.stringify(widgets.value));
         isLoadingWidgets.value = false;
       });
 
@@ -94,6 +97,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     serpResults,
     serpSummary,
     widgets,
+    widgetsFromLastSubmit,
     additionalInstructionPoints,
     isLoadingSERP,
     isLoadingWidgets,

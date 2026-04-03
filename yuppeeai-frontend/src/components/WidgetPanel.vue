@@ -11,39 +11,22 @@ import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 const store = useYuppeeStore()
 
 const instructionInput = ref('')
-const baselineWidgetValues = ref<Record<string, any>>({})
-
-function snapshotBaseline() {
-  const snapshot: Record<string, any> = {}
-  for (const widget of store.widgets) {
-    snapshot[widget.id] = JSON.parse(JSON.stringify(widget.value))
-  }
-  baselineWidgetValues.value = snapshot
-}
 
 function hasValueChanges(): boolean {
   for (const widget of store.widgets) {
-    if (JSON.stringify(widget.value) !== JSON.stringify(baselineWidgetValues.value[widget.id])) {
+    const baseline = store.widgetsFromLastSubmit.find(w => w.id === widget.id)
+    if (JSON.stringify(widget.value) !== JSON.stringify(baseline?.value)) {
       return true
     }
   }
   return false
 }
 
-function resetLocalState() {
-  instructionInput.value = ''
-  baselineWidgetValues.value = {}
-}
-
 watch(() => store.query, (newQuery, oldQuery) => {
   if (newQuery !== oldQuery) {
-    resetLocalState()
+    instructionInput.value = ''
   }
 })
-
-watch(() => store.widgets, () => {
-  snapshotBaseline()
-}, { immediate: true })
 
 function updateValue(widgetId: string, value: any) {
   const widget = store.widgets.find(w => w.id === widgetId)
@@ -63,7 +46,7 @@ function resolveLabel(widget: Widget, value: any): any {
 function describeSearchRefinementChanges(): string[] {
   const lines: string[] = []
   for (const widget of store.widgets) {
-    const previousWidgetValue = baselineWidgetValues.value[widget.id]
+    const previousWidgetValue = store.widgetsFromLastSubmit.find(w => w.id === widget.id)?.value
     const currentWidgetValue = widget.value
     if (JSON.stringify(previousWidgetValue) !== JSON.stringify(currentWidgetValue)) {
       if (widget.type === 'dropdown') {
