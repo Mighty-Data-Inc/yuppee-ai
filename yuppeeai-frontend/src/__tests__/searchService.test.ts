@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   submitSERPQuery,
-  submitSearchRefinement,
+  submitRefinementQuery,
 } from "@/services/searchService";
 
 const MOCK_RESULTS = [
@@ -279,7 +279,7 @@ describe("searchService.search", () => {
   });
 });
 
-describe("searchService.submitSearchRefinement", () => {
+describe("searchService.submitRefinementQuery", () => {
   beforeEach(() => {
     mockFetch();
   });
@@ -346,7 +346,7 @@ describe("searchService.submitSearchRefinement", () => {
       }),
     );
 
-    const widgets = (await submitSearchRefinement("best novels")).widgets;
+    const widgets = (await submitRefinementQuery("best novels")).widgets;
 
     expect(widgets).toHaveLength(4);
     expect(widgets[0]).toMatchObject({
@@ -373,7 +373,7 @@ describe("searchService.submitSearchRefinement", () => {
   });
 
   it("returns widgets from /refine", async () => {
-    const widgets = (await submitSearchRefinement("artificial intelligence"))
+    const widgets = (await submitRefinementQuery("artificial intelligence"))
       .widgets;
     expect(widgets).toHaveLength(2);
     expect(widgets[0]?.id).toBe("date-range");
@@ -446,7 +446,7 @@ describe("searchService.submitSearchRefinement", () => {
       }),
     );
 
-    const widgets = (await submitSearchRefinement("prices")).widgets;
+    const widgets = (await submitRefinementQuery("prices")).widgets;
 
     expect(widgets[0]).toMatchObject({
       variable_name: "exact_price",
@@ -510,7 +510,7 @@ describe("searchService.submitSearchRefinement", () => {
       }),
     );
 
-    const widgets = (await submitSearchRefinement("formats")).widgets;
+    const widgets = (await submitRefinementQuery("formats")).widgets;
     expect(widgets).toHaveLength(1);
     expect(widgets[0]).toMatchObject({
       type: "dropdown",
@@ -536,7 +536,7 @@ describe("searchService.submitSearchRefinement", () => {
         snippet: "Known snippet",
       },
     ];
-    await submitSearchRefinement(
+    await submitRefinementQuery(
       "books about history",
       widgets,
       instructions,
@@ -575,7 +575,7 @@ describe("searchService.submitSearchRefinement", () => {
       }),
     );
 
-    await expect(submitSearchRefinement("test query")).rejects.toThrow(
+    await expect(submitRefinementQuery("test query")).rejects.toThrow(
       "Refinements request failed: 500",
     );
   });

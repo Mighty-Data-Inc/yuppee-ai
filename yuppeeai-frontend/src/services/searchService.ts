@@ -31,7 +31,7 @@ export async function submitSERPQuery(
   };
 }
 
-export async function submitSearchRefinement(
+export async function submitRefinementQuery(
   query: string,
   widgets?: RefinementWidget[],
   instructions?: string[],

@@ -250,7 +250,7 @@ export const normalizeWidgetObjectFromLLM = (
     type: llmWidgetObj.widget_type,
     label: llmWidgetObj.widget_label,
     tooltip: llmWidgetObj.widget_tooltip,
-    value: null,
+    value: "", // default value; will be overridden below based on widget type
   };
 
   if (llmWidgetObj.widget_type === "switch") {
@@ -265,15 +265,15 @@ export const normalizeWidgetObjectFromLLM = (
     widget.dropdownPlaceholder =
       llmWidgetObj.widget_params.choices_concat_abbrev;
   } else if (llmWidgetObj.widget_type === "slider") {
-    widget.min = llmWidgetObj.widget_params.value_min;
-    widget.max = llmWidgetObj.widget_params.value_max;
-    widget.value = widget.min;
+    widget.min = llmWidgetObj.widget_params.value_min || 0;
+    widget.max = llmWidgetObj.widget_params.value_max || 0;
+    widget.value = widget.min || 0;
 
     widget.sliderMode = "exact";
     if (llmWidgetObj.widget_params.user_selects_lowest_value_of_range) {
       if (llmWidgetObj.widget_params.user_selects_highest_value_of_range) {
         widget.sliderMode = "range";
-        widget.value = [widget.min, widget.max];
+        widget.value = [widget.min || 0, widget.max || 0];
       } else {
         widget.sliderMode = "gte";
       }

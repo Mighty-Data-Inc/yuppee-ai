@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import type { SERPResult, RefinementWidget } from "@/types";
 import {
   submitSERPQuery,
-  submitSearchRefinement,
+  submitRefinementQuery,
 } from "@/services/searchService";
 import { showError } from "@/services/errorService";
 
@@ -69,7 +69,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         isLoadingSERP.value = false;
       });
 
-    const refinementRequest = submitSearchRefinement(
+    const refinementRequest = submitRefinementQuery(
       q,
       widgets.value,
       additionalInstructionPoints.value,
