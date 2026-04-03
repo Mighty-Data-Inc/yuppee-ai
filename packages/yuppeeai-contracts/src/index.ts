@@ -50,6 +50,16 @@ export interface SERPResponse {
   results: SERPResult[];
 }
 
+export interface DisambiguationOption {
+  doYouMean: string;
+  query: string;
+}
+
+export interface Disambiguation {
+  presumed: DisambiguationOption;
+  alternatives: DisambiguationOption[];
+}
+
 export interface RefinementRequest {
   query: string;
   widgets?: RefinementWidget[];
@@ -58,6 +68,6 @@ export interface RefinementRequest {
 
 export interface RefinementResponse {
   query: string;
-  disambiguation: string;
   widgets: RefinementWidget[];
+  disambiguation?: Disambiguation;
 }

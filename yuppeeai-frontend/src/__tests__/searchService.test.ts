@@ -532,7 +532,7 @@ describe("searchService.submitRefinementQuery", () => {
     });
   });
 
-  it("sends a POST request with query, widgets, instructions, and known results to /refine", async () => {
+  it("sends a POST request with query, widgets, and instructions to /refine", async () => {
     const widgets: RefinementWidget[] = [
       {
         id: "genre",
@@ -542,19 +542,10 @@ describe("searchService.submitRefinementQuery", () => {
       },
     ];
     const instructions = ["published after 2010"];
-    const knownResults = [
-      {
-        id: "10",
-        title: "Known Result",
-        url: "https://example.com/known",
-        snippet: "Known snippet",
-      },
-    ];
     await submitRefinementQuery({
       query: "books about history",
       widgets,
       instructions,
-      results: knownResults,
     });
 
     const fetchMock = vi.mocked(fetch);
@@ -570,7 +561,6 @@ describe("searchService.submitRefinementQuery", () => {
     expect(body.query).toBe("books about history");
     expect(body.widgets).toEqual(widgets);
     expect(body.instructions).toEqual(instructions);
-    expect(body.results).toEqual(knownResults);
   });
 
   it("throws when refinements endpoint returns a non-ok response", async () => {

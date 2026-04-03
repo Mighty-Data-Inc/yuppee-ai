@@ -5,6 +5,7 @@ import type {
   RefinementResponse,
   RefinementWidget,
   RefinementWidgetOption,
+  Disambiguation,
 } from "../types";
 
 interface SearchRefinerConfig {
@@ -31,7 +32,7 @@ const WIDGET_JSON_SCHEMA = {
         assumption_statement: {
           type: "string",
           description:
-            "If disambiguation was applied, this is the assumption made about the intended meaning of the query.",
+            "If disambiguation was applied, this is the assumption made about the intended meaning of the query. Phrase this as a very short present-tense statement directed to the user, e.g. 'I assume you mean the computer company.' Don't bother mentioning alternatives; they'll be covered in the 'other_alternative_potential_meanings' field.",
         },
         query_rephrased_with_assumption: {
           type: "string",
@@ -51,13 +52,18 @@ const WIDGET_JSON_SCHEMA = {
                 description:
                   "A potential alternative meaning of the query that was considered during disambiguation.",
               },
+              do_you_mean: {
+                type: "string",
+                description:
+                  "A concise 'Do you mean...' suggestion that will appear in the UI. This string **must** start with the phrase 'Do you mean' and be phrased as a question, ending in a question mark. For example: 'Do you mean the fruit?' or 'Do you mean the computer company?' or 'Do you mean the record label?'",
+              },
               query_rephrase: {
                 type: "string",
                 description:
-                  "A rephrased version of the original query that the user should have used if they intended this alternative meaning.",
+                  "A rephrased version of the original query string that the user should have used if they intended this alternative meaning.",
               },
             },
-            required: ["meaning", "query_rephrase"],
+            required: ["meaning", "do_you_mean", "query_rephrase"],
             additionalProperties: false,
           },
         },
@@ -381,11 +387,10 @@ Do this query's search results lend themselves to any kind of filtration by a nu
 
     await convo.submit();
 
-    const retval: RefinementResponse = {
+    const retval = {
       query: request.query,
-      disambiguation: "",
       widgets: [],
-    };
+    } as RefinementResponse;
 
     try {
       // The above "submit" was simply to trigger chain-of-thought reasoning in the conversation.
@@ -402,11 +407,33 @@ Do this query's search results lend themselves to any kind of filtration by a nu
         },
       });
 
-      retval.disambiguation = refinements.disambiguation;
-
       retval.widgets = (refinements.widgets as any[])
         .map(normalizeWidgetObjectFromLLM)
         .filter((w) => w) as RefinementWidget[];
+
+      // Check for disambiguation info
+      if (
+        refinements.disambiguation &&
+        refinements.disambiguation.was_disambiguation_necessary &&
+        refinements.disambiguation.other_alternative_potential_meanings &&
+        refinements.disambiguation.other_alternative_potential_meanings.length >
+          0
+      ) {
+        retval.disambiguation = {
+          presumed: {
+            doYouMean: refinements.disambiguation.assumption_statement || "",
+            query:
+              refinements.disambiguation.query_rephrased_with_assumption || "",
+          },
+          alternatives:
+            refinements.disambiguation.other_alternative_potential_meanings.map(
+              (alt: any) => ({
+                doYouMean: alt.do_you_mean,
+                query: alt.query_rephrase,
+              }),
+            ),
+        } as Disambiguation;
+      }
     } catch (error) {
       console.error(
         "Error during structured output request for refinements:",

@@ -13,6 +13,8 @@ export type {
   RefinementWidget,
   RefinementWidgetOption,
   RefinementWidgetType,
+  Disambiguation,
+  DisambiguationOption,
 } from "@yuppee-ai/contracts";
 
 export type LambdaHandler = (
