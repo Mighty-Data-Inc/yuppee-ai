@@ -17,7 +17,8 @@ export async function submitSERPQuery(
     console.error("[SERP] /search failed", {
       status: response.status,
       query,
-      filters,
+      widgets,
+      instructions,
     });
     throw new Error(`Search request failed: ${response.status}`);
   }
