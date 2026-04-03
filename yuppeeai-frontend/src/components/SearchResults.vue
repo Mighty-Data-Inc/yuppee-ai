@@ -5,7 +5,11 @@ import { useYuppeeStore } from '@/stores/yuppeeStore'
 const store = useYuppeeStore()
 
 // Show a compact display URL like example.com/path instead of the full raw link.
-function formatUrl(url: string): string {
+function formatUrl(url?: string): string {
+  if (!url) {
+    return "";
+  }
+
   try {
     const u = new URL(url)
     return u.hostname + u.pathname.replace(/\/$/, '')

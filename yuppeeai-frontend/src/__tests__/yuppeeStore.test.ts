@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useYuppeeStore } from "@/stores/yuppeeStore";
+import type { Widget } from "@/types";
 
 function deferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
@@ -27,7 +28,7 @@ const MOCK_SEARCH_RESULTS = [
   },
 ];
 
-const MOCK_WIDGETS = [
+const MOCK_WIDGETS: Widget[] = [
   {
     id: "date-range",
     type: "range-slider",
