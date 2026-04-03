@@ -12,6 +12,13 @@ export type RefinementWidgetType =
   | "switch"
   | "dropdown";
 
+export type RefinementWidgetValue = 
+  | string 
+  | number 
+  | boolean 
+  | string[] 
+  | [number, number];
+
 export interface RefinementWidgetOption {
   label: string;
   value: string;
@@ -28,7 +35,7 @@ export interface RefinementWidget {
   max?: number;
   step?: number;
   sliderMode?: "exact" | "lte" | "gte" | "range";
-  value: any;
+  value: RefinementWidgetValue;
 }
 
 export interface SERPRequest {
