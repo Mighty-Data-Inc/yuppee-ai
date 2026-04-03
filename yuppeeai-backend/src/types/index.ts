@@ -29,7 +29,7 @@ export interface SearchResponse {
 export interface SearchRefinementsResponse {
   query: string;
   disambiguation: string;
-  widgets: Record<string, Widget>;
+  widgets: Widget[];
 }
 
 export interface PreferencesRequest {

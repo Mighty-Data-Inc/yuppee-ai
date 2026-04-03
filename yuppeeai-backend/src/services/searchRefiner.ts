@@ -360,24 +360,20 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     convo.addDeveloperMessage(`The user will now show you their search query.`);
     convo.addUserMessage(request.query);
 
-    if (request.filters) {
-      // Filter the filters. Remove anything falsy or nullsy, and remove any empty arrays.
-      for (const key of Object.keys(request.filters)) {
-        const filterValue = request.filters[key];
-        if (
-          !filterValue ||
-          (Array.isArray(filterValue) && filterValue.length === 0)
-        ) {
-          delete request.filters[key];
-        }
-      }
+    if (request.filters?.widgets) {
+      // TODO: Figure out how to convey existing filters.
+    }
 
-      if (Object.keys(request.filters).length > 0) {
-        convo.addUserMessage(
-          `Also, I'm currently applying the following filters:\n` +
-            `${JSON.stringify(request.filters, null, 2)}`,
-        );
-      }
+    const requestAdditionalInstructionPoints =
+      request.filters?.additionalInstructionPoints ?? [];
+    if (requestAdditionalInstructionPoints.length > 0) {
+      convo.push({
+        role: "user",
+        content:
+          `Also, the SERP is influenced by the following additional special instructions:` +
+          `\n\n---\n\n` +
+          `${requestAdditionalInstructionPoints.join("\n")}`,
+      });
     }
 
     await convo.submit();
@@ -385,7 +381,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     const retval: SearchRefinementsResponse = {
       query: request.query,
       disambiguation: "",
-      widgets: null,
+      widgets: [],
     };
 
     try {
@@ -407,7 +403,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
 
       retval.widgets = (refinements.widgets as any[])
         .map(normalizeWidgetObjectFromLLM)
-        .filter((w) => w);
+        .filter((w) => w) as Widget[];
     } catch (error) {
       console.error(
         "Error during structured output request for refinements:",
