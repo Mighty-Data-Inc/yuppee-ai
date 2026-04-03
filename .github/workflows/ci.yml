@@ -20,10 +20,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        # package-lock.json is generated on Windows; npm ci is too strict to
-        # install platform-specific optional bindings (e.g. rolldown) on Linux.
-        # npm install with a lock file present still uses it for version resolution.
-        run: npm install
+        run: npm ci
 
       - name: Build shared contracts
         run: npm run build:contracts
@@ -43,7 +40,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Typecheck backend
         run: npm run typecheck:backend
@@ -66,7 +63,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run frontend tests
         run: npm run test:frontend
