@@ -21,7 +21,7 @@ yuppee-ai/
   - Dropdown menus (e.g. reading/scholarly level, content rating)
   - Freeform text refinement box
 - **Adaptive widgets** — Widgets change based on what the user selects (e.g. choosing "Fiction" reveals a fiction-genre checkbox)
-- **Preference memory** — Filter selections are persisted to `localStorage` and reapplied on future similar searches
+
 - **Fully responsive** — Sidebar layout on desktop (≥768 px); stacked layout on mobile
 
 ## Frontend
@@ -61,7 +61,6 @@ Three Lambda handlers:
 |---------|------|-------------|
 | `search` | `src/handlers/search.ts` | Accepts `{ query, filters }`, returns SERP results |
 | `widgets` | `src/handlers/widgets.ts` | Accepts `{ query, currentFilters }`, returns AI-generated widgets |
-| `preferences` | `src/handlers/preferences.ts` | GET/POST user filter preferences (DynamoDB) |
 
 ### Setup
 
@@ -140,7 +139,6 @@ npm test          # Run all 19 unit tests
 | Variable | Purpose |
 |----------|---------|
 | `AWS_REGION` | AWS region for DynamoDB |
-| `DYNAMODB_TABLE_NAME` | DynamoDB table for preferences |
 | `SEARCH_PROVIDER_API_KEY` | Google Custom Search / SerpAPI key |
 | `SEARCH_PROVIDER_ENGINE_ID` | Custom search engine ID |
 | `OPENAI_API_KEY` | OpenAI key for widget generation |
@@ -156,8 +154,6 @@ Suggested API Gateway routes:
 ```
 POST /search          → search handler
 POST /widgets         → widgets handler
-GET  /preferences     → preferences handler (userId query param)
-POST /preferences     → preferences handler
 ```
 
 ## Tech Stack
@@ -174,6 +170,5 @@ POST /preferences     → preferences handler
 | Backend tests | Jest + ts-jest |
 | Search provider | Google Custom Search API (mock in dev) |
 | RefinementWidget AI | OpenAI API (mock in dev) |
-| Preferences store | AWS DynamoDB (mock in dev) |
 | Hosting target | AWS Lambda + API Gateway |
 
