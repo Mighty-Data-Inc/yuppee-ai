@@ -10,11 +10,11 @@
     "dev:backend": "npm --prefix yuppeeai-backend run api:local",
     "dev:frontend": "npm --prefix yuppeeai-frontend run dev",
     "build:contracts": "npm --workspace @yuppee-ai/contracts run build",
-    "typecheck:backend": "npm --prefix yuppeeai-backend run typecheck",
+    "typecheck:backend": "npm run build:contracts && npm --prefix yuppeeai-backend run typecheck",
     "test:backend": "npm --prefix yuppeeai-backend test",
     "test:frontend": "npm --prefix yuppeeai-frontend test",
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
-    "typecheck": "npm run typecheck --workspace yuppeeai-backend && npm run build --workspace @yuppee-ai/contracts && npm run build --workspace yuppeeai-frontend"
+    "typecheck": "npm run build --workspace @yuppee-ai/contracts && npm run typecheck --workspace yuppeeai-backend && npm run build --workspace yuppeeai-frontend"
   }
 }

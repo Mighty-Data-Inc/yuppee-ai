@@ -16,11 +16,14 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.0
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        # package-lock.json is generated on Windows; npm ci is too strict to
+        # install platform-specific optional bindings (e.g. rolldown) on Linux.
+        # npm install with a lock file present still uses it for version resolution.
+        run: npm install
 
       - name: Build shared contracts
         run: npm run build:contracts
@@ -36,11 +39,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.0
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Typecheck backend
         run: npm run typecheck:backend
@@ -59,11 +62,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.19.0
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run frontend tests
         run: npm run test:frontend

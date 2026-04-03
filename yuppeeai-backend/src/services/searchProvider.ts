@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { SearchRequest, SearchResponse } from "../types";
+import type { SearchRequest, SearchResponse, Widget } from "../types";
 import { ResponseInput } from "openai/resources/responses/responses";
 
 interface SearchProviderConfig {
@@ -138,7 +138,8 @@ Do not return JSON yet; first reason through likely user intent and source selec
 
     // Clean up the filters object by removing anything falsy or nullsy.
     // If there's anything left, we'll use it as a focus.
-    const requestFilterWidgets = request.filters?.widgets ?? {};
+    const requestFilterWidgets: Record<string, Widget> =
+      request.filters?.widgets ?? {};
     if (requestFilterWidgets) {
       let sAllWidgetFilters = "";
       for (const widget of Object.values(requestFilterWidgets)) {
