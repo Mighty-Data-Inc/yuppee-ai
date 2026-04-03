@@ -7,16 +7,16 @@ export interface SERPResult {
 }
 
 export type RefinementWidgetType =
-  | "range-slider"
+  | "slider"
   | "chipgroup"
   | "switch"
   | "dropdown";
 
-export type RefinementWidgetValue = 
-  | string 
-  | number 
-  | boolean 
-  | string[] 
+export type RefinementWidgetValue =
+  | string
+  | number
+  | boolean
+  | string[]
   | [number, number];
 
 export interface RefinementWidgetOption {

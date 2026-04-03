@@ -31,7 +31,7 @@ const MOCK_SEARCH_RESULTS = [
 const MOCK_WIDGETS: RefinementWidget[] = [
   {
     id: "date-range",
-    type: "range-slider",
+    type: "slider",
     label: "Date Range",
     min: 2000,
     max: 2024,

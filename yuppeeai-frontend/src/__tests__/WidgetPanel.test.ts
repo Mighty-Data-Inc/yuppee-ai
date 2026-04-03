@@ -7,7 +7,7 @@ import { useYuppeeStore } from "@/stores/yuppeeStore";
 
 const globalStubs = {
   RangeSliderWidget: {
-    template: "<div class='range-slider-stub'>Range Slider</div>",
+    template: "<div class='slider-stub'>Range Slider</div>",
   },
   ChipGroupWidget: true,
   SwitchWidget: true,
@@ -29,7 +29,7 @@ describe("WidgetPanel loading behavior", () => {
     store.widgets = [
       {
         id: "date-range",
-        type: "range-slider",
+        type: "slider",
         label: "Date Range",
         min: 2000,
         max: 2024,
@@ -43,7 +43,7 @@ describe("WidgetPanel loading behavior", () => {
       global: { stubs: globalStubs },
     });
 
-    expect(wrapper.find(".range-slider-stub").exists()).toBe(true);
+    expect(wrapper.find(".slider-stub").exists()).toBe(true);
     expect(wrapper.find(".widget-skeleton").exists()).toBe(false);
   });
 
@@ -52,7 +52,7 @@ describe("WidgetPanel loading behavior", () => {
     store.widgets = [
       {
         id: "date-range",
-        type: "range-slider",
+        type: "slider",
         label: "Date Range",
         min: 2000,
         max: 2024,
@@ -83,7 +83,7 @@ describe("WidgetPanel loading behavior", () => {
     store.widgets = [
       {
         id: "date-range",
-        type: "range-slider",
+        type: "slider",
         label: "Date Range",
         min: 2000,
         max: 2024,
@@ -111,7 +111,7 @@ describe("WidgetPanel loading behavior", () => {
     store.widgets = [
       {
         id: "date-range",
-        type: "range-slider",
+        type: "slider",
         label: "Date Range",
         min: 2000,
         max: 2024,

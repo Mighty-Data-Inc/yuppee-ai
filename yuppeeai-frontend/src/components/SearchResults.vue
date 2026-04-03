@@ -59,7 +59,7 @@ const describeWidgetChanges = computed((): string[] => {
         if (added.length) lines.push(`${widget.label}: Adding "${added.join('", "')}"`)
         if (removed.length) lines.push(`${widget.label}: Removing "${removed.join('", "')}"`)
 
-      } else if (widget.type === 'range-slider') {
+      } else if (widget.type === 'slider') {
         const mode = widget.sliderMode ?? 'range'
         if (mode === 'exact') {
           lines.push(`${widget.label}: Changing value from ${previousWidgetValue} to ${currentWidgetValue}`)

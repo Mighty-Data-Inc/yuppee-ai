@@ -69,7 +69,7 @@ const canSearchAgain = computed(() => {
       <div class="widget-panel__widgets">
         <template v-for="widget in store.widgets" :key="widget.id">
           <RangeSliderWidget
-            v-if="widget.type === 'range-slider'"
+            v-if="widget.type === 'slider'"
             :widget="widget"
             v-model="widget.value"
           />
