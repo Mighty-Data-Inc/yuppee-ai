@@ -11,7 +11,6 @@ import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 const store = useYuppeeStore()
 
 const instructionInput = ref('')
-const additionalInstructions = ref<string[]>([])
 const baselineWidgetValues = ref<Record<string, any>>({})
 
 function snapshotBaseline() {
@@ -33,7 +32,6 @@ function hasValueChanges(): boolean {
 
 function resetLocalState() {
   instructionInput.value = ''
-  additionalInstructions.value = []
   baselineWidgetValues.value = {}
 }
 
@@ -46,15 +44,6 @@ watch(() => store.query, (newQuery, oldQuery) => {
 watch(() => store.widgets, () => {
   snapshotBaseline()
 }, { immediate: true })
-
-function getNextInstructions(): string[] {
-  const nextInstructions = [...additionalInstructions.value]
-  const trimmedInput = instructionInput.value.trim()
-  if (trimmedInput) {
-    nextInstructions.push(trimmedInput)
-  }
-  return nextInstructions
-}
 
 function updateValue(widgetId: string, value: any) {
   const widget = store.widgets.find(w => w.id === widgetId)
@@ -136,16 +125,17 @@ function describeSearchRefinementChanges(): string[] {
 
 async function handleSearchAgain() {
   if (!canSearchAgain.value) return
-  const nextInstructions = getNextInstructions()
   console.log('Changed filters:', describeSearchRefinementChanges())
-  store.additionalInstructionPoints = nextInstructions
-  additionalInstructions.value = nextInstructions
+  const trimmedInput = instructionInput.value.trim()
+  if (trimmedInput) {
+    store.additionalInstructionPoints.push(trimmedInput)
+  }
   instructionInput.value = ''
   await store.search(store.query)
 }
 
 function removeInstruction(index: number) {
-  additionalInstructions.value = additionalInstructions.value.filter((_, i) => i !== index)
+  store.additionalInstructionPoints.splice(index, 1)
 }
 
 const dynamicWidgets = () => store.widgets.filter(w => w.type !== 'freeform')
@@ -210,13 +200,13 @@ const canSearchAgain = computed(() => {
         <p class="widget-panel__freeform-label">Additional instructions...</p>
 
         <transition-group
-          v-if="additionalInstructions.length"
+          v-if="store.additionalInstructionPoints.length"
           name="instruction-card"
           tag="div"
           class="widget-panel__instruction-list"
         >
           <div
-            v-for="(instruction, index) in additionalInstructions"
+            v-for="(instruction, index) in store.additionalInstructionPoints"
             :key="`${instruction}-${index}`"
             class="widget-panel__instruction-card"
           >
