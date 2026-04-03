@@ -18,6 +18,8 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   const newAdditionalInstruction = ref("");
   const additionalInstructionPoints = ref<string[]>([]);
 
+  const disambiguation = ref<Disambiguation | null>(null);
+
   const isLoadingSERP = ref(false);
   const isLoadingWidgets = ref(false);
 
@@ -29,6 +31,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     widgetsFromLastSubmit.value = [];
     newAdditionalInstruction.value = "";
     additionalInstructionPoints.value = [];
+    disambiguation.value = null;
   }
 
   async function search(q: string) {
@@ -75,6 +78,9 @@ export const useYuppeeStore = defineStore("yuppee", () => {
       instructions: additionalInstructionPoints.value,
     })
       .then((refinementResponse) => {
+        disambiguation.value = refinementResponse.disambiguation ?? null;
+        console.log("DISAMBIGUATION", disambiguation.value);
+
         widgets.value = refinementResponse.widgets;
         // TODO: Handle preserving filters
         // TODO: Handle disambiguation
@@ -112,6 +118,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     serpSummary,
     widgets,
     widgetsFromLastSubmit,
+    disambiguation,
     newAdditionalInstruction,
     additionalInstructionPoints,
     isLoadingSERP,

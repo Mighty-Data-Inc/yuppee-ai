@@ -43,7 +43,7 @@ const WIDGET_JSON_SCHEMA = {
         other_alternative_potential_meanings: {
           type: "array",
           description:
-            "If disambiguation was applied, this is a list of other potential meanings of the query that were considered.",
+            "If disambiguation was applied, this is a complete and comprehensive list of other potential meanings of the query that were considered. Each item in this list is distinct and unique from the others, and each one is a plausible interpretation of the user's original query that a reasonable person might have intended. This list should be exhaustive, covering all reasonable interpretations of the query that would require disambiguation.",
           items: {
             type: "object",
             properties: {
@@ -428,7 +428,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
           alternatives:
             refinements.disambiguation.other_alternative_potential_meanings.map(
               (alt: any) => ({
-                doYouMean: alt.do_you_mean,
+                doYouMean: rephraseDisambiguationOptionString(alt.do_you_mean),
                 query: alt.query_rephrase,
               }),
             ),
@@ -445,3 +445,21 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     return retval;
   }
 }
+
+const rephraseDisambiguationOptionString = (s: string): string => {
+  s = s.trim();
+
+  // Strip off the "Do you mean..." prefix and the "?" suffix
+  if (s.toLowerCase().startsWith("do you mean")) {
+    s = s.slice("do you mean".length).trim();
+  }
+  if (s.endsWith("?")) {
+    s = s.slice(0, -1).trim();
+  }
+
+  // Make the first letter uppercase.
+  if (s.length > 0) {
+    s = s[0].toUpperCase() + s.slice(1);
+  }
+  return s;
+};

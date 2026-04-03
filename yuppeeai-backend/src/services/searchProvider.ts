@@ -151,7 +151,6 @@ Do not return JSON yet; first reason through likely user intent and source selec
         sAllWidgetFilters += `${widget.label}: ${JSON.stringify(widget.value)}\n`;
       }
       if (sAllWidgetFilters) {
-        console.log(sAllWidgetFilters);
         convo.push({
           role: "user",
           content:

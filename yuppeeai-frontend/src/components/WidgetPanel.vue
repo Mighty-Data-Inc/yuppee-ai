@@ -55,6 +55,10 @@ const canSearchAgain = computed(() => {
       <h2 class="widget-panel__title">Refine Your Search</h2>
     </div>
 
+    <div>
+    DISAMBIGUATION: {{ store.disambiguation }}
+    </div>
+
     <!-- Loading state (initial load only) -->
     <template v-if="store.isLoadingWidgets && store.widgets.length === 0">
       <p class="widget-panel__loading-message">Analyzing results and devising refinement criteria...</p>
