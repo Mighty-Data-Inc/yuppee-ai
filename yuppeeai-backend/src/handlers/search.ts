@@ -34,7 +34,8 @@ export const handler: LambdaHandler = async (event, _context) => {
 
     const response = await searchProvider.getSearchResults({
       query: request.query,
-      filters: request.filters,
+      widgets: request.widgets,
+      instructions: request.instructions,
     });
 
     return {

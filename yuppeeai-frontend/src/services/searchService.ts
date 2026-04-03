@@ -5,13 +5,13 @@ const API_BASE_URL =
 
 export async function submitSERPQuery(
   query: string,
-  filters?: Record<string, any>,
+  widgets?: RefinementWidget[],
+  instructions?: string[],
 ): Promise<SERPResponse> {
   const response = await fetch(`${API_BASE_URL}/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    // `filters` may include `additionalInstructions` from freeform refine text.
-    body: JSON.stringify({ query, filters }),
+    body: JSON.stringify({ query, widgets, instructions }),
   });
   if (!response.ok) {
     console.error("[SERP] /search failed", {
@@ -32,7 +32,8 @@ export async function submitSERPQuery(
 
 export async function submitSearchRefinement(
   query: string,
-  currentFilters?: Record<string, any>,
+  widgets?: RefinementWidget[],
+  instructions?: string[],
   knownResults?: SERPResult[],
 ): Promise<{
   disambiguation: string;
@@ -43,8 +44,8 @@ export async function submitSearchRefinement(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query,
-      // Keep filters contract identical to /search for backend consistency.
-      filters: currentFilters,
+      widgets,
+      instructions,
       results: knownResults,
     }),
   });

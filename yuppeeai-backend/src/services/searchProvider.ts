@@ -136,13 +136,12 @@ Do not return JSON yet; first reason through likely user intent and source selec
       },
     ];
 
-    // Clean up the filters object by removing anything falsy or nullsy.
-    // If there's anything left, we'll use it as a focus.
-    const requestFilterWidgets: Record<string, RefinementWidget> =
-      request.filters?.widgets ?? {};
-    if (requestFilterWidgets) {
+    // Build instructions from widgets if they have values.
+    // Iterate through widgets array and add their filter values to the conversation.
+    const requestWidgets: RefinementWidget[] = request.widgets ?? [];
+    if (requestWidgets.length > 0) {
       let sAllWidgetFilters = "";
-      for (const widget of Object.values(requestFilterWidgets)) {
+      for (const widget of requestWidgets) {
         if (
           !widget.value ||
           (Array.isArray(widget.value) && widget.value.length === 0)
@@ -163,15 +162,14 @@ Do not return JSON yet; first reason through likely user intent and source selec
       }
     }
 
-    const requestAdditionalInstructionPoints =
-      request.filters?.additionalInstructionPoints ?? [];
-    if (requestAdditionalInstructionPoints.length > 0) {
+    const requestInstructions: string[] = request.instructions ?? [];
+    if (requestInstructions.length > 0) {
       convo.push({
         role: "user",
         content:
           `I want your search to take the following additional special instructions into consideration:` +
           `\n\n---\n\n` +
-          `${requestAdditionalInstructionPoints.join("\n")}`,
+          `${requestInstructions.join("\n")}`,
       });
     }
 

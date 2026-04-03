@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { LLMConversation } from "@mightydatainc/llm-conversation";
 import type {
-  SERPRequest,
+  RefinementRequest,
   RefinementResponse,
   RefinementWidget,
   RefinementWidgetOption,
@@ -310,7 +310,7 @@ export class SearchRefiner {
   }
 
   async inferSearchRefinements(
-    request: SERPRequest,
+    request: RefinementRequest,
   ): Promise<RefinementResponse> {
     if (!this.config.openaiApiKey) {
       throw new Error("OPENAI_API_KEY is not configured.");
@@ -364,19 +364,18 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     convo.addDeveloperMessage(`The user will now show you their search query.`);
     convo.addUserMessage(request.query);
 
-    if (request.filters?.widgets) {
+    if (request.widgets && request.widgets.length > 0) {
       // TODO: Figure out how to convey existing filters.
     }
 
-    const requestAdditionalInstructionPoints =
-      request.filters?.additionalInstructionPoints ?? [];
-    if (requestAdditionalInstructionPoints.length > 0) {
+    const requestInstructions: string[] = request.instructions ?? [];
+    if (requestInstructions.length > 0) {
       convo.push({
         role: "user",
         content:
           `Also, the SERP is influenced by the following additional special instructions:` +
           `\n\n---\n\n` +
-          `${requestAdditionalInstructionPoints.join("\n")}`,
+          `${requestInstructions.join("\n")}`,
       });
     }
 

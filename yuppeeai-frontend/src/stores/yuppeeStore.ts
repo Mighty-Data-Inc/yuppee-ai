@@ -45,15 +45,14 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
     // TODO: Set refinements in flight
 
-    const filters = {
-      widgets: widgets.value,
-      additionalInstructionPoints: additionalInstructionPoints.value,
-    };
-
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
-    const serpRequest = submitSERPQuery(q, filters)
+    const serpRequest = submitSERPQuery(
+      q,
+      widgets.value,
+      additionalInstructionPoints.value,
+    )
       .then((searchResponse) => {
         serpResults.value = searchResponse.results;
         serpSummary.value = searchResponse.summary ?? "";
@@ -70,7 +69,11 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         isLoadingSERP.value = false;
       });
 
-    const refinementRequest = submitSearchRefinement(q, filters)
+    const refinementRequest = submitSearchRefinement(
+      q,
+      widgets.value,
+      additionalInstructionPoints.value,
+    )
       .then((refinementResponse) => {
         widgets.value = refinementResponse.widgets;
         // TODO: Handle preserving filters

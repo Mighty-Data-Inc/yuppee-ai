@@ -40,10 +40,8 @@ export interface RefinementWidget {
 
 export interface SERPRequest {
   query: string;
-  filters?: {
-    widgets?: Record<string, RefinementWidget>;
-    additionalInstructionPoints?: string[];
-  };
+  widgets?: RefinementWidget[];
+  instructions?: string[];
 }
 
 export interface SERPResponse {
@@ -54,10 +52,8 @@ export interface SERPResponse {
 
 export interface RefinementRequest {
   query: string;
-  filters?: {
-    widgets?: Record<string, RefinementWidget>;
-    additionalInstructionPoints?: string[];
-  };
+  widgets?: RefinementWidget[];
+  instructions?: string[];
 }
 
 export interface RefinementResponse {

@@ -229,9 +229,17 @@ describe("searchService.search", () => {
     expect(response.results[0]).not.toHaveProperty("snippet");
   });
 
-  it("sends a POST request with query and filters to /search", async () => {
-    const filters = { genre: "history" };
-    await submitSERPQuery("books about history", filters);
+  it("sends a POST request with query, widgets, and instructions to /search", async () => {
+    const widgets = [
+      {
+        id: "test-widget",
+        type: "dropdown",
+        label: "Genre",
+        value: "history",
+      },
+    ];
+    const instructions = ["written by a British author"];
+    await submitSERPQuery("books about history", widgets, instructions);
     const fetchMock = vi.mocked(fetch);
     expect(fetchMock).toHaveBeenCalledOnce();
     const call = fetchMock.mock.calls[0]!;
@@ -240,25 +248,24 @@ describe("searchService.search", () => {
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");
-    expect(body.filters).toEqual(filters);
+    expect(body.widgets).toEqual(widgets);
+    expect(body.instructions).toEqual(instructions);
   });
 
-  it("preserves additionalInstructions within filters for /search", async () => {
-    const filters = {
-      genre: "history",
-      additionalInstructions: "written by a British author",
-    };
+  it("sends instructions array in request body", async () => {
+    const instructions = [
+      "written by a British author",
+      "published after 2020",
+    ];
 
-    await submitSERPQuery("books about history", filters);
+    await submitSERPQuery("books about history", undefined, instructions);
 
     const fetchMock = vi.mocked(fetch);
     const call = fetchMock.mock.calls[0]!;
     const [, init] = call as [string, RequestInit];
     const body = JSON.parse(init.body as string);
 
-    expect(body.filters).toMatchObject({
-      additionalInstructions: "written by a British author",
-    });
+    expect(body.instructions).toEqual(instructions);
   });
 
   it("throws when the backend returns a non-ok response", async () => {
@@ -511,8 +518,16 @@ describe("searchService.submitSearchRefinement", () => {
     });
   });
 
-  it("sends a POST request with query, filters, and known results to /refine", async () => {
-    const filters = { genre: "history" };
+  it("sends a POST request with query, widgets, instructions, and known results to /refine", async () => {
+    const widgets = [
+      {
+        id: "genre",
+        type: "dropdown",
+        label: "Genre",
+        value: "history",
+      },
+    ];
+    const instructions = ["published after 2010"];
     const knownResults = [
       {
         id: "10",
@@ -521,7 +536,12 @@ describe("searchService.submitSearchRefinement", () => {
         snippet: "Known snippet",
       },
     ];
-    await submitSearchRefinement("books about history", filters, knownResults);
+    await submitSearchRefinement(
+      "books about history",
+      widgets,
+      instructions,
+      knownResults,
+    );
 
     const fetchMock = vi.mocked(fetch);
     const refinementCall = fetchMock.mock.calls.find((call) =>
@@ -534,7 +554,8 @@ describe("searchService.submitSearchRefinement", () => {
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");
-    expect(body.filters).toEqual(filters);
+    expect(body.widgets).toEqual(widgets);
+    expect(body.instructions).toEqual(instructions);
     expect(body.results).toEqual(knownResults);
   });
 

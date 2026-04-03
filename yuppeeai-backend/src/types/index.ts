@@ -6,6 +6,7 @@ import type {
 
 export type {
   RefinementResponse,
+  RefinementRequest,
   SERPRequest,
   SERPResponse,
   SERPResult,
