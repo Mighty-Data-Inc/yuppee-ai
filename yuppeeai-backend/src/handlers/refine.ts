@@ -1,7 +1,7 @@
 import type { APIGatewayProxyResult } from "aws-lambda";
 import type {
   LambdaHandler,
-  SearchRefinementsResponse,
+  RefinementResponse,
   SearchRequest,
 } from "../types";
 import { SearchRefiner } from "../services/searchRefiner";
@@ -36,7 +36,7 @@ export const handler: LambdaHandler = async (event, _context) => {
       openaiApiKey: process.env["OPENAI_API_KEY"],
     });
 
-    const response: SearchRefinementsResponse =
+    const response: RefinementResponse =
       await searchRefiner.inferSearchRefinements({
         query: request.query,
         filters: request.filters,

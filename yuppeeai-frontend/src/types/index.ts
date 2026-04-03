@@ -1,5 +1,5 @@
 export type {
-  SearchResult,
+  SERPResult,
   SearchResponse,
   Widget,
   WidgetOption,

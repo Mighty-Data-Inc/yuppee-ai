@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import type { SearchResult, Widget } from "@/types";
+import type { SERPResult, Widget } from "@/types";
 import {
   submitSERPQuery,
   submitSearchRefinement,
@@ -10,7 +10,7 @@ import { showError } from "@/services/errorService";
 export const useYuppeeStore = defineStore("yuppee", () => {
   const query = ref("");
 
-  const serpResults = ref<SearchResult[]>([]);
+  const serpResults = ref<SERPResult[]>([]);
   const serpSummary = ref("");
 
   const widgets = ref<Widget[]>([]);

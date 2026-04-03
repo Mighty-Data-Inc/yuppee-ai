@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { LLMConversation } from "@mightydatainc/llm-conversation";
 import type {
   SearchRequest,
-  SearchRefinementsResponse,
+  RefinementResponse,
   Widget,
   WidgetOption,
 } from "../types";
@@ -311,7 +311,7 @@ export class SearchRefiner {
 
   async inferSearchRefinements(
     request: SearchRequest,
-  ): Promise<SearchRefinementsResponse> {
+  ): Promise<RefinementResponse> {
     if (!this.config.openaiApiKey) {
       throw new Error("OPENAI_API_KEY is not configured.");
     }
@@ -382,7 +382,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
 
     await convo.submit();
 
-    const retval: SearchRefinementsResponse = {
+    const retval: RefinementResponse = {
       query: request.query,
       disambiguation: "",
       widgets: [],

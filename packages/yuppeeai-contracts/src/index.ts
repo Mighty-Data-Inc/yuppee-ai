@@ -1,4 +1,4 @@
-export interface SearchResult {
+export interface SERPResult {
   id?: string;
   title: string;
   url?: string;
@@ -43,22 +43,11 @@ export interface SearchRequest {
 export interface SearchResponse {
   query: string;
   summary?: string;
-  results: SearchResult[];
+  results: SERPResult[];
 }
 
-export interface SearchRefinementsResponse {
+export interface RefinementResponse {
   query: string;
   disambiguation: string;
   widgets: Widget[];
-}
-
-export interface PreferencesRequest {
-  userId: string;
-  queryCategory?: string;
-  preferences?: Record<string, unknown>;
-}
-
-export interface PreferencesResponse {
-  userId: string;
-  preferences: Record<string, Record<string, unknown>>;
 }

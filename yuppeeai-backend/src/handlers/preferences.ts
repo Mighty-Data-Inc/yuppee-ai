@@ -1,9 +1,5 @@
 import type { APIGatewayProxyResult } from "aws-lambda";
-import type {
-  LambdaHandler,
-  PreferencesRequest,
-  PreferencesResponse,
-} from "../types";
+import type { LambdaHandler } from "../types";
 import { PreferencesStore } from "../services/preferencesStore";
 
 const CORS_HEADERS = {
@@ -27,7 +23,7 @@ export const handler: LambdaHandler = async (event, _context) => {
       }
 
       const preferences = await store.getPreferences(userId);
-      const response: PreferencesResponse = { userId, preferences };
+      const response = { userId, preferences };
 
       return {
         statusCode: 200,
@@ -37,7 +33,11 @@ export const handler: LambdaHandler = async (event, _context) => {
     }
 
     // POST — save preferences
-    let request: Partial<PreferencesRequest> = {};
+    let request: {
+      userId?: string;
+      queryCategory?: string;
+      preferences?: Record<string, unknown>;
+    } = {};
 
     if (event.body) {
       try {
@@ -65,7 +65,7 @@ export const handler: LambdaHandler = async (event, _context) => {
     }
 
     const preferences = await store.getPreferences(request.userId);
-    const response: PreferencesResponse = {
+    const response = {
       userId: request.userId,
       preferences,
     };

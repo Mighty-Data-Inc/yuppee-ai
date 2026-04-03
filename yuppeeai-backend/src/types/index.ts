@@ -5,12 +5,10 @@ import type {
 } from "aws-lambda";
 
 export type {
-  PreferencesRequest,
-  PreferencesResponse,
-  SearchRefinementsResponse,
+  RefinementResponse,
   SearchRequest,
   SearchResponse,
-  SearchResult,
+  SERPResult,
   Widget,
   WidgetOption,
   WidgetType,

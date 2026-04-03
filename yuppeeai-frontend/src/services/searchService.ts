@@ -1,4 +1,4 @@
-import type { SearchResponse, SearchResult, Widget } from "@/types";
+import type { SearchResponse, SERPResult, Widget } from "@/types";
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
@@ -22,7 +22,7 @@ export async function submitSERPQuery(
     throw new Error(`Search request failed: ${response.status}`);
   }
   const data = await response.json();
-  const payload = data as { results?: SearchResult[]; summary?: unknown };
+  const payload = data as { results?: SERPResult[]; summary?: unknown };
   return {
     query,
     results: payload.results ?? [],
@@ -33,7 +33,7 @@ export async function submitSERPQuery(
 export async function submitSearchRefinement(
   query: string,
   currentFilters?: Record<string, any>,
-  knownResults?: SearchResult[],
+  knownResults?: SERPResult[],
 ): Promise<{
   disambiguation: string;
   widgets: Widget[];
