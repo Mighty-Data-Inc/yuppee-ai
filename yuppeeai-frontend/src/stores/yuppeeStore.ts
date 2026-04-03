@@ -21,8 +21,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   const isLoadingSERP = ref(false);
   const isLoadingWidgets = ref(false);
 
-  const error = ref("");
-
   function reset() {
     query.value = "";
     serpResults.value = [];
@@ -31,7 +29,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     widgetsFromLastSubmit.value = [];
     newAdditionalInstruction.value = "";
     additionalInstructionPoints.value = [];
-    error.value = "";
   }
 
   async function search(q: string) {
@@ -64,9 +61,9 @@ export const useYuppeeStore = defineStore("yuppee", () => {
       })
       .catch((e) => {
         console.error(e);
-        error.value =
-          e instanceof Error ? e.message : "An error occurred during search";
-        showError(error.value);
+        showError(
+          e instanceof Error ? e.message : "An error occurred during search",
+        );
         serpResults.value = [];
         serpSummary.value = "";
       })
@@ -82,11 +79,11 @@ export const useYuppeeStore = defineStore("yuppee", () => {
       })
       .catch((e) => {
         console.error(e);
-        error.value =
+        showError(
           e instanceof Error
             ? e.message
-            : "An error occurred while loading refinements";
-        showError(error.value);
+            : "An error occurred while loading refinements",
+        );
         widgets.value = [];
       })
       .finally(() => {
@@ -117,7 +114,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     additionalInstructionPoints,
     isLoadingSERP,
     isLoadingWidgets,
-    error,
     reset,
     search,
     hasWidgetChanges,
