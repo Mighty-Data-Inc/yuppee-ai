@@ -1,7 +1,8 @@
 import type {
+  SERPRequest,
   SERPResponse,
-  SERPResult,
-  RefinementWidget,
+  RefinementRequest,
+  RefinementResponse,
 } from "@yuppee-ai/contracts";
 
 const API_BASE_URL =
