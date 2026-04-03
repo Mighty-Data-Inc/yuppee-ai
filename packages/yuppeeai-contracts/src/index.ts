@@ -45,6 +45,14 @@ export interface SERPResponse {
   results: SERPResult[];
 }
 
+export interface RefinementRequest {
+  query: string;
+  filters?: {
+    widgets?: Record<string, RefinementWidget>;
+    additionalInstructionPoints?: string[];
+  };
+}
+
 export interface RefinementResponse {
   query: string;
   disambiguation: string;
