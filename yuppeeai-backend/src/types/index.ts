@@ -6,12 +6,12 @@ import type {
 
 export type {
   RefinementResponse,
-  SearchRequest,
-  SearchResponse,
+  SERPRequest,
+  SERPResponse,
   SERPResult,
-  Widget,
-  WidgetOption,
-  WidgetType,
+  RefinementWidget,
+  RefinementWidgetOption,
+  RefinementWidgetType,
 } from "@yuppee-ai/contracts";
 
 export type LambdaHandler = (

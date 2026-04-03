@@ -1,9 +1,5 @@
 import type { APIGatewayProxyResult } from "aws-lambda";
-import type {
-  LambdaHandler,
-  RefinementResponse,
-  SearchRequest,
-} from "../types";
+import type { LambdaHandler, RefinementResponse, SERPRequest } from "../types";
 import { SearchRefiner } from "../services/searchRefiner";
 
 const CORS_HEADERS = {
@@ -13,7 +9,7 @@ const CORS_HEADERS = {
 
 export const handler: LambdaHandler = async (event, _context) => {
   try {
-    let request: Partial<SearchRequest> = {};
+    let request: Partial<SERPRequest> = {};
 
     if (event.body) {
       try {

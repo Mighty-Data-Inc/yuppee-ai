@@ -6,25 +6,24 @@ export interface SERPResult {
   summary?: string;
 }
 
-export type WidgetType =
+export type RefinementWidgetType =
   | "range-slider"
   | "chipgroup"
   | "switch"
-  | "dropdown"
-  | "freeform";
+  | "dropdown";
 
-export interface WidgetOption {
+export interface RefinementWidgetOption {
   label: string;
   value: string;
 }
 
-export interface Widget {
+export interface RefinementWidget {
   id: string;
-  type: WidgetType;
+  type: RefinementWidgetType;
   label: string;
   tooltip?: string;
   dropdownPlaceholder?: string;
-  options?: WidgetOption[];
+  options?: RefinementWidgetOption[];
   min?: number;
   max?: number;
   step?: number;
@@ -32,15 +31,15 @@ export interface Widget {
   value: any;
 }
 
-export interface SearchRequest {
+export interface SERPRequest {
   query: string;
   filters?: {
-    widgets?: Record<string, Widget>;
+    widgets?: Record<string, RefinementWidget>;
     additionalInstructionPoints?: string[];
   };
 }
 
-export interface SearchResponse {
+export interface SERPResponse {
   query: string;
   summary?: string;
   results: SERPResult[];
@@ -49,5 +48,5 @@ export interface SearchResponse {
 export interface RefinementResponse {
   query: string;
   disambiguation: string;
-  widgets: Widget[];
+  widgets: RefinementWidget[];
 }

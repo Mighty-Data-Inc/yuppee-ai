@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Widget } from '@/types'
+import type { RefinementWidget } from '@/types'
 
 const props = defineProps<{
-  widget: Widget
+  widget: RefinementWidget
   modelValue: string[]
 }>()
 

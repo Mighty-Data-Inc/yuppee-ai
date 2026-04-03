@@ -2,10 +2,10 @@
 import { computed, ref, watch } from 'vue'
 import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
-import type { Widget } from '@/types'
+import type { RefinementWidget } from '@/types'
 
 const props = defineProps<{
-  widget: Widget
+  widget: RefinementWidget
   modelValue: number | [number, number]
 }>()
 

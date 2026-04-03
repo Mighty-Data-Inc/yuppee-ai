@@ -1,7 +1,7 @@
 export type {
   SERPResult,
-  SearchResponse,
-  Widget,
-  WidgetOption,
-  WidgetType,
+  SERPResponse,
+  RefinementWidget,
+  RefinementWidgetOption,
+  RefinementWidgetType,
 } from "@yuppee-ai/contracts";

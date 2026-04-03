@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { SearchRequest, SearchResponse, Widget } from "../types";
+import type { SERPRequest, SERPResponse, RefinementWidget } from "../types";
 import { ResponseInput } from "openai/resources/responses/responses";
 
 interface SearchProviderConfig {
@@ -104,7 +104,7 @@ export class SearchProvider {
     };
   }
 
-  async getSearchResults(request: SearchRequest): Promise<SearchResponse> {
+  async getSearchResults(request: SERPRequest): Promise<SERPResponse> {
     const requestQuery = request.query || "";
     if (!requestQuery) {
       throw new Error("Search query is required.");
@@ -138,7 +138,7 @@ Do not return JSON yet; first reason through likely user intent and source selec
 
     // Clean up the filters object by removing anything falsy or nullsy.
     // If there's anything left, we'll use it as a focus.
-    const requestFilterWidgets: Record<string, Widget> =
+    const requestFilterWidgets: Record<string, RefinementWidget> =
       request.filters?.widgets ?? {};
     if (requestFilterWidgets) {
       let sAllWidgetFilters = "";
@@ -186,7 +186,7 @@ Do not return JSON yet; first reason through likely user intent and source selec
     const retval = {
       query: request.query,
       summary: "",
-      results: [] as SearchResponse["results"],
+      results: [] as SERPResponse["results"],
     };
 
     convo.push({
@@ -221,7 +221,7 @@ Return only valid JSON matching the provided schema. Preserve relevance ordering
 
       const parsed = JSON.parse(structuredResponse.output_text) as {
         summary?: any;
-        results?: SearchResponse["results"];
+        results?: SERPResponse["results"];
       };
 
       retval.summary = parsed.summary?.with_light_html_formatting || "";

@@ -173,7 +173,7 @@ POST /preferences     → preferences handler
 | Backend runtime | Node.js 20 |
 | Backend tests | Jest + ts-jest |
 | Search provider | Google Custom Search API (mock in dev) |
-| Widget AI | OpenAI API (mock in dev) |
+| RefinementWidget AI | OpenAI API (mock in dev) |
 | Preferences store | AWS DynamoDB (mock in dev) |
 | Hosting target | AWS Lambda + API Gateway |
 

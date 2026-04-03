@@ -1,10 +1,10 @@
 import OpenAI from "openai";
 import { LLMConversation } from "@mightydatainc/llm-conversation";
 import type {
-  SearchRequest,
+  SERPRequest,
   RefinementResponse,
-  Widget,
-  WidgetOption,
+  RefinementWidget,
+  RefinementWidgetOption,
 } from "../types";
 
 interface SearchRefinerConfig {
@@ -235,7 +235,7 @@ const WIDGET_JSON_SCHEMA = {
 
 export const normalizeWidgetObjectFromLLM = (
   llmWidgetObj: any,
-): Widget | null => {
+): RefinementWidget | null => {
   // First we determine whether or not this widget is even worth keeping.
   const sanityCheckObj = llmWidgetObj?.sanity_check;
   if (
@@ -245,7 +245,7 @@ export const normalizeWidgetObjectFromLLM = (
     return null;
   }
 
-  const widget: Widget = {
+  const widget: RefinementWidget = {
     id: llmWidgetObj.widget_variable_name,
     type: llmWidgetObj.widget_type,
     label: llmWidgetObj.widget_label,
@@ -285,7 +285,7 @@ export const normalizeWidgetObjectFromLLM = (
   if (widget.type === "dropdown" || widget.type === "chipgroup") {
     widget.options = [];
     for (const llmChoice of llmWidgetObj.widget_params.choices) {
-      const choice: WidgetOption = {
+      const choice: RefinementWidgetOption = {
         label: llmChoice.choice_ui_label,
         value: llmChoice.choice_variable_value,
       };
@@ -310,7 +310,7 @@ export class SearchRefiner {
   }
 
   async inferSearchRefinements(
-    request: SearchRequest,
+    request: SERPRequest,
   ): Promise<RefinementResponse> {
     if (!this.config.openaiApiKey) {
       throw new Error("OPENAI_API_KEY is not configured.");
@@ -407,7 +407,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
 
       retval.widgets = (refinements.widgets as any[])
         .map(normalizeWidgetObjectFromLLM)
-        .filter((w) => w) as Widget[];
+        .filter((w) => w) as RefinementWidget[];
     } catch (error) {
       console.error(
         "Error during structured output request for refinements:",

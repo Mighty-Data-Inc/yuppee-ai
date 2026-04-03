@@ -1,4 +1,4 @@
-import type { SearchResponse, SERPResult, Widget } from "@/types";
+import type { SERPResponse, SERPResult, RefinementWidget } from "@/types";
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
@@ -6,7 +6,7 @@ const API_BASE_URL =
 export async function submitSERPQuery(
   query: string,
   filters?: Record<string, any>,
-): Promise<SearchResponse> {
+): Promise<SERPResponse> {
   const response = await fetch(`${API_BASE_URL}/search`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -36,7 +36,7 @@ export async function submitSearchRefinement(
   knownResults?: SERPResult[],
 ): Promise<{
   disambiguation: string;
-  widgets: Widget[];
+  widgets: RefinementWidget[];
 }> {
   const response = await fetch(`${API_BASE_URL}/refine`, {
     method: "POST",
