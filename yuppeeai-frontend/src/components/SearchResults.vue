@@ -192,7 +192,7 @@ const describeWidgetChanges = computed((): string[] => {
 
 .result-card {
   position: relative;
-  padding: 1rem 1.25rem 1.7rem;
+  padding: 1rem 1.25rem 1.25rem;
   background: white;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -218,6 +218,8 @@ const describeWidgetChanges = computed((): string[] => {
   transform: translateY(2px);
   transition: opacity 140ms ease, transform 140ms ease;
   pointer-events: none;
+  text-align: right;
+  height: 1.5em;  
 }
 
 .result-card:hover .result-card__url,
