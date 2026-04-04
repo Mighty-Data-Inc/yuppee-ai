@@ -20,11 +20,10 @@ function formatUrl(url?: string): string {
 
 const describeWidgetChanges = computed((): string[] => {
   const lines: string[] = []
-  for (const widget of store.widgets) {
+  for (const widget of store.widgetsWithChangedValues) {
     const previousWidgetValue = store.widgetsFromLastSubmit.find(w => w.id === widget.id)?.value
     const currentWidgetValue = widget.value
-    if (JSON.stringify(previousWidgetValue) !== JSON.stringify(currentWidgetValue)) {
-      if (widget.type === 'dropdown') {
+    if (widget.type === 'dropdown') {
         // Map raw stored values to their display labels for the log message;
         // fall back to the raw value if no matching option is found.
         const toLabel = (v: any) => widget.options?.find(o => o.value === v)?.label ?? v
@@ -76,7 +75,6 @@ const describeWidgetChanges = computed((): string[] => {
           }
         }
       }
-    }
   }
   const trimmedInput = store.newAdditionalInstruction.trim()
   if (trimmedInput) {

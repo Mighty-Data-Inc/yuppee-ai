@@ -230,6 +230,58 @@ describe("yuppeeStore", () => {
     expect(store.haveAnyValuesChanged).toBe(true);
   });
 
+  it("computes widgetsWithChangedValues as only the changed widgets", () => {
+    const store = useYuppeeStore();
+    store.widgets = [
+      {
+        id: "format",
+        type: "dropdown",
+        label: "Format",
+        options: [{ label: "Hardcover", value: "hardcover" }],
+        value: "paperback",
+      },
+      {
+        id: "date-range",
+        type: "slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2010, 2024],
+      },
+    ];
+    store.widgetsFromLastSubmit = [
+      {
+        id: "format",
+        type: "dropdown",
+        label: "Format",
+        options: [{ label: "Hardcover", value: "hardcover" }],
+        value: "hardcover",
+      },
+      {
+        id: "date-range",
+        type: "slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2010, 2024],
+      },
+    ];
+
+    expect(store.widgetsWithChangedValues).toHaveLength(1);
+    expect(store.widgetsWithChangedValues[0].id).toBe("format");
+  });
+
+  it("widgetsWithChangedValues is empty when no values have changed", () => {
+    const store = useYuppeeStore();
+    store.widgets = [...MOCK_WIDGETS];
+    store.widgetsFromLastSubmit = [...MOCK_WIDGETS];
+
+    expect(store.widgetsWithChangedValues).toHaveLength(0);
+    expect(store.haveAnyValuesChanged).toBe(false);
+  });
+
   it("clears state with reset", async () => {
     const store = useYuppeeStore();
     await store.search("books");

@@ -51,8 +51,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
 
-    // TODO: Set refinements in flight
-
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
@@ -107,14 +105,18 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     await Promise.allSettled([serpRequest, refinementRequest]);
   }
 
-  const haveAnyValuesChanged = computed(() =>
-    widgets.value.some(
+  const widgetsWithChangedValues = computed(() =>
+    widgets.value.filter(
       (w) =>
         JSON.stringify(w.value) !==
         JSON.stringify(
           widgetsFromLastSubmit.value.find((b) => b.id === w.id)?.value,
         ),
     ),
+  );
+
+  const haveAnyValuesChanged = computed(
+    () => widgetsWithChangedValues.value.length > 0,
   );
 
   return {
@@ -130,6 +132,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     isLoadingWidgets,
     reset,
     search,
+    widgetsWithChangedValues,
     haveAnyValuesChanged,
   };
 });
