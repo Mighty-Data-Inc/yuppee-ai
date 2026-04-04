@@ -62,14 +62,6 @@ describe("search refinements handler", () => {
 
     const event = makeEvent({
       query: "best books about startup fundraising",
-      widgets: [
-        {
-          id: "language",
-          type: "dropdown",
-          label: "Language",
-          value: "en",
-        },
-      ],
     });
 
     const result = await handler(event as APIGatewayProxyEvent, mockContext);
@@ -86,14 +78,6 @@ describe("search refinements handler", () => {
     expect(body.widgets).toEqual([]);
     expect(inferSpy).toHaveBeenCalledWith({
       query: "best books about startup fundraising",
-      widgets: [
-        {
-          id: "language",
-          type: "dropdown",
-          label: "Language",
-          value: "en",
-        },
-      ],
     });
   });
 });

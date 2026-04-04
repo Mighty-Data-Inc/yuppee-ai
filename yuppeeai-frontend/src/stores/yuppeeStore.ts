@@ -62,7 +62,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
     const serpRequest = submitSERPQuery({
       query: q,
-      widgets: [],
       instructions: additionalInstructionPoints.value,
     })
       .then((searchResponse) => {
@@ -83,7 +82,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
     const refinementRequest = submitRefinementQuery({
       query: q,
-      widgets: [],
       instructions: additionalInstructionPoints.value,
     })
       .then((refinementResponse) => {
@@ -210,6 +208,12 @@ export const useYuppeeStore = defineStore("yuppee", () => {
       }
     }
 
+    if (newAdditionalInstruction.value.trim()) {
+      lines.push(
+        `Additional instruction: "${newAdditionalInstruction.value.trim()}"`,
+      );
+    }
+
     return lines;
   });
 
@@ -273,11 +277,19 @@ export const useYuppeeStore = defineStore("yuppee", () => {
       }
     }
 
+    if (newAdditionalInstruction.value.trim()) {
+      lines.push(
+        `Additional instruction: "${newAdditionalInstruction.value.trim()}"`,
+      );
+    }
+
     return lines;
   });
 
   const haveAnyValuesChanged = computed(
-    () => widgetsWithChangedValues.value.length > 0,
+    () =>
+      widgetsWithChangedValues.value.length > 0 ||
+      newAdditionalInstruction.value.trim() !== "",
   );
 
   return {

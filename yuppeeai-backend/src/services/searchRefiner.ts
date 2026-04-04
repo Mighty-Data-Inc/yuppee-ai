@@ -370,10 +370,6 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     convo.addDeveloperMessage(`The user will now show you their search query.`);
     convo.addUserMessage(request.query);
 
-    if (request.widgets && request.widgets.length > 0) {
-      // TODO: Figure out how to convey existing filters.
-    }
-
     const requestInstructions: string[] = request.instructions ?? [];
     if (requestInstructions.length > 0) {
       convo.push({

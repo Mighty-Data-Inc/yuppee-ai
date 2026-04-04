@@ -40,7 +40,6 @@ export interface RefinementWidget {
 
 export interface SERPRequest {
   query: string;
-  widgets?: RefinementWidget[];
   instructions?: string[];
 }
 
@@ -62,7 +61,6 @@ export interface Disambiguation {
 
 export interface RefinementRequest {
   query: string;
-  widgets?: RefinementWidget[];
   instructions?: string[];
 }
 

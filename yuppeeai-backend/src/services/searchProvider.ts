@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { SERPRequest, SERPResponse, RefinementWidget } from "../types";
+import type { SERPRequest, SERPResponse } from "../types";
 import { ResponseInput } from "openai/resources/responses/responses";
 
 interface SearchProviderConfig {
@@ -135,31 +135,6 @@ Do not return JSON yet; first reason through likely user intent and source selec
         content: `Search query:\n\n---\n\n${request.query}`,
       },
     ];
-
-    // Build instructions from widgets if they have values.
-    // Iterate through widgets array and add their filter values to the conversation.
-    const requestWidgets: RefinementWidget[] = request.widgets ?? [];
-    if (requestWidgets.length > 0) {
-      let sAllWidgetFilters = "";
-      for (const widget of requestWidgets) {
-        if (
-          !widget.value ||
-          (Array.isArray(widget.value) && widget.value.length === 0)
-        ) {
-          continue;
-        }
-        sAllWidgetFilters += `${widget.label}: ${JSON.stringify(widget.value)}\n`;
-      }
-      if (sAllWidgetFilters) {
-        convo.push({
-          role: "user",
-          content:
-            `I want the results filtered/specialized as follows:` +
-            `\n\n---\n\n` +
-            `${sAllWidgetFilters}`,
-        });
-      }
-    }
 
     const requestInstructions: string[] = request.instructions ?? [];
     if (requestInstructions.length > 0) {

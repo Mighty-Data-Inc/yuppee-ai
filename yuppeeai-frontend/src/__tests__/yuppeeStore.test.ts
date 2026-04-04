@@ -211,20 +211,22 @@ describe("yuppeeStore", () => {
     await store.search("books about history");
 
     expect(store.newAdditionalInstruction).toBe("");
-    expect(store.additionalInstructionPoints).toContain("published after 2000");
     expect(store.additionalInstructionPoints).toContain(
-      'Format: "Hardcover" -> "paperback"',
+      'Format: Specifically interested in "paperback"',
     );
 
     const calls = fetchMock.mock.calls as [string, { body: string }][];
     for (const [, options] of calls) {
       const body = JSON.parse(options.body) as {
-        widgets: RefinementWidget[];
         instructions: string[];
       };
-      expect(body.widgets).toEqual([]);
-      expect(body.instructions).toContain("published after 2000");
-      expect(body.instructions).toContain('Format: "Hardcover" -> "paperback"');
+      expect(body).not.toHaveProperty("widgets");
+      expect(body.instructions).toContain(
+        'Additional instruction: "published after 2000"',
+      );
+      expect(body.instructions).toContain(
+        'Format: Specifically interested in "paperback"',
+      );
     }
   });
 
@@ -388,6 +390,7 @@ describe("yuppeeStore", () => {
     expect(store.describeChangedWidgetValues).toEqual([
       'Format: Specifically interested in "Paperback"',
       "Date Range: Looking for values in the range 2015-2020",
+      'Additional instruction: "include peer-reviewed only"',
     ]);
   });
 

@@ -39,7 +39,6 @@ export const handler: LambdaHandler = async (event, _context) => {
     const response: RefinementResponse =
       await searchRefiner.inferSearchRefinements({
         query: request.query,
-        widgets: request.widgets,
         instructions: request.instructions,
       });
 

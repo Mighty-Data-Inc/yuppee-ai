@@ -3,7 +3,6 @@ import {
   submitSERPQuery,
   submitRefinementQuery,
 } from "@/services/searchService";
-import type { RefinementWidget } from "@yuppee-ai/contracts";
 
 const MOCK_RESULTS = [
   {
@@ -234,19 +233,10 @@ describe("searchService.search", () => {
     expect(response.results[0]).not.toHaveProperty("snippet");
   });
 
-  it("sends a POST request with query, widgets, and instructions to /search", async () => {
-    const widgets: RefinementWidget[] = [
-      {
-        id: "test-widget",
-        type: "dropdown",
-        label: "Genre",
-        value: "history",
-      },
-    ];
+  it("sends a POST request with query and instructions to /search", async () => {
     const instructions = ["written by a British author"];
     await submitSERPQuery({
       query: "books about history",
-      widgets,
       instructions,
     });
     const fetchMock = vi.mocked(fetch);
@@ -257,7 +247,7 @@ describe("searchService.search", () => {
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");
-    expect(body.widgets).toEqual(widgets);
+    expect(body).not.toHaveProperty("widgets");
     expect(body.instructions).toEqual(instructions);
   });
 
@@ -532,19 +522,10 @@ describe("searchService.submitRefinementQuery", () => {
     });
   });
 
-  it("sends a POST request with query, widgets, and instructions to /refine", async () => {
-    const widgets: RefinementWidget[] = [
-      {
-        id: "genre",
-        type: "dropdown",
-        label: "Genre",
-        value: "history",
-      },
-    ];
+  it("sends a POST request with query and instructions to /refine", async () => {
     const instructions = ["published after 2010"];
     await submitRefinementQuery({
       query: "books about history",
-      widgets,
       instructions,
     });
 
@@ -559,7 +540,7 @@ describe("searchService.submitRefinementQuery", () => {
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");
-    expect(body.widgets).toEqual(widgets);
+    expect(body).not.toHaveProperty("widgets");
     expect(body.instructions).toEqual(instructions);
   });
 
