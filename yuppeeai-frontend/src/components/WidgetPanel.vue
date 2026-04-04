@@ -36,7 +36,7 @@ const canSearchAgain = computed(() => {
   if (store.isLoadingWidgets) {
     return false;
   }
-  if (store.hasWidgetChanges) {
+  if (store.haveAnyValuesChanged) {
     return true;
   }
   if (store.newAdditionalInstruction.trim()) {

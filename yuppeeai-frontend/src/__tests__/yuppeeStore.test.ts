@@ -165,7 +165,48 @@ describe("yuppeeStore", () => {
     await pendingSearch;
   });
 
-  it("computes hasWidgetChanges from current values vs last submit", () => {
+  it("clears disambiguation when a search is submitted", () => {
+    const store = useYuppeeStore();
+    store.disambiguation = { message: "Did you mean…?", options: [] };
+    store.search("books about history");
+    expect(store.disambiguation).toBeNull();
+  });
+
+  it("clears disambiguation at the start of a repeated search", async () => {
+    const refinementDeferred = deferred<{
+      widgets: typeof MOCK_WIDGETS;
+      disambiguation: null;
+    }>();
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/refine")) {
+          return Promise.resolve({
+            ok: true,
+            json: () => refinementDeferred.promise,
+          });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({ results: MOCK_SEARCH_RESULTS, summary: "" }),
+        });
+      }),
+    );
+
+    const store = useYuppeeStore();
+    store.disambiguation = { message: "Did you mean…?", options: [] };
+    const pendingSearch = store.search("books about history");
+
+    expect(store.disambiguation).toBeNull();
+
+    refinementDeferred.resolve({ widgets: MOCK_WIDGETS, disambiguation: null });
+    await pendingSearch;
+  });
+
+  it("computes haveAnyValuesChanged from current values vs last submit", () => {
     const store = useYuppeeStore();
     store.widgets = [
       {
@@ -186,7 +227,7 @@ describe("yuppeeStore", () => {
       },
     ];
 
-    expect(store.hasWidgetChanges).toBe(true);
+    expect(store.haveAnyValuesChanged).toBe(true);
   });
 
   it("clears state with reset", async () => {

@@ -47,6 +47,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     }
 
     query.value = q;
+    disambiguation.value = null;
     isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
 
@@ -106,7 +107,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     await Promise.allSettled([serpRequest, refinementRequest]);
   }
 
-  const hasWidgetChanges = computed(() =>
+  const haveAnyValuesChanged = computed(() =>
     widgets.value.some(
       (w) =>
         JSON.stringify(w.value) !==
@@ -129,6 +130,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     isLoadingWidgets,
     reset,
     search,
-    hasWidgetChanges,
+    haveAnyValuesChanged,
   };
 });
