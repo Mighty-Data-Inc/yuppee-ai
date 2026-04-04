@@ -165,6 +165,58 @@ describe("yuppeeStore", () => {
     await pendingSearch;
   });
 
+  it("submits only changed widgets in the request payload", async () => {
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/refine")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({ widgets: MOCK_WIDGETS, disambiguation: "" }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () =>
+          Promise.resolve({ results: MOCK_SEARCH_RESULTS, summary: "" }),
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const store = useYuppeeStore();
+    const unchangedWidget: RefinementWidget = {
+      id: "date-range",
+      type: "slider",
+      label: "Date Range",
+      min: 2000,
+      max: 2024,
+      step: 1,
+      value: [2010, 2024],
+    };
+    const changedWidget: RefinementWidget = {
+      id: "format",
+      type: "dropdown",
+      label: "Format",
+      options: [{ label: "Hardcover", value: "hardcover" }],
+      value: "paperback",
+    };
+    store.query = "books about history";
+    store.widgets = [unchangedWidget, changedWidget];
+    store.widgetsFromLastSubmit = [
+      unchangedWidget,
+      { ...changedWidget, value: "hardcover" },
+    ];
+
+    await store.search("books about history");
+
+    const calls = fetchMock.mock.calls as [string, { body: string }][];
+    for (const [, options] of calls) {
+      const body = JSON.parse(options.body) as { widgets: RefinementWidget[] };
+      expect(body.widgets).toHaveLength(1);
+      expect(body.widgets[0].id).toBe("format");
+    }
+  });
+
   it("clears disambiguation when a search is submitted", () => {
     const store = useYuppeeStore();
     store.disambiguation = { message: "Did you mean…?", options: [] };

@@ -51,6 +51,9 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
 
+    const changedWidgets = widgetsWithChangedValues.value;
+    widgets.value = changedWidgets;
+
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
