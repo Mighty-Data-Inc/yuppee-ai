@@ -55,8 +55,18 @@ const canSearchAgain = computed(() => {
       <h2 class="widget-panel__title">Refine Your Search</h2>
     </div>
 
-    <div>
-    DISAMBIGUATION: {{ store.disambiguation }}
+    <div v-if="store.disambiguation" class="widget-panel__disambiguation">
+      <p class="widget-panel__disambiguation-presumed">{{ store.disambiguation.presumed.doYouMean }}</p>
+      <template v-if="store.disambiguation.alternatives.length">
+        <p class="widget-panel__disambiguation-also">Or do you mean...</p>
+        <ul class="widget-panel__disambiguation-alts">
+          <li v-for="alt in store.disambiguation.alternatives" :key="alt.query">
+            <button type="button" class="widget-panel__disambiguation-alt" @click="store.search(alt.query)">
+              {{ alt.doYouMean }}
+            </button>
+          </li>
+        </ul>
+      </template>
     </div>
 
     <!-- Loading state (initial load only) -->
@@ -313,6 +323,59 @@ const canSearchAgain = computed(() => {
   text-align: center;
   color: var(--color-text-muted);
   font-size: 0.9rem;
+}
+
+.widget-panel__disambiguation {
+  background: #f0f4ff;
+  border: 1px solid #c7d2fe;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.widget-panel__disambiguation-presumed {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-text);
+  line-height: 1.4;
+}
+
+.widget-panel__disambiguation-also {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.widget-panel__disambiguation-alts {
+  list-style: none;
+  margin: 0;
+  margin-left: 1ex;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.widget-panel__disambiguation-alt {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+.widget-panel__disambiguation-alt:hover {
+  text-decoration: underline;
+}
+
+.widget-panel__disambiguation-alt:hover {
+  color: var(--color-primary-dark);
 }
 
 /* Skeleton */

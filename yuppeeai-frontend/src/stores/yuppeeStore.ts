@@ -1,6 +1,10 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import type { SERPResult, RefinementWidget } from "@yuppee-ai/contracts";
+import type {
+  SERPResult,
+  RefinementWidget,
+  Disambiguation,
+} from "@yuppee-ai/contracts";
 import {
   submitSERPQuery,
   submitRefinementQuery,

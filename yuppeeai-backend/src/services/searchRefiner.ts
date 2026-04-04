@@ -333,7 +333,7 @@ The user will submit a search query.
 Your job will be to perform the following steps in response to this query:
 
 I. Disambiguate
-Determine whether or not this query uniquely specifies a topic, or if the wording might refer to radically different things. For example, if they query for "apple", do they mean the fruit, the computer company, or the record label? If the query is indeed ambiguous, then make an assumption to facilitate the rest of the query process.
+Determine whether or not this query uniquely specifies a topic, or if the wording might refer to radically different things. For example, if they query for "apple", do they mean the fruit, the computer company, or the record label? If the query is indeed ambiguous, then make an assumption about **one** particular meaning, to facilitate the rest of the query process.
 
 II. Mock Results
 Write a list of 10 sample results that might look like the kind of thing the SERP might produce in response to this query. Include only the titles; don't include URLs, snippets, or any other fancy fields. Just the titles will do.
