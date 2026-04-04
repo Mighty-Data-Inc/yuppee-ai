@@ -20,11 +20,6 @@ watch(() => store.query, (newQuery, oldQuery) => {
 
 async function handleSearchAgain() {
   if (!canSearchAgain.value) return
-  const trimmedInput = store.newAdditionalInstruction.trim()
-  if (trimmedInput) {
-    store.additionalInstructionPoints.push(trimmedInput)
-  }
-  store.newAdditionalInstruction = ''
   await store.search(store.query)
 }
 

@@ -50,16 +50,19 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     disambiguation.value = null;
     isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
+    newAdditionalInstruction.value = newAdditionalInstruction.value.trim();
 
-    const changedWidgets = widgetsWithChangedValues.value;
-    widgets.value = changedWidgets;
+    additionalInstructionPoints.value.push(
+      ...describeChangedWidgetValues.value,
+    );
+    newAdditionalInstruction.value = "";
 
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
     const serpRequest = submitSERPQuery({
       query: q,
-      widgets: widgets.value,
+      widgets: [],
       instructions: additionalInstructionPoints.value,
     })
       .then((searchResponse) => {
@@ -80,7 +83,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
     const refinementRequest = submitRefinementQuery({
       query: q,
-      widgets: widgets.value,
+      widgets: [],
       instructions: additionalInstructionPoints.value,
     })
       .then((refinementResponse) => {
@@ -207,11 +210,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
       }
     }
 
-    const trimmedInput = newAdditionalInstruction.value.trim();
-    if (trimmedInput) {
-      lines.push(`Adding additional instructions: "${trimmedInput}"`);
-    }
-
     return lines;
   });
 
@@ -227,15 +225,13 @@ export const useYuppeeStore = defineStore("yuppee", () => {
           currentWidgetValue;
 
         if (currentLabel) {
-          lines.push(`${widget.label}: Applying criterion "${currentLabel}"`);
-        } else {
-          lines.push(`${widget.label}: Removing criterion`);
+          lines.push(
+            `${widget.label}: Specifically interested in "${currentLabel}"`,
+          );
         }
       } else if (widget.type === "switch") {
         if (currentWidgetValue) {
           lines.push(`Applying criterion "${widget.label}"`);
-        } else {
-          lines.push(`Removing criterion "${widget.label}"`);
         }
       } else if (widget.type === "chipgroup") {
         const currentChips = Array.isArray(currentWidgetValue)
@@ -250,36 +246,31 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
         if (resolvedLabels.length) {
           lines.push(
-            `${widget.label}: Applying criteria "${resolvedLabels.join('", "')}"`,
+            `${widget.label} -- Looking for these criteria: "${resolvedLabels.join('", "')}"`,
           );
-        } else {
-          lines.push(`${widget.label}: Clearing criteria`);
         }
       } else if (widget.type === "slider") {
         const mode = widget.sliderMode ?? "range";
 
         if (mode === "exact") {
-          lines.push(`${widget.label}: Setting value to ${currentWidgetValue}`);
+          lines.push(
+            `${widget.label}: Looking specifically for the value ${currentWidgetValue}`,
+          );
         } else if (mode === "lte") {
           lines.push(
-            `${widget.label}: Setting upper bound to ${currentWidgetValue}`,
+            `${widget.label}: Looking for values less than or equal to ${currentWidgetValue}`,
           );
         } else if (mode === "gte") {
           lines.push(
-            `${widget.label}: Setting lower bound to ${currentWidgetValue}`,
+            `${widget.label}: Looking for values greater than or equal to ${currentWidgetValue}`,
           );
         } else if (mode === "range" && Array.isArray(currentWidgetValue)) {
           const [currLow, currHigh] = currentWidgetValue as [number, number];
           lines.push(
-            `${widget.label}: Setting range to ${currLow}-${currHigh}`,
+            `${widget.label}: Looking for values in the range ${currLow}-${currHigh}`,
           );
         }
       }
-    }
-
-    const trimmedInput = newAdditionalInstruction.value.trim();
-    if (trimmedInput) {
-      lines.push(`Adding additional instructions: "${trimmedInput}"`);
     }
 
     return lines;

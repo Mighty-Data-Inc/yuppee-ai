@@ -165,7 +165,7 @@ describe("yuppeeStore", () => {
     await pendingSearch;
   });
 
-  it("submits only changed widgets in the request payload", async () => {
+  it("submits no widgets and includes described changes in instructions", async () => {
     const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
       if (url.endsWith("/refine")) {
@@ -206,14 +206,25 @@ describe("yuppeeStore", () => {
       unchangedWidget,
       { ...changedWidget, value: "hardcover" },
     ];
+    store.newAdditionalInstruction = "published after 2000";
 
     await store.search("books about history");
 
+    expect(store.newAdditionalInstruction).toBe("");
+    expect(store.additionalInstructionPoints).toContain("published after 2000");
+    expect(store.additionalInstructionPoints).toContain(
+      'Format: "Hardcover" -> "paperback"',
+    );
+
     const calls = fetchMock.mock.calls as [string, { body: string }][];
     for (const [, options] of calls) {
-      const body = JSON.parse(options.body) as { widgets: RefinementWidget[] };
-      expect(body.widgets).toHaveLength(1);
-      expect(body.widgets[0].id).toBe("format");
+      const body = JSON.parse(options.body) as {
+        widgets: RefinementWidget[];
+        instructions: string[];
+      };
+      expect(body.widgets).toEqual([]);
+      expect(body.instructions).toContain("published after 2000");
+      expect(body.instructions).toContain('Format: "Hardcover" -> "paperback"');
     }
   });
 
@@ -375,9 +386,8 @@ describe("yuppeeStore", () => {
     store.newAdditionalInstruction = "include peer-reviewed only";
 
     expect(store.describeChangedWidgetValues).toEqual([
-      'Format: Applying criterion "Paperback"',
-      "Date Range: Setting range to 2015-2020",
-      'Adding additional instructions: "include peer-reviewed only"',
+      'Format: Specifically interested in "Paperback"',
+      "Date Range: Looking for values in the range 2015-2020",
     ]);
   });
 

@@ -77,7 +77,7 @@ describe("WidgetPanel loading behavior", () => {
     expect(store.newAdditionalInstruction).toBe("");
   });
 
-  it("appends typed instruction on Search Again and clears input", async () => {
+  it("delegates typed instruction handling to store.search", async () => {
     const store = useYuppeeStore();
     store.query = "crimean war books";
     store.widgets = [
@@ -101,8 +101,8 @@ describe("WidgetPanel loading behavior", () => {
     await wrapper.find(".freeform-stub").setValue("published after 2000");
     await wrapper.find(".widget-panel__btn").trigger("click");
 
-    expect(store.additionalInstructionPoints).toEqual(["published after 2000"]);
-    expect(store.newAdditionalInstruction).toBe("");
+    expect(store.additionalInstructionPoints).toEqual([]);
+    expect(store.newAdditionalInstruction).toBe("published after 2000");
     expect(searchSpy).toHaveBeenCalledWith("crimean war books");
   });
 
