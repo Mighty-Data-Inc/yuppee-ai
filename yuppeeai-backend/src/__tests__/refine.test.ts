@@ -50,7 +50,13 @@ describe("search refinements handler", () => {
       .spyOn(SearchRefiner.prototype, "inferSearchRefinements")
       .mockResolvedValue({
         query: "best books about startup fundraising",
-        disambiguation: "analysis",
+        disambiguation: {
+          presumed: {
+            doYouMean: "analysis",
+            query: "best books about startup fundraising analysis",
+          },
+          alternatives: [],
+        },
         widgets: [],
       });
 
@@ -70,7 +76,13 @@ describe("search refinements handler", () => {
 
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
-    expect(body.disambiguation).toBe("analysis");
+    expect(body.disambiguation).toEqual({
+      presumed: {
+        doYouMean: "analysis",
+        query: "best books about startup fundraising analysis",
+      },
+      alternatives: [],
+    });
     expect(body.widgets).toEqual([]);
     expect(inferSpy).toHaveBeenCalledWith({
       query: "best books about startup fundraising",
