@@ -334,6 +334,61 @@ describe("yuppeeStore", () => {
     expect(store.haveAnyValuesChanged).toBe(false);
   });
 
+  it("describes changed widget values using only new values", () => {
+    const store = useYuppeeStore();
+    store.widgets = [
+      {
+        id: "format",
+        type: "dropdown",
+        label: "Format",
+        options: [{ label: "Paperback", value: "paperback" }],
+        value: "paperback",
+      },
+      {
+        id: "date-range",
+        type: "slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2015, 2020],
+      },
+    ];
+    store.widgetsFromLastSubmit = [
+      {
+        id: "format",
+        type: "dropdown",
+        label: "Format",
+        options: [{ label: "Paperback", value: "paperback" }],
+        value: "hardcover",
+      },
+      {
+        id: "date-range",
+        type: "slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2010, 2024],
+      },
+    ];
+    store.newAdditionalInstruction = "include peer-reviewed only";
+
+    expect(store.describeChangedWidgetValues).toEqual([
+      'Format: Applying criterion "Paperback"',
+      "Date Range: Setting range to 2015-2020",
+      'Adding additional instructions: "include peer-reviewed only"',
+    ]);
+  });
+
+  it("describeChangedWidgetValues is empty when there are no changes", () => {
+    const store = useYuppeeStore();
+    store.widgets = [...MOCK_WIDGETS];
+    store.widgetsFromLastSubmit = [...MOCK_WIDGETS];
+
+    expect(store.describeChangedWidgetValues).toEqual([]);
+  });
+
   it("clears state with reset", async () => {
     const store = useYuppeeStore();
     await store.search("books");

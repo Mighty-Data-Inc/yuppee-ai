@@ -118,6 +118,173 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     ),
   );
 
+  const describeWidgetChanges = computed((): string[] => {
+    const lines: string[] = [];
+    for (const widget of widgetsWithChangedValues.value) {
+      const previousWidgetValue = widgetsFromLastSubmit.value.find(
+        (w) => w.id === widget.id,
+      )?.value;
+      const currentWidgetValue = widget.value;
+
+      if (widget.type === "dropdown") {
+        // Map stored values to display labels, falling back to raw values.
+        const toLabel = (v: any) =>
+          widget.options?.find((o) => o.value === v)?.label ?? v;
+        const previousLabel = toLabel(previousWidgetValue);
+        const currentLabel = toLabel(currentWidgetValue);
+
+        if (!previousLabel) {
+          lines.push(`${widget.label}: Applying criterion "${currentLabel}"`);
+        } else if (!currentLabel) {
+          lines.push(`${widget.label}: Removing criterion "${previousLabel}"`);
+        } else {
+          lines.push(
+            `${widget.label}: "${previousLabel}" -> "${currentLabel}"`,
+          );
+        }
+      } else if (widget.type === "switch") {
+        if (currentWidgetValue) {
+          lines.push(`Applying criterion "${widget.label}"`);
+        } else {
+          lines.push(`Removing criterion "${widget.label}"`);
+        }
+      } else if (widget.type === "chipgroup") {
+        const asStringArray = (value: unknown): string[] =>
+          Array.isArray(value)
+            ? value.filter((item): item is string => typeof item === "string")
+            : [];
+        const previousChips = asStringArray(previousWidgetValue);
+        const currentChips = asStringArray(currentWidgetValue);
+        const resolveChipLabel = (value: string) =>
+          widget.options?.find((o) => o.value === value)?.label ?? value;
+        const added = currentChips
+          .filter((v) => !previousChips.includes(v))
+          .map(resolveChipLabel);
+        const removed = previousChips
+          .filter((v) => !currentChips.includes(v))
+          .map(resolveChipLabel);
+
+        if (added.length) {
+          lines.push(`${widget.label}: Adding "${added.join('", "')}"`);
+        }
+        if (removed.length) {
+          lines.push(`${widget.label}: Removing "${removed.join('", "')}"`);
+        }
+      } else if (widget.type === "slider") {
+        const mode = widget.sliderMode ?? "range";
+        if (mode === "exact") {
+          lines.push(
+            `${widget.label}: Changing value from ${previousWidgetValue} to ${currentWidgetValue}`,
+          );
+        } else if (mode === "lte") {
+          lines.push(
+            `${widget.label}: Changing upper bound from ${previousWidgetValue} to ${currentWidgetValue}`,
+          );
+        } else if (mode === "gte") {
+          lines.push(
+            `${widget.label}: Changing lower bound from ${previousWidgetValue} to ${currentWidgetValue}`,
+          );
+        } else if (mode === "range") {
+          if (
+            Array.isArray(previousWidgetValue) &&
+            Array.isArray(currentWidgetValue)
+          ) {
+            const [prevLow, prevHigh] = previousWidgetValue as [number, number];
+            const [currLow, currHigh] = currentWidgetValue as [number, number];
+
+            if (prevLow !== currLow) {
+              lines.push(
+                `${widget.label}: Changing lower bound from ${prevLow} to ${currLow}`,
+              );
+            }
+            if (prevHigh !== currHigh) {
+              lines.push(
+                `${widget.label}: Changing upper bound from ${prevHigh} to ${currHigh}`,
+              );
+            }
+          }
+        }
+      }
+    }
+
+    const trimmedInput = newAdditionalInstruction.value.trim();
+    if (trimmedInput) {
+      lines.push(`Adding additional instructions: "${trimmedInput}"`);
+    }
+
+    return lines;
+  });
+
+  const describeChangedWidgetValues = computed((): string[] => {
+    const lines: string[] = [];
+
+    for (const widget of widgetsWithChangedValues.value) {
+      const currentWidgetValue = widget.value;
+
+      if (widget.type === "dropdown") {
+        const currentLabel =
+          widget.options?.find((o) => o.value === currentWidgetValue)?.label ??
+          currentWidgetValue;
+
+        if (currentLabel) {
+          lines.push(`${widget.label}: Applying criterion "${currentLabel}"`);
+        } else {
+          lines.push(`${widget.label}: Removing criterion`);
+        }
+      } else if (widget.type === "switch") {
+        if (currentWidgetValue) {
+          lines.push(`Applying criterion "${widget.label}"`);
+        } else {
+          lines.push(`Removing criterion "${widget.label}"`);
+        }
+      } else if (widget.type === "chipgroup") {
+        const currentChips = Array.isArray(currentWidgetValue)
+          ? currentWidgetValue.filter(
+              (item): item is string => typeof item === "string",
+            )
+          : [];
+        const resolvedLabels = currentChips.map(
+          (value) =>
+            widget.options?.find((o) => o.value === value)?.label ?? value,
+        );
+
+        if (resolvedLabels.length) {
+          lines.push(
+            `${widget.label}: Applying criteria "${resolvedLabels.join('", "')}"`,
+          );
+        } else {
+          lines.push(`${widget.label}: Clearing criteria`);
+        }
+      } else if (widget.type === "slider") {
+        const mode = widget.sliderMode ?? "range";
+
+        if (mode === "exact") {
+          lines.push(`${widget.label}: Setting value to ${currentWidgetValue}`);
+        } else if (mode === "lte") {
+          lines.push(
+            `${widget.label}: Setting upper bound to ${currentWidgetValue}`,
+          );
+        } else if (mode === "gte") {
+          lines.push(
+            `${widget.label}: Setting lower bound to ${currentWidgetValue}`,
+          );
+        } else if (mode === "range" && Array.isArray(currentWidgetValue)) {
+          const [currLow, currHigh] = currentWidgetValue as [number, number];
+          lines.push(
+            `${widget.label}: Setting range to ${currLow}-${currHigh}`,
+          );
+        }
+      }
+    }
+
+    const trimmedInput = newAdditionalInstruction.value.trim();
+    if (trimmedInput) {
+      lines.push(`Adding additional instructions: "${trimmedInput}"`);
+    }
+
+    return lines;
+  });
+
   const haveAnyValuesChanged = computed(
     () => widgetsWithChangedValues.value.length > 0,
   );
@@ -136,6 +303,8 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     reset,
     search,
     widgetsWithChangedValues,
+    describeWidgetChanges,
+    describeChangedWidgetValues,
     haveAnyValuesChanged,
   };
 });
