@@ -57,6 +57,11 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     );
     newAdditionalInstruction.value = "";
 
+    // Now that we've transcribed the widget changes into additional instructions,
+    // we can clear out our widget memory.
+    widgets.value = [];
+    widgetsFromLastSubmit.value = [];
+
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
