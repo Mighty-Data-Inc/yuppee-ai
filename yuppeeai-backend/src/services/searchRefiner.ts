@@ -118,9 +118,11 @@ const WIDGET_JSON_SCHEMA = {
                       `Discuss whether this slider is meant to be a filter or a quiz. ` +
                       `That is, is the user selecting a value or range that they want to filter results by? ` +
                       `Or are they selecting a value or range that they think is the correct answer to a ` +
-                      `question implied by the search query? For example, if the search query is "Battle of Hastings", ` +
-                      `then a slider asking "Casualty count" would be a **quiz**, because there exists an objectively ` +
-                      `correct answer and the slider wants the user to select it. On the other hand, if the search query is "Best restaurants in New York", then a slider asking "Maximum price level" would be a **filter**, because there is no single objectively correct answer, and the user is selecting their preference for filtering the results.`,
+                      `question implied by the search query? For example, imagine the search query is ` +
+                      `"Restaurants in Hell's Kitchen". Then a slider called "Number of Restaurants" would ` +
+                      `be a **quiz**, because it's asking the user to guess the correct number of restaurants. ` +
+                      `But a slider called "Maximum Price Level" would be a **filter**, because it's asking the ` +
+                      `user to specify a criterion that they want their search results to meet.`,
                   },
                   is_filter_or_quiz: {
                     type: "string",
