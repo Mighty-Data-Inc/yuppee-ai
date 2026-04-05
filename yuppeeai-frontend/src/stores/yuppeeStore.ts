@@ -10,6 +10,7 @@ import {
   submitRefinementQuery,
 } from "@/services/searchService";
 import { showError } from "@/services/errorService";
+import { queryRefinementCacheService } from "@/services/queryRefinementCacheService";
 
 export const useYuppeeStore = defineStore("yuppee", () => {
   const query = ref("");
@@ -60,6 +61,8 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
+    queryRefinementCacheService.save(q, additionalInstructionPoints.value);
+
     const serpRequest = submitSERPQuery({
       query: q,
       instructions: additionalInstructionPoints.value,
@@ -95,6 +98,12 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         widgetsFromLastSubmit.value = JSON.parse(
           JSON.stringify(refinementResponse.widgets),
         );
+
+        if (isNewQuery) {
+          // Load any additional instructions that we had saved for this query in the past.
+          additionalInstructionPoints.value =
+            queryRefinementCacheService.load(q) ?? [];
+        }
 
         // If this wasn't a new query, we don't want to see the disambiguation anymore.
         if (!isNewQuery) {
