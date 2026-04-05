@@ -91,11 +91,12 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     })
       .then((refinementResponse) => {
         disambiguation.value = refinementResponse.disambiguation ?? null;
-        console.log("DISAMBIGUATION", disambiguation.value);
-
         widgets.value = refinementResponse.widgets;
-        // TODO: Handle preserving filters
-        // TODO: Handle disambiguation
+
+        // If this wasn't a new query, we don't want to see the disambiguation.
+        if (!isNewQuery) {
+          disambiguation.value = null;
+        }
       })
       .catch((e) => {
         console.error(e);

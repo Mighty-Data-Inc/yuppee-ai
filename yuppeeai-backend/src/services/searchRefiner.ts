@@ -112,12 +112,28 @@ const WIDGET_JSON_SCHEMA = {
                   value_max: { type: "number" },
                   user_selects_lowest_value_of_range: { type: "boolean" },
                   user_selects_highest_value_of_range: { type: "boolean" },
+                  discuss_is_filter_or_quiz: {
+                    type: "string",
+                    description:
+                      `Discuss whether this slider is meant to be a filter or a quiz. ` +
+                      `That is, is the user selecting a value or range that they want to filter results by? ` +
+                      `Or are they selecting a value or range that they think is the correct answer to a ` +
+                      `question implied by the search query? For example, if the search query is "Battle of Hastings", ` +
+                      `then a slider asking "Casualty count" would be a **quiz**, because there exists an objectively ` +
+                      `correct answer and the slider wants the user to select it. On the other hand, if the search query is "Best restaurants in New York", then a slider asking "Maximum price level" would be a **filter**, because there is no single objectively correct answer, and the user is selecting their preference for filtering the results.`,
+                  },
+                  is_filter_or_quiz: {
+                    type: "string",
+                    enum: ["filter", "quiz"],
+                  },
                 },
                 required: [
                   "value_min",
                   "value_max",
                   "user_selects_lowest_value_of_range",
                   "user_selects_highest_value_of_range",
+                  "discuss_is_filter_or_quiz",
+                  "is_filter_or_quiz",
                 ],
                 additionalProperties: false,
               },
@@ -271,6 +287,10 @@ export const normalizeWidgetObjectFromLLM = (
     widget.dropdownPlaceholder =
       llmWidgetObj.widget_params.choices_concat_abbrev;
   } else if (llmWidgetObj.widget_type === "slider") {
+    if (llmWidgetObj.widget_params.is_filter_or_quiz === "quiz") {
+      return null;
+    }
+
     widget.min = llmWidgetObj.widget_params.value_min || 0;
     widget.max = llmWidgetObj.widget_params.value_max || 0;
     widget.value = widget.min || 0;
