@@ -57,11 +57,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     );
     newAdditionalInstruction.value = "";
 
-    // Now that we've transcribed the widget changes into additional instructions,
-    // we can clear out our widget memory.
-    widgets.value = [];
-    widgetsFromLastSubmit.value = [];
-
     // TODO (low priority): Record the timestamp when the last query went out.
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
@@ -91,9 +86,17 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     })
       .then((refinementResponse) => {
         disambiguation.value = refinementResponse.disambiguation ?? null;
-        widgets.value = refinementResponse.widgets;
 
-        // If this wasn't a new query, we don't want to see the disambiguation.
+        // Both the "live" widgets and the snapshot of widgets from the "last" submit
+        // (i.e. the submit that just happened) should be updated together, so that
+        // they stay in sync and the user can see which values have changed since the last submit.
+        // We'll make them both be deep clones so that they're initially symmetrical.
+        widgets.value = JSON.parse(JSON.stringify(refinementResponse.widgets));
+        widgetsFromLastSubmit.value = JSON.parse(
+          JSON.stringify(refinementResponse.widgets),
+        );
+
+        // If this wasn't a new query, we don't want to see the disambiguation anymore.
         if (!isNewQuery) {
           disambiguation.value = null;
         }
@@ -256,7 +259,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
         if (resolvedLabels.length) {
           lines.push(
-            `${widget.label} -- Looking for these criteria: "${resolvedLabels.join('", "')}"`,
+            `${widget.label} &mdash; Looking for these criteria: "${resolvedLabels.join('", "')}"`,
           );
         }
       } else if (widget.type === "slider") {

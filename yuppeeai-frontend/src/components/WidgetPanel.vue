@@ -75,7 +75,7 @@ const canSearchAgain = computed(() => {
 
     <!-- Widgets -->
     <template v-else-if="store.widgets.length > 0">
-      <div class="widget-panel__widgets">
+      <div class="widget-panel__widgets" v-if="!store.isLoadingWidgets">
         <template v-for="widget in store.widgets" :key="widget.id">
           <RangeSliderWidget
             v-if="widget.type === 'slider'"

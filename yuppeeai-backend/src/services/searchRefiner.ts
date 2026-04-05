@@ -215,7 +215,8 @@ const WIDGET_JSON_SCHEMA = {
                 type: "boolean",
                 description:
                   `Indicates whether this widget should be hidden based on the current search query. ` +
-                  `Set this to true if the widget is not relevant for the current query.`,
+                  `Set this to true if the widget is not relevant for the current query, or if it doesn't ` +
+                  `make sense in the current context.`,
               },
               discuss_how_widget_is_redundant_with_other_widgets: {
                 type: "string",
@@ -225,6 +226,15 @@ const WIDGET_JSON_SCHEMA = {
                   `describe the redundancy. For example, if this is a switch widget that filters results by ` +
                   `some kind of status, and there is already a drop-down that selects this same status, ` +
                   `then this widget is redundant and unnecessary.`,
+              },
+              discuss_how_widget_is_redundant_with_existing_instructions: {
+                type: "string",
+                description:
+                  `Talk about how this widget might be redundant with existing instructions in the current search context. ` +
+                  `If there are instructions that provide similar functionality or overlap in purpose, ` +
+                  `describe the redundancy. For example, if this is a switch widget that filters results by ` +
+                  `some kind of status, and there is already an explicit additional instruction that specifies that ` +
+                  `the results should be filtered by this same status, then this widget is redundant and unnecessary.`,
               },
               is_widget_redundant: {
                 type: "boolean",
@@ -238,6 +248,7 @@ const WIDGET_JSON_SCHEMA = {
               "does_selecting_this_value_make_sense_for_this_search_query",
               "should_we_hide_this_widget_based_on_the_current_search_query",
               "discuss_how_widget_is_redundant_with_other_widgets",
+              "discuss_how_widget_is_redundant_with_existing_instructions",
               "is_widget_redundant",
             ],
             additionalProperties: false,
@@ -278,7 +289,8 @@ export const normalizeWidgetObjectFromLLM = (
   };
 
   if (llmWidgetObj.widget_type === "switch") {
-    widget.label = llmWidgetObj.widget_params.label_for_switch_on;
+    widget.label =
+      llmWidgetObj.widget_params.label_for_switch_on || widget.label;
     widget.value = false;
   } else if (llmWidgetObj.widget_type === "checkboxes") {
     widget.type = "chipgroup";
@@ -317,11 +329,15 @@ export const normalizeWidgetObjectFromLLM = (
         label: llmChoice.choice_ui_label,
         value: llmChoice.choice_variable_value,
       };
-      widget.options?.push(choice);
+      widget.options!.push(choice);
     }
 
     if (widget.type === "dropdown") {
       widget.value = "";
+    }
+
+    if (!widget.options || widget.options.length === 0) {
+      return null;
     }
   }
 
@@ -397,7 +413,12 @@ Do this query's search results lend themselves to any kind of filtration by a nu
       convo.push({
         role: "user",
         content:
-          `Also, the SERP is influenced by the following additional special instructions:` +
+          `Also, I've specifically provided the following additional special instructions. ` +
+          `I want you to make sure that any reasoning you do and any widgets you generate ` +
+          `take these instructions into consideration. !IMPORTANT: Do *not* define criteria ` +
+          `or numerical ranges that have already been covered by these additional instructions. ` +
+          `For example, if an instruction says, "Only show me results from the last 5 years", then you should NOT create a slider for "Publication Date" with a range that includes the last 5 years, because that would be redundant and unnecessary. ` +
+          `Or, if an instruction says, "Only show me results about the Beatles' music", then you should NOT create a category for "Topic" with a subcategory for "Beatles music", because that would also be redundant and unnecessary. ` +
           `\n\n---\n\n` +
           `${requestInstructions.join("\n")}`,
       });
