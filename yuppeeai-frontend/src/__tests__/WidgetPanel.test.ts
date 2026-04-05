@@ -24,7 +24,7 @@ describe("WidgetPanel loading behavior", () => {
     setActivePinia(createPinia());
   });
 
-  it("keeps existing widgets visible while loading", () => {
+  it("hides existing widgets while loading", () => {
     const store = useYuppeeStore();
     store.widgets = [
       {
@@ -43,7 +43,7 @@ describe("WidgetPanel loading behavior", () => {
       global: { stubs: globalStubs },
     });
 
-    expect(wrapper.find(".slider-stub").exists()).toBe(true);
+    expect(wrapper.find(".slider-stub").exists()).toBe(false);
     expect(wrapper.find(".widget-skeleton").exists()).toBe(false);
   });
 
