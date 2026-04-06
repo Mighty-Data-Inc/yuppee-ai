@@ -5,6 +5,7 @@ import { useYuppeeStore } from '@/stores/yuppeeStore'
 import SearchBar from '@/components/SearchBar.vue'
 import SearchResults from '@/components/SearchResults.vue'
 import WidgetPanel from '@/components/WidgetPanel.vue'
+import UserProfile from '@/components/UserProfile.vue'
 
 const route = useRoute()
 const store = useYuppeeStore()
@@ -35,6 +36,10 @@ async function submitSearch(q?: string | null | Array<string | null>) {
 
       <div class="search-header__bar">
         <SearchBar :compact="true" />
+      </div>
+
+      <div class="search-header__profile">
+        <UserProfile />
       </div>
     </header>
 
@@ -99,6 +104,12 @@ async function submitSearch(q?: string | null | Array<string | null>) {
 .search-header__bar {
   flex: 1;
   max-width: 600px;
+}
+
+.search-header__profile {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .search-layout {

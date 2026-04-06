@@ -17,6 +17,7 @@
     "@aws-sdk/lib-dynamodb": "^3.400.0",
     "@mightydatainc/llm-conversation": "^1.0.6",
     "dotenv": "^17.3.1",
+    "firebase-admin": "^12.0.0",
     "openai": "^6.32.0"
   },
   "devDependencies": {

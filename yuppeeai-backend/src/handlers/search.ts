@@ -1,14 +1,25 @@
 import type { APIGatewayProxyResult } from "aws-lambda";
 import type { LambdaHandler, SERPRequest } from "../types";
 import { SearchProvider } from "../services/searchProvider";
+import {
+  requireAuth,
+  initializeFirebaseAdmin,
+} from "../middleware/authMiddleware";
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/json",
 };
 
+// Initialize Firebase Admin on module load
+initializeFirebaseAdmin();
+
 export const handler: LambdaHandler = async (event, _context) => {
   try {
+    // Require authentication
+    const decodedToken = await requireAuth(event);
+    console.log(`Authenticated user: ${decodedToken.uid}`);
+
     let request: Partial<SERPRequest> = {};
 
     if (event.body) {
@@ -43,9 +54,10 @@ export const handler: LambdaHandler = async (event, _context) => {
       body: JSON.stringify(response),
     };
   } catch (err) {
+    const statusCode = (err as any).statusCode || 500;
     const message =
       err instanceof Error ? err.message : "Internal server error";
-    return errorResponse(500, message);
+    return errorResponse(statusCode, message);
   }
 };
 

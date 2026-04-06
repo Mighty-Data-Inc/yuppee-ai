@@ -2,6 +2,8 @@
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useYuppeeStore } from '@/stores/yuppeeStore'
+import { useAuthStore } from '@/stores/authStore'
+import LoginModal from './LoginModal.vue'
 
 const props = withDefaults(defineProps<{
   compact?: boolean
@@ -11,24 +13,41 @@ const props = withDefaults(defineProps<{
 
 const route = useRoute()
 const router = useRouter()
-const store = useYuppeeStore()
+const yuppeeStore = useYuppeeStore()
+const authStore = useAuthStore()
 
 // Local draft text for the input. This lets users type without mutating
 // the global query on every keystroke.
-const inputValue = ref(store.query)
+const inputValue = ref(yuppeeStore.query)
+const loginModalOpen = ref(false)
+const pendingQuery = ref<string | null>(null)
 
 // Keep the input in sync when the committed query changes elsewhere
 // (route navigation, programmatic search, etc.).
-watch(() => store.query, (val) => {
+watch(() => yuppeeStore.query, (val) => {
   inputValue.value = val
+})
+
+// Watch for auth errors and show login modal
+watch(() => yuppeeStore.authError, (val) => {
+  if (val) {
+    loginModalOpen.value = true
+  }
 })
 
 async function submitSearch() {
   const q = inputValue.value.trim()
   if (!q) return
 
+  // Check if user is authenticated
+  if (!authStore.isAuthenticated) {
+    pendingQuery.value = q
+    loginModalOpen.value = true
+    return
+  }
+
   if (route.name === 'search' && route.query.q === q) {
-    await store.search(q)
+    await yuppeeStore.search(q)
     return
   }
 
@@ -43,11 +62,33 @@ function handleKeydown(e: KeyboardEvent) {
 
 async function clearSearch() {
   inputValue.value = ''
-  store.reset()
+  yuppeeStore.reset()
 
   const url = new URL(window.location.href)
   url.searchParams.delete('q')
   window.history.replaceState({}, '', url)  
+}
+
+function handleLoginModalClose() {
+  loginModalOpen.value = false
+  pendingQuery.value = null
+}
+
+async function handleLoginSuccess() {
+  loginModalOpen.value = false
+  
+  // Continue with the pending search if there was one
+  if (pendingQuery.value) {
+    const q = pendingQuery.value
+    pendingQuery.value = null
+    
+    if (route.name === 'search' && route.query.q === q) {
+      await yuppeeStore.search(q)
+      return
+    }
+    
+    await router.push({ name: 'search', query: { q } })
+  }
 }
 </script>
 
@@ -83,6 +124,11 @@ async function clearSearch() {
     <button class="search-bar__btn" type="button" @click="submitSearch">
       Search
     </button>
+    <LoginModal
+      :isOpen="loginModalOpen"
+      @close="handleLoginModalClose"
+      @authenticated="handleLoginSuccess"
+    />
   </div>
 </template>
 

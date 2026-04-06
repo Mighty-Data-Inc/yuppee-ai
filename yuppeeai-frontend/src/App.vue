@@ -1,5 +1,25 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import ErrorStack from "@/components/ErrorStack.vue";
+import { initializeAuth } from "@/services/authService";
+import { useAuthStore } from "@/stores/authStore";
+
+const authStore = useAuthStore();
+
+onMounted(() => {
+  // Initialize Firebase auth
+  initializeAuth({
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY as string,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN as string,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID as string,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID as string,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID as string,
+  });
+
+  // Initialize auth listener
+  authStore.initializeAuthListener();
+  authStore.hydrateFromCurrentUser();
+});
 </script>
 
 <template>

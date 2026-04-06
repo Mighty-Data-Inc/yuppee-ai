@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import SearchBar from '@/components/SearchBar.vue'
+import UserProfile from '@/components/UserProfile.vue'
 
 const router = useRouter()
 
@@ -15,6 +16,10 @@ function submitSearch(q: string) {
 
 <template>
   <main class="home">
+    <div class="home__profile">
+      <UserProfile />
+    </div>
+
     <div class="home__content">
       <div class="home__logo">
         <img class="home__logo-icon" src="/favicon.svg" alt="Yuppee.AI logo" />
@@ -49,6 +54,13 @@ function submitSearch(q: string) {
   justify-content: center;
   padding: 2rem;
   background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
+  position: relative;
+}
+
+.home__profile {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
 }
 
 .home__content {

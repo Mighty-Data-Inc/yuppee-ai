@@ -69,3 +69,14 @@ export interface RefinementResponse {
   widgets: RefinementWidget[];
   disambiguation?: Disambiguation;
 }
+
+export interface AuthenticatedRequest {
+  authToken?: string;
+}
+
+export interface UserInfo {
+  uid: string;
+  email?: string;
+  displayName?: string;
+  photoURL?: string;
+}

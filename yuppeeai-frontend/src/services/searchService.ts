@@ -4,9 +4,21 @@ import type {
   RefinementRequest,
   RefinementResponse,
 } from "@yuppee-ai/contracts";
+import { useAuthStore } from "@/stores/authStore";
 
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
+
+function getAuthHeaders(): Record<string, string> {
+  const authStore = useAuthStore();
+  const headers: Record<string, string> = {};
+
+  if (authStore.authToken) {
+    headers["Authorization"] = `Bearer ${authStore.authToken}`;
+  }
+
+  return headers;
+}
 
 export async function submitSERPQuery(
   serpRequest: SERPRequest,
@@ -15,9 +27,19 @@ export async function submitSERPQuery(
 
   const response = await fetch(`${API_BASE_URL}/search`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify(serpRequest),
   });
+
+  if (response.status === 401 || response.status === 403) {
+    const error = new Error("Unauthorized");
+    (error as any).statusCode = response.status;
+    throw error;
+  }
+
   if (!response.ok) {
     console.error("[SERP] /search failed", {
       status: response.status,
@@ -40,9 +62,19 @@ export async function submitRefinementQuery(
 
   const response = await fetch(`${API_BASE_URL}/refine`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify(refinementRequest),
   });
+
+  if (response.status === 401 || response.status === 403) {
+    const error = new Error("Unauthorized");
+    (error as any).statusCode = response.status;
+    throw error;
+  }
+
   if (!response.ok) {
     throw new Error(`Refinements request failed: ${response.status}`);
   }

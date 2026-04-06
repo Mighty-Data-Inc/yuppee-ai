@@ -27,6 +27,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
   const isLoadingSERP = ref(false);
   const isLoadingWidgets = ref(false);
+  const authError = ref<string | null>(null);
 
   function reset() {
     query.value = "";
@@ -70,12 +71,18 @@ export const useYuppeeStore = defineStore("yuppee", () => {
       .then((searchResponse) => {
         serpResults.value = searchResponse.results;
         serpSummary.value = searchResponse.summary ?? "";
+        authError.value = null;
       })
       .catch((e) => {
         console.error(e);
-        showError(
-          e instanceof Error ? e.message : "An error occurred during search",
-        );
+        if ((e as any).statusCode === 401 || (e as any).statusCode === 403) {
+          authError.value =
+            "You must be signed in to search. Please sign in and try again.";
+        } else {
+          showError(
+            e instanceof Error ? e.message : "An error occurred during search",
+          );
+        }
         serpResults.value = [];
         serpSummary.value = "";
       })
@@ -112,11 +119,16 @@ export const useYuppeeStore = defineStore("yuppee", () => {
       })
       .catch((e) => {
         console.error(e);
-        showError(
-          e instanceof Error
-            ? e.message
-            : "An error occurred while loading refinements",
-        );
+        if ((e as any).statusCode === 401 || (e as any).statusCode === 403) {
+          authError.value =
+            "You must be signed in to search. Please sign in and try again.";
+        } else {
+          showError(
+            e instanceof Error
+              ? e.message
+              : "An error occurred while loading refinements",
+          );
+        }
         widgets.value = [];
       })
       .finally(() => {
@@ -321,6 +333,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     additionalInstructionPoints,
     isLoadingSERP,
     isLoadingWidgets,
+    authError,
     reset,
     search,
     widgetsWithChangedValues,
