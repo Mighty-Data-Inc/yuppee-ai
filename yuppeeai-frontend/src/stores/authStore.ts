@@ -15,6 +15,11 @@ export const useAuthStore = defineStore("auth", () => {
   const authToken = ref<string | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+  const hasResolvedInitialAuthState = ref(false);
+  let resolveInitialAuthState: (() => void) | null = null;
+  const initialAuthStatePromise = new Promise<void>((resolve) => {
+    resolveInitialAuthState = resolve;
+  });
 
   const isAuthenticated = computed(() => user.value !== null);
   const userEmail = computed(() => user.value?.email ?? null);
@@ -34,7 +39,20 @@ export const useAuthStore = defineStore("auth", () => {
       } else {
         authToken.value = null;
       }
+
+      if (!hasResolvedInitialAuthState.value) {
+        hasResolvedInitialAuthState.value = true;
+        resolveInitialAuthState?.();
+      }
     });
+  }
+
+  async function waitForInitialAuthState(): Promise<void> {
+    if (hasResolvedInitialAuthState.value) {
+      return;
+    }
+
+    await initialAuthStatePromise;
   }
 
   async function loginWithGoogle(): Promise<void> {
@@ -104,5 +122,6 @@ export const useAuthStore = defineStore("auth", () => {
     loginWithFacebook,
     logout,
     hydrateFromCurrentUser,
+    waitForInitialAuthState,
   };
 });

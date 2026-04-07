@@ -5,6 +5,7 @@ import type {
   RefinementResponse,
 } from "@yuppee-ai/contracts";
 import { useAuthStore } from "@/stores/authStore";
+import { getAuthToken, getCurrentUser } from "@/services/authService";
 
 export interface InflightMessageResponse {
   query: string;
@@ -14,12 +15,34 @@ export interface InflightMessageResponse {
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
-function getAuthHeaders(): Record<string, string> {
+async function getAuthHeaders(): Promise<Record<string, string>> {
   const authStore = useAuthStore();
   const headers: Record<string, string> = {};
 
-  if (authStore.authToken) {
-    headers["Authorization"] = `Bearer ${authStore.authToken}`;
+  let token = authStore.authToken;
+
+  // After a hard refresh, Firebase may restore `currentUser` before the store's
+  // auth listener has finished hydrating `authToken`. Recover it lazily here.
+  const hasCurrentUser = (() => {
+    try {
+      return !!getCurrentUser();
+    } catch {
+      return false;
+    }
+  })();
+
+  if (!token && (authStore.isAuthenticated || hasCurrentUser)) {
+    try {
+      token = await getAuthToken();
+      authStore.authToken = token;
+    } catch (error) {
+      console.warn("[Auth] Failed to hydrate auth token for request", error);
+      token = null;
+    }
+  }
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   return headers;
@@ -34,7 +57,7 @@ export async function submitSERPQuery(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...getAuthHeaders(),
+      ...(await getAuthHeaders()),
     },
     body: JSON.stringify(serpRequest),
   });
@@ -69,7 +92,7 @@ export async function submitRefinementQuery(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...getAuthHeaders(),
+      ...(await getAuthHeaders()),
     },
     body: JSON.stringify(refinementRequest),
   });
@@ -104,7 +127,7 @@ export async function submitInflightMessageQuery(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...getAuthHeaders(),
+      ...(await getAuthHeaders()),
     },
     body: JSON.stringify(request),
   });

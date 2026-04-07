@@ -2,6 +2,7 @@
 import { watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useYuppeeStore } from '@/stores/yuppeeStore'
+import { useAuthStore } from '@/stores/authStore'
 import SearchBar from '@/components/SearchBar.vue'
 import SearchResults from '@/components/SearchResults.vue'
 import WidgetPanel from '@/components/WidgetPanel.vue'
@@ -9,6 +10,7 @@ import UserProfile from '@/components/UserProfile.vue'
 
 const route = useRoute()
 const store = useYuppeeStore()
+const authStore = useAuthStore()
 
 onMounted(() => {
   void submitSearch(route.query.q)
@@ -21,6 +23,8 @@ async function submitSearch(q?: string | null | Array<string | null>) {
   const firstValue = Array.isArray(q) ? (q[0] ?? "") : (q ?? "")
   const query = firstValue.trim()
   if (!query) { store.reset(); return }
+
+  await authStore.waitForInitialAuthState()
   await store.search(query)
 }
 

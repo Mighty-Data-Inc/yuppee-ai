@@ -5,6 +5,7 @@ import SearchView from "../views/SearchView.vue";
 
 const mockSearch = vi.fn().mockResolvedValue(undefined);
 const mockReset = vi.fn();
+const mockWaitForInitialAuthState = vi.fn().mockResolvedValue(undefined);
 
 const routeState = reactive<{ query: Record<string, unknown> }>({
   query: {},
@@ -19,6 +20,12 @@ vi.mock("@/stores/yuppeeStore", () => ({
   useYuppeeStore: () => mockStore,
 }));
 
+vi.mock("@/stores/authStore", () => ({
+  useAuthStore: () => ({
+    waitForInitialAuthState: mockWaitForInitialAuthState,
+  }),
+}));
+
 vi.mock("vue-router", () => ({
   useRoute: () => routeState,
 }));
@@ -28,6 +35,7 @@ describe("SearchView query handling", () => {
     routeState.query = {};
     mockSearch.mockClear();
     mockReset.mockClear();
+    mockWaitForInitialAuthState.mockClear();
   });
 
   it("submits search on mount when q is present", async () => {
@@ -47,6 +55,7 @@ describe("SearchView query handling", () => {
 
     await nextTick();
 
+    expect(mockWaitForInitialAuthState).toHaveBeenCalledTimes(1);
     expect(mockSearch).toHaveBeenCalledTimes(1);
     expect(mockSearch).toHaveBeenCalledWith("crimean war books");
     expect(mockReset).not.toHaveBeenCalled();
