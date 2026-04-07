@@ -52,6 +52,11 @@ const WIDGET_JSON_SCHEMA = {
                 description:
                   "A potential alternative meaning of the query that was considered during disambiguation.",
               },
+              is_same_as_presumed_meaning: {
+                type: "boolean",
+                description:
+                  "Indicates whether this alternative meaning is essentially the same as the presumed meaning stated in the 'assumption_statement' field. This might be true if the alternative meaning is just a slight variation on the presumed meaning, or if it's a closely related concept that would lead to similar search results.",
+              },
               do_you_mean: {
                 type: "string",
                 description:
@@ -63,7 +68,12 @@ const WIDGET_JSON_SCHEMA = {
                   "A rephrased version of the original query string that the user should have used if they intended this alternative meaning.",
               },
             },
-            required: ["meaning", "do_you_mean", "query_rephrase"],
+            required: [
+              "meaning",
+              "is_same_as_presumed_meaning",
+              "do_you_mean",
+              "query_rephrase",
+            ],
             additionalProperties: false,
           },
         },
@@ -465,13 +475,16 @@ Do this query's search results lend themselves to any kind of filtration by a nu
               refinements.disambiguation.query_rephrased_with_assumption || "",
           },
           alternatives:
-            refinements.disambiguation.other_alternative_potential_meanings.map(
-              (alt: any) => ({
+            refinements.disambiguation.other_alternative_potential_meanings
+              .filter((alt: any) => !alt.is_same_as_presumed_meaning)
+              .map((alt: any) => ({
                 doYouMean: rephraseDisambiguationOptionString(alt.do_you_mean),
                 query: alt.query_rephrase,
-              }),
-            ),
+              })),
         } as Disambiguation;
+      }
+      if (retval.disambiguation?.alternatives.length === 0) {
+        delete retval.disambiguation;
       }
     } catch (error) {
       console.error(
