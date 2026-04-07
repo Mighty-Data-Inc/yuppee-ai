@@ -1,5 +1,30 @@
 import * as admin from "firebase-admin";
 import type { APIGatewayProxyEvent } from "aws-lambda";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
+import { config as dotenvConfig } from "dotenv";
+
+function loadBackendEnv(): void {
+  // Load .env regardless of the process cwd (src/* and dist/* supported).
+  const envCandidates = [
+    resolve(process.cwd(), ".env"),
+    resolve(__dirname, "../../.env"),
+  ];
+
+  for (const envPath of envCandidates) {
+    if (existsSync(envPath)) {
+      dotenvConfig({ path: envPath, override: false });
+      break;
+    }
+  }
+
+  // Firebase Admin token verification can use this environment variable.
+  if (!process.env.GOOGLE_CLOUD_PROJECT && process.env.FIREBASE_PROJECT_ID) {
+    process.env.GOOGLE_CLOUD_PROJECT = process.env.FIREBASE_PROJECT_ID;
+  }
+}
+
+loadBackendEnv();
 
 // Will be initialized via initializeFirebaseAdmin
 let firebaseApp: admin.app.App | null = null;
@@ -13,16 +38,21 @@ export function initializeFirebaseAdmin(
 ): admin.app.App {
   if (firebaseApp) return firebaseApp;
 
+  const projectId =
+    process.env.FIREBASE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT;
+
   try {
     if (serviceAccountKeyPath) {
       const serviceAccount = require(serviceAccountKeyPath);
       firebaseApp = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
+        projectId,
       });
     } else {
       // Use Application Default Credentials in production (AWS Lambda)
       firebaseApp = admin.initializeApp({
         credential: admin.credential.applicationDefault(),
+        projectId,
       });
     }
   } catch (err) {
@@ -35,7 +65,7 @@ export function initializeFirebaseAdmin(
       );
       // Initialize a dummy app for local development
       firebaseApp = admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID,
+        projectId,
       });
     } else {
       throw err;
