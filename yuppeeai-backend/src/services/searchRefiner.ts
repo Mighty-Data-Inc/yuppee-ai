@@ -278,6 +278,25 @@ const WIDGET_JSON_SCHEMA = {
   },
 };
 
+export const buildWidgetJsonSchema = (hasAdditionalInstructions: boolean) => {
+  // Always work on a deep-cloned schema so request-specific changes never mutate
+  // the shared base schema used by subsequent requests.
+  const schemaCopy = JSON.parse(JSON.stringify(WIDGET_JSON_SCHEMA));
+
+  // When explicit additional instructions are present, we skip disambiguation
+  // for this structured response and request only widgets.
+  if (hasAdditionalInstructions) {
+    delete schemaCopy.properties.disambiguation;
+    if (Array.isArray(schemaCopy.required)) {
+      schemaCopy.required = schemaCopy.required.filter(
+        (requiredKey: string) => requiredKey !== "disambiguation",
+      );
+    }
+  }
+
+  return schemaCopy;
+};
+
 export const normalizeWidgetObjectFromLLM = (
   llmWidgetObj: any,
 ): RefinementWidget | null => {
@@ -419,7 +438,8 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     convo.addUserMessage(request.query);
 
     const requestInstructions: string[] = request.instructions ?? [];
-    if (requestInstructions.length > 0) {
+    const hasAdditionalInstructions = requestInstructions.length > 0;
+    if (hasAdditionalInstructions) {
       convo.push({
         role: "user",
         content:
@@ -442,6 +462,10 @@ Do this query's search results lend themselves to any kind of filtration by a nu
     } as RefinementResponse;
 
     try {
+      // Build a request-local schema copy and optionally strip disambiguation
+      // when the user already supplied additional instructions.
+      const widgetJsonSchema = buildWidgetJsonSchema(hasAdditionalInstructions);
+
       // The above "submit" was simply to trigger chain-of-thought reasoning in the conversation.
       // The below "submit" is used to get the structured JSON response for the search refinements.
       // Both are necessary for good results.
@@ -451,7 +475,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
             type: "json_schema",
             strict: true,
             name: "json_schema_for_structured_response",
-            schema: WIDGET_JSON_SCHEMA,
+            schema: widgetJsonSchema,
           },
         },
       });

@@ -1,4 +1,23 @@
-import { normalizeWidgetObjectFromLLM } from "../services/searchRefiner";
+import {
+  buildWidgetJsonSchema,
+  normalizeWidgetObjectFromLLM,
+} from "../services/searchRefiner";
+
+describe("buildWidgetJsonSchema", () => {
+  it("keeps disambiguation in schema when no additional instructions are provided", () => {
+    const schema = buildWidgetJsonSchema(false);
+
+    expect(schema.properties.disambiguation).toBeDefined();
+    expect(schema.required).toContain("disambiguation");
+  });
+
+  it("removes disambiguation from schema when additional instructions are provided", () => {
+    const schema = buildWidgetJsonSchema(true);
+
+    expect(schema.properties.disambiguation).toBeUndefined();
+    expect(schema.required).not.toContain("disambiguation");
+  });
+});
 
 describe("normalizeWidgetObjectFromLLM", () => {
   it("returns null for hidden widgets", () => {
