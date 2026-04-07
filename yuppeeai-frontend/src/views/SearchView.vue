@@ -165,9 +165,13 @@ async function submitSearch(q?: string | null | Array<string | null>) {
   }
 
   .search-aside {
-    width: 100%;
-    position: static;
-    max-height: none;
+    width: calc(100% - 2em);
+    position: fixed;
+    height: 20em;
+    top: calc(100% - 20em);
+    overflow-y: scroll;
+    padding-top: 1em;
+    background: white;
   }
 }
 

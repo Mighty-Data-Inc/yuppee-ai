@@ -231,20 +231,20 @@ const WIDGET_JSON_SCHEMA = {
               discuss_how_widget_is_redundant_with_other_widgets: {
                 type: "string",
                 description:
-                  `Talk about how this widget might be redundant with other widgets in the current search context. ` +
+                  `Explain how this widget might be redundant with other widgets in the current search context. ` +
                   `If there are other widgets that provide similar functionality or overlap in purpose, ` +
                   `describe the redundancy. For example, if this is a switch widget that filters results by ` +
                   `some kind of status, and there is already a drop-down that selects this same status, ` +
-                  `then this widget is redundant and unnecessary.`,
+                  `then this widget would be redundant.`,
               },
               discuss_how_widget_is_redundant_with_existing_instructions: {
                 type: "string",
                 description:
-                  `Talk about how this widget might be redundant with existing instructions in the current search context. ` +
+                  `Explain how this widget might be redundant with existing instructions in the current search context. ` +
                   `If there are instructions that provide similar functionality or overlap in purpose, ` +
                   `describe the redundancy. For example, if this is a switch widget that filters results by ` +
                   `some kind of status, and there is already an explicit additional instruction that specifies that ` +
-                  `the results should be filtered by this same status, then this widget is redundant and unnecessary.`,
+                  `same status, then this widget would be redundant.`,
               },
               is_widget_redundant: {
                 type: "boolean",
