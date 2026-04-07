@@ -15,9 +15,11 @@ const emit = defineEmits<{
 const authStore = useAuthStore();
 const isLoading = ref(false);
 const errorMessage = ref<string | null>(null);
+const activeProvider = ref<"google" | "facebook" | null>(null);
 
 async function handleGoogleSignIn() {
   isLoading.value = true;
+  activeProvider.value = "google";
   errorMessage.value = null;
 
   try {
@@ -29,11 +31,13 @@ async function handleGoogleSignIn() {
       err instanceof Error ? err.message : "Sign in failed. Please try again.";
   } finally {
     isLoading.value = false;
+    activeProvider.value = null;
   }
 }
 
 async function handleFacebookSignIn() {
   isLoading.value = true;
+  activeProvider.value = "facebook";
   errorMessage.value = null;
 
   try {
@@ -45,6 +49,7 @@ async function handleFacebookSignIn() {
       err instanceof Error ? err.message : "Sign in failed. Please try again.";
   } finally {
     isLoading.value = false;
+    activeProvider.value = null;
   }
 }
 
@@ -72,23 +77,30 @@ function handleClose() {
           {{ errorMessage }}
         </div>
 
-        <button
-          class="auth-button google-button"
-          @click="handleGoogleSignIn"
-          :disabled="isLoading"
-        >
-          <img class="button-icon" src="/logos/google-official.png" alt="Google" />
-          {{ isLoading ? "Signing in..." : "Sign in with Google" }}
-        </button>
+        <div v-if="isLoading" class="auth-loading">
+          Signing in with
+          {{ activeProvider === "facebook" ? "Facebook" : "Google" }}...
+        </div>
 
-        <button
-          class="auth-button facebook-button"
-          @click="handleFacebookSignIn"
-          :disabled="isLoading"
-        >
-          <img class="button-icon" src="/logos/facebook-official.png" alt="Facebook" />
-          {{ isLoading ? "Signing in..." : "Sign in with Facebook" }}
-        </button>
+        <template v-else>
+          <button
+            class="auth-button google-button"
+            @click="handleGoogleSignIn"
+            :disabled="isLoading"
+          >
+            <img class="button-icon" src="/logos/google-official.png" alt="Google" />
+            Sign in with Google
+          </button>
+
+          <button
+            class="auth-button facebook-button"
+            @click="handleFacebookSignIn"
+            :disabled="isLoading"
+          >
+            <img class="button-icon" src="/logos/facebook-official.png" alt="Facebook" />
+            Sign in with Facebook
+          </button>
+        </template>
 
         <p class="modal-footer">
           By signing in, you agree to use this service for legitimate purposes
@@ -197,6 +209,18 @@ h2 {
 .auth-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.auth-loading {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #f8fafc;
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .google-button {
