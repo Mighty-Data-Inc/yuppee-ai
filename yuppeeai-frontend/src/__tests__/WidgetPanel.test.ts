@@ -5,6 +5,14 @@ import { nextTick } from "vue";
 import WidgetPanel from "@/components/WidgetPanel.vue";
 import { useYuppeeStore } from "@/stores/yuppeeStore";
 
+const mockRouterPush = vi.fn();
+
+vi.mock("vue-router", () => ({
+  useRouter: () => ({
+    push: mockRouterPush,
+  }),
+}));
+
 const globalStubs = {
   RangeSliderWidget: {
     template: "<div class='slider-stub'>Range Slider</div>",
@@ -22,6 +30,7 @@ const globalStubs = {
 describe("WidgetPanel loading behavior", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
+    mockRouterPush.mockReset();
   });
 
   it("hides existing widgets while loading", () => {
@@ -131,5 +140,32 @@ describe("WidgetPanel loading behavior", () => {
 
     expect(store.additionalInstructionPoints).toEqual([]);
     expect(wrapper.findAll(".widget-panel__instruction-card")).toHaveLength(0);
+  });
+
+  it("updates the URL query when selecting a disambiguation alternative", async () => {
+    const store = useYuppeeStore();
+    store.disambiguation = {
+      presumed: {
+        doYouMean: "I assumed a history overview",
+        query: "books about the crimean war history overview",
+      },
+      alternatives: [
+        {
+          doYouMean: "Personal accounts",
+          query: "books about the crimean war personal accounts",
+        },
+      ],
+    };
+
+    const wrapper = mount(WidgetPanel, {
+      global: { stubs: globalStubs },
+    });
+
+    await wrapper.find(".widget-panel__disambiguation-alt").trigger("click");
+
+    expect(mockRouterPush).toHaveBeenCalledWith({
+      name: "search",
+      query: { q: "books about the crimean war personal accounts" },
+    });
   });
 });

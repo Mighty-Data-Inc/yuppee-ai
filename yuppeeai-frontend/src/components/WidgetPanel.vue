@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useYuppeeStore } from '@/stores/yuppeeStore'
 import RangeSliderWidget from '@/components/widgets/RangeSliderWidget.vue'
 import ChipGroupWidget from '@/components/widgets/ChipGroupWidget.vue'
@@ -8,6 +9,7 @@ import DropdownWidget from '@/components/widgets/DropdownWidget.vue'
 import FreeformTextWidget from '@/components/widgets/FreeformTextWidget.vue'
 
 const store = useYuppeeStore()
+const router = useRouter()
 
 // Clear any unsubmitted freeform input when the user starts a new search from the
 // search bar. The handleSearchAgain path already clears it explicitly on submit,
@@ -25,6 +27,10 @@ async function handleSearchAgain() {
 
 function removeInstruction(index: number) {
   store.additionalInstructionPoints.splice(index, 1)
+}
+
+async function handleDisambiguationSelect(query: string) {
+  await router.push({ name: 'search', query: { q: query } })
 }
 
 const canSearchAgain = computed(() => {
@@ -56,7 +62,7 @@ const canSearchAgain = computed(() => {
         <p class="widget-panel__disambiguation-also">Or do you mean...</p>
         <ul class="widget-panel__disambiguation-alts">
           <li v-for="alt in store.disambiguation.alternatives" :key="alt.query">
-            <button type="button" class="widget-panel__disambiguation-alt" @click="store.search(alt.query)">
+            <button type="button" class="widget-panel__disambiguation-alt" @click="handleDisambiguationSelect(alt.query)">
               {{ alt.doYouMean }}
             </button>
           </li>
