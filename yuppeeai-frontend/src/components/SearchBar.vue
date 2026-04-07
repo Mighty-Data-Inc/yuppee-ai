@@ -95,10 +95,6 @@ async function handleLoginSuccess() {
 <template>
   <div class="search-bar" :class="{ 'search-bar--compact': compact }">
     <div class="search-bar__inner">
-      <svg class="search-bar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/>
-        <path d="m21 21-4.35-4.35"/>
-      </svg>
       <input
         v-model="inputValue"
         class="search-bar__input"
@@ -120,10 +116,18 @@ async function handleLoginSuccess() {
           <path d="M18 6 6 18M6 6l12 12"/>
         </svg>
       </button>
+      <button
+        class="search-bar__submit"
+        type="button"
+        aria-label="Search"
+        @click="submitSearch"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+      </button>
     </div>
-    <button class="search-bar__btn" type="button" @click="submitSearch">
-      Search
-    </button>
     <LoginModal
       :isOpen="loginModalOpen"
       @close="handleLoginModalClose"
@@ -135,7 +139,6 @@ async function handleLoginSuccess() {
 <style scoped>
 .search-bar {
   display: flex;
-  gap: 0.75rem;
   width: 100%;
 }
 
@@ -155,13 +158,6 @@ async function handleLoginSuccess() {
 .search-bar__inner:focus-within {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
-}
-
-.search-bar__icon {
-  width: 18px;
-  height: 18px;
-  color: var(--color-text-muted);
-  flex-shrink: 0;
 }
 
 .search-bar__input {
@@ -202,27 +198,28 @@ async function handleLoginSuccess() {
   color: var(--color-text);
 }
 
-.search-bar__btn {
-  padding: 0 1.5rem;
-  background: var(--color-primary);
-  color: white;
+.search-bar__submit {
+  background: none;
   border: none;
-  border-radius: var(--radius-lg);
-  font-size: 0.95rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  padding: 0.4rem;
+  color: var(--color-text-muted);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+  cursor: pointer;
 }
 
-.search-bar__btn:hover {
-  background: var(--color-primary-dark);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+.search-bar__submit svg {
+  width: 18px;
+  height: 18px;
 }
 
-.search-bar__btn:active {
-  transform: translateY(1px);
+.search-bar__submit:hover {
+  background: var(--color-surface);
+  color: var(--color-primary);
 }
 
 /* Compact variant */
@@ -233,11 +230,5 @@ async function handleLoginSuccess() {
 .search-bar--compact .search-bar__input {
   font-size: 0.95rem;
   padding: 0.65rem 0;
-}
-
-.search-bar--compact .search-bar__btn {
-  padding: 0 1.25rem;
-  border-radius: var(--radius-md);
-  font-size: 0.9rem;
 }
 </style>

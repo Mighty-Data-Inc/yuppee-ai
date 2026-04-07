@@ -49,14 +49,14 @@ describe("SearchBar", () => {
   it("renders correctly", () => {
     const wrapper = mount(SearchBar);
     expect(wrapper.find("input").exists()).toBe(true);
-    expect(wrapper.find("button.search-bar__btn").exists()).toBe(true);
+    expect(wrapper.find("button.search-bar__submit").exists()).toBe(true);
   });
 
-  it("navigates to search route when Search button is clicked", async () => {
+  it("navigates to search route when submit icon is clicked", async () => {
     const wrapper = mount(SearchBar);
     const input = wrapper.find("input");
     await input.setValue("books about history");
-    await wrapper.find("button.search-bar__btn").trigger("click");
+    await wrapper.find("button.search-bar__submit").trigger("click");
 
     expect(pushMock).toHaveBeenCalledWith({
       name: "search",
@@ -78,7 +78,7 @@ describe("SearchBar", () => {
 
   it("does not navigate for empty query", async () => {
     const wrapper = mount(SearchBar);
-    await wrapper.find("button.search-bar__btn").trigger("click");
+    await wrapper.find("button.search-bar__submit").trigger("click");
     expect(pushMock).not.toHaveBeenCalled();
   });
 
@@ -86,7 +86,7 @@ describe("SearchBar", () => {
     const wrapper = mount(SearchBar);
     const input = wrapper.find("input");
     await input.setValue("   ");
-    await wrapper.find("button.search-bar__btn").trigger("click");
+    await wrapper.find("button.search-bar__submit").trigger("click");
     expect(pushMock).not.toHaveBeenCalled();
   });
 
@@ -123,7 +123,7 @@ describe("SearchBar", () => {
 
     const input = wrapper.find("input");
     await input.setValue("initial query");
-    await wrapper.find("button.search-bar__btn").trigger("click");
+    await wrapper.find("button.search-bar__submit").trigger("click");
 
     expect(searchMock).toHaveBeenCalledWith("initial query");
     expect(pushMock).not.toHaveBeenCalled();

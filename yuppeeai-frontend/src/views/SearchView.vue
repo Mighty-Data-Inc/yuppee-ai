@@ -29,17 +29,19 @@ async function submitSearch(q?: string | null | Array<string | null>) {
 <template>
   <div class="search-view">
     <header class="search-header">
-      <router-link to="/" class="search-header__logo">
-        <img class="search-header__logo-icon" :src="'/favicon.svg'" alt="Yuppee.AI logo" />
-        <span class="search-header__wordmark">Yuppee<span>.AI</span></span>
-      </router-link>
+      <div class="search-header__inner">
+        <router-link to="/" class="search-header__logo">
+          <img class="search-header__logo-icon" :src="'/favicon.svg'" alt="Yuppee.AI logo" />
+          <span class="search-header__wordmark">Yuppee<span>.AI</span></span>
+        </router-link>
 
-      <div class="search-header__bar">
-        <SearchBar :compact="true" />
-      </div>
+        <div class="search-header__bar">
+          <SearchBar :compact="true" />
+        </div>
 
-      <div class="search-header__profile">
-        <UserProfile />
+        <div class="search-header__profile">
+          <UserProfile />
+        </div>
       </div>
     </header>
 
@@ -64,16 +66,22 @@ async function submitSearch(q?: string | null | Array<string | null>) {
 }
 
 .search-header {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 0.85rem 1.5rem;
   border-bottom: 1px solid var(--color-border);
   background: white;
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: var(--shadow-sm);
+}
+
+.search-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0.85rem 1.5rem;
 }
 
 .search-header__logo {
@@ -110,6 +118,7 @@ async function submitSearch(q?: string | null | Array<string | null>) {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .search-layout {
@@ -138,15 +147,15 @@ async function submitSearch(q?: string | null | Array<string | null>) {
 }
 
 @media (max-width: 767px) {
-  .search-header {
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
+  .search-header__inner {
+    gap: 0.5rem;
+    padding: 0.75rem 0.75rem;
   }
 
   .search-header__bar {
-    flex-basis: 100%;
-    max-width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
   }
 
   .search-layout {
@@ -159,6 +168,29 @@ async function submitSearch(q?: string | null | Array<string | null>) {
     width: 100%;
     position: static;
     max-height: none;
+  }
+}
+
+@media (max-width: 940px) {
+  .search-header__wordmark {
+    display: none;
+  }
+}
+
+@media (min-width: 1800px) {
+  .search-header__inner {
+    position: relative;
+  }
+
+  .search-header__logo {
+    position: absolute;
+    left: -8rem;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .search-header__bar {
+    margin-left: 0;
   }
 }
 </style>
