@@ -168,6 +168,50 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     ]);
   }
 
+  async function rerollRefinements() {
+    const q = query.value.trim();
+    if (!q || isLoadingWidgets.value) {
+      return;
+    }
+
+    isLoadingWidgets.value = true;
+    disambiguation.value = null;
+
+    const instructions = [
+      ...additionalInstructionPoints.value,
+      ...describeChangedWidgetValues.value,
+    ];
+
+    try {
+      const refinementResponse = await submitRefinementQuery({
+        query: q,
+        instructions,
+      });
+
+      disambiguation.value = refinementResponse.disambiguation ?? null;
+      widgets.value = JSON.parse(JSON.stringify(refinementResponse.widgets));
+      widgetsFromLastSubmit.value = JSON.parse(
+        JSON.stringify(refinementResponse.widgets),
+      );
+      authError.value = null;
+    } catch (e) {
+      console.error(e);
+      if ((e as any).statusCode === 401 || (e as any).statusCode === 403) {
+        authError.value =
+          "You must be signed in to search. Please sign in and try again.";
+      } else {
+        showError(
+          e instanceof Error
+            ? e.message
+            : "An error occurred while rerolling refinements",
+        );
+      }
+    } finally {
+      widgetsFromLastSubmit.value = JSON.parse(JSON.stringify(widgets.value));
+      isLoadingWidgets.value = false;
+    }
+  }
+
   const widgetsWithChangedValues = computed(() =>
     widgets.value.filter(
       (w) =>
@@ -377,6 +421,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     authError,
     reset,
     search,
+    rerollRefinements,
     widgetsWithChangedValues,
     describeWidgetChanges,
     describeChangedWidgetValues,

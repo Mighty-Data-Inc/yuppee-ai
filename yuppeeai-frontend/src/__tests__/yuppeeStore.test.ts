@@ -132,6 +132,49 @@ describe("yuppeeStore", () => {
     expect(store.isLoadingWidgets).toBe(false);
   });
 
+  it("rerollRefinements re-submits only to /refine", async () => {
+    const rerolledWidgets: RefinementWidget[] = [
+      {
+        id: "genre",
+        type: "dropdown",
+        label: "Genre",
+        options: [{ label: "Memoir", value: "memoir" }],
+        value: "memoir",
+      },
+    ];
+
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (url.endsWith("/refine")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({
+                widgets: rerolledWidgets,
+                disambiguation: null,
+              }),
+          });
+        }
+
+        return Promise.reject(
+          new Error("rerollRefinements should only call /refine"),
+        );
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const store = useYuppeeStore();
+    store.query = "books about history";
+    store.widgets = [...MOCK_WIDGETS];
+
+    await store.rerollRefinements();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/refine");
+    expect(store.widgets).toEqual(rerolledWidgets);
+  });
+
   it("updates results and refinements independently as each request resolves", async () => {
     const searchDeferred = deferred<{
       results: typeof MOCK_SEARCH_RESULTS;

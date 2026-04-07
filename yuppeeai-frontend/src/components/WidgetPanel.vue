@@ -25,6 +25,10 @@ async function handleSearchAgain() {
   await store.search(store.query)
 }
 
+async function handleRerollRefinements() {
+  await store.rerollRefinements()
+}
+
 function removeInstruction(index: number) {
   store.additionalInstructionPoints.splice(index, 1)
 }
@@ -54,6 +58,20 @@ const canSearchAgain = computed(() => {
         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
       </svg>
       <h2 class="widget-panel__title">Refine Your Search</h2>
+      <button
+        v-if="!store.isLoadingWidgets"
+        type="button"
+        class="widget-panel__refresh"
+        aria-label="Refresh refinements"
+        title="Try a different set of refinement suggestions"
+        @click="handleRerollRefinements"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"/>
+          <path d="M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </button>
     </div>
 
     <div v-if="store.disambiguation" class="widget-panel__disambiguation">
@@ -104,6 +122,16 @@ const canSearchAgain = computed(() => {
             v-model="widget.value"
           />
         </template>
+      </div>
+      <div v-else class="widget-panel__widgets-loading" aria-live="polite">
+        <div
+          v-for="i in Math.min(Math.max(store.widgets.length, 2), 4)"
+          :key="`widget-loading-${i}`"
+          class="widget-panel__widget-skeleton"
+        >
+          <div class="skeleton-line skeleton-line--label" />
+          <div class="skeleton-line skeleton-line--control" />
+        </div>
       </div>
 
       <div class="widget-panel__freeform">
@@ -176,6 +204,30 @@ const canSearchAgain = computed(() => {
   border-bottom: 1px solid var(--color-border);
 }
 
+.widget-panel__refresh {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.widget-panel__refresh:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light, #eef2ff);
+}
+
+.widget-panel__refresh svg {
+  width: 14px;
+  height: 14px;
+}
+
 .widget-panel__icon {
   width: 18px;
   height: 18px;
@@ -199,6 +251,18 @@ const canSearchAgain = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.widget-panel__widgets-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.widget-panel__widget-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
 .widget-panel__freeform {

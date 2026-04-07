@@ -53,7 +53,7 @@ describe("WidgetPanel loading behavior", () => {
     });
 
     expect(wrapper.find(".slider-stub").exists()).toBe(false);
-    expect(wrapper.find(".widget-skeleton").exists()).toBe(false);
+    expect(wrapper.find(".widget-panel__widget-skeleton").exists()).toBe(true);
   });
 
   it("clears unsubmitted additional instruction when query changes", async () => {
@@ -113,6 +113,34 @@ describe("WidgetPanel loading behavior", () => {
     expect(store.additionalInstructionPoints).toEqual([]);
     expect(store.newAdditionalInstruction).toBe("published after 2000");
     expect(searchSpy).toHaveBeenCalledWith("crimean war books");
+  });
+
+  it("calls rerollRefinements when the refresh button is clicked", async () => {
+    const store = useYuppeeStore();
+    store.query = "crimean war books";
+    store.widgets = [
+      {
+        id: "date-range",
+        type: "slider",
+        label: "Date Range",
+        min: 2000,
+        max: 2024,
+        step: 1,
+        value: [2010, 2024],
+      },
+    ];
+
+    const rerollSpy = vi
+      .spyOn(store, "rerollRefinements")
+      .mockResolvedValue(undefined);
+
+    const wrapper = mount(WidgetPanel, {
+      global: { stubs: globalStubs },
+    });
+
+    await wrapper.find(".widget-panel__refresh").trigger("click");
+
+    expect(rerollSpy).toHaveBeenCalledTimes(1);
   });
 
   it("removes an instruction card when the close button is clicked", async () => {
