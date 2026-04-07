@@ -23,6 +23,9 @@ function formatUrl(url?: string): string {
   <div class="results">
     <!-- Loading skeletons -->
     <template v-if="store.isLoadingSERP">
+      <div v-if="store.inflightMessage" class="results__inflight" role="status" aria-live="polite">
+        {{ store.inflightMessage }}
+      </div>
       <div v-if="store.describeWidgetChanges.length" class="results__changes">
         <p class="results__changes-title">Changed filters...</p>
         <ul class="results__changes-list">
@@ -96,6 +99,16 @@ function formatUrl(url?: string): string {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text);
+}
+
+.results__inflight {
+  padding: 0.7rem 0.9rem;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: var(--radius-md);
+  color: #3730a3;
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 .results__changes-title {

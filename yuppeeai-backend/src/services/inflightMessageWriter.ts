@@ -48,8 +48,9 @@ export class InflightMessageWriter {
           role: "developer",
           content:
             "You write very short in-progress UI status messages for a search app. " +
-            "Given a query and optional instructions, produce one sentence that confirms what is being searched for. " +
-            "Keep it under 24 words. Be specific, neutral, and user-facing. Do not use markdown or quotes.",
+            "Given a query and optional instructions, produce a message that explains " +
+            "what is being searched for. " +
+            "Be specific, neutral, and user-facing. Do not use markdown or quotes.",
         },
         {
           role: "user",
