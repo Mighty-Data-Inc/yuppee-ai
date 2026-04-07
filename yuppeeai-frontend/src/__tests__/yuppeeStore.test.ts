@@ -54,6 +54,17 @@ beforeEach(() => {
         });
       }
 
+      if (url.endsWith("/inflightmsg")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              query: "test",
+              message: "Searching for books about history.",
+            }),
+        });
+      }
+
       return Promise.resolve({
         ok: true,
         json: () =>
@@ -78,9 +89,16 @@ describe("yuppeeStore", () => {
     expect(store.serpResults).toEqual([]);
     expect(store.serpSummary).toBe("");
     expect(store.widgets).toEqual([]);
+    expect(store.inflightMessage).toBeNull();
     expect(store.isLoadingSERP).toBe(false);
     expect(store.isLoadingWidgets).toBe(false);
     expect(store.additionalInstructionPoints).toEqual([]);
+  });
+
+  it("stores inflight message from inflight endpoint", async () => {
+    const store = useYuppeeStore();
+    await store.search("books about history");
+    expect(store.inflightMessage).toBe("Searching for books about history.");
   });
 
   it("sets and clears loading flags around search", async () => {

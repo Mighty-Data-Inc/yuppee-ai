@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import {
   submitSERPQuery,
   submitRefinementQuery,
+  submitInflightMessageQuery,
 } from "@/services/searchService";
 
 const MOCK_RESULTS = [
@@ -568,5 +569,43 @@ describe("searchService.submitRefinementQuery", () => {
     await expect(
       submitRefinementQuery({ query: "test query" }),
     ).rejects.toThrow("Refinements request failed: 500");
+  });
+});
+
+describe("searchService.submitInflightMessageQuery", () => {
+  it("sends a POST request with query and instructions to /inflightmsg", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            query: "books about history",
+            message: "Searching for books about history.",
+          }),
+      }),
+    );
+
+    const instructions = ["focus on personal accounts"];
+    const response = await submitInflightMessageQuery({
+      query: "books about history",
+      instructions,
+    });
+
+    expect(response).toEqual({
+      query: "books about history",
+      message: "Searching for books about history.",
+    });
+
+    const fetchMock = vi.mocked(fetch);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const call = fetchMock.mock.calls[0]!;
+    const [url, init] = call as [string, RequestInit];
+    expect(url).toMatch(/\/inflightmsg$/);
+    expect(init.method).toBe("POST");
+    const body = JSON.parse(init.body as string);
+    expect(body.query).toBe("books about history");
+    expect(body.instructions).toEqual(instructions);
   });
 });

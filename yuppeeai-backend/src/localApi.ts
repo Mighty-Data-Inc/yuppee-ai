@@ -1,8 +1,11 @@
 import "dotenv/config";
 import { createServer, type IncomingHttpHeaders } from "node:http";
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
-import { handler as searchHandler } from "./handlers/search";
-import { handler as searchRefinementsHandler } from "./handlers/refine";
+import {
+  searchHandler,
+  searchRefinementsHandler,
+  inflightMessageHandler,
+} from "./handlers";
 
 const PORT = Number(process.env["PORT"] ?? 3000);
 const context = {} as Context;
@@ -66,7 +69,10 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  if (method === "POST" && (path === "/search" || path === "/refine")) {
+  if (
+    method === "POST" &&
+    (path === "/search" || path === "/refine" || path === "/inflightmsg")
+  ) {
     const body = await collectBody(req);
     const event = toLambdaEvent({
       method,
@@ -78,7 +84,9 @@ const server = createServer(async (req, res) => {
     const response =
       path === "/refine"
         ? await searchRefinementsHandler(event, context)
-        : await searchHandler(event, context);
+        : path === "/inflightmsg"
+          ? await inflightMessageHandler(event, context)
+          : await searchHandler(event, context);
     res.writeHead(response.statusCode, {
       ...CORS_HEADERS,
       ...(response.headers ?? {}),

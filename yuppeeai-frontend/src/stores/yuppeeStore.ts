@@ -8,6 +8,7 @@ import type {
 import {
   submitSERPQuery,
   submitRefinementQuery,
+  submitInflightMessageQuery,
 } from "@/services/searchService";
 import { showError } from "@/services/errorService";
 import { queryRefinementCacheService } from "@/services/queryRefinementCacheService";
@@ -24,6 +25,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   const additionalInstructionPoints = ref<string[]>([]);
 
   const disambiguation = ref<Disambiguation | null>(null);
+  const inflightMessage = ref<string | null>(null);
 
   const isLoadingSERP = ref(false);
   const isLoadingWidgets = ref(false);
@@ -38,6 +40,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     newAdditionalInstruction.value = "";
     additionalInstructionPoints.value = [];
     disambiguation.value = null;
+    inflightMessage.value = null;
   }
 
   async function search(q: string) {
@@ -50,6 +53,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
     query.value = q;
     disambiguation.value = null;
+    inflightMessage.value = null;
     isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
     newAdditionalInstruction.value = newAdditionalInstruction.value.trim();
@@ -136,7 +140,26 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         isLoadingWidgets.value = false;
       });
 
-    await Promise.allSettled([serpRequest, refinementRequest]);
+    const inflightMessageRequest = submitInflightMessageQuery({
+      query: q,
+      instructions: additionalInstructionPoints.value,
+    })
+      .then((inflightResponse) => {
+        inflightMessage.value = inflightResponse.message;
+        console.log(
+          "[InflightMsg] Received inflight message",
+          inflightResponse.message,
+        );
+      })
+      .catch((e) => {
+        console.warn("[InflightMsg] Failed to load inflight message", e);
+      });
+
+    await Promise.allSettled([
+      serpRequest,
+      refinementRequest,
+      inflightMessageRequest,
+    ]);
   }
 
   const widgetsWithChangedValues = computed(() =>
@@ -329,6 +352,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     widgets,
     widgetsFromLastSubmit,
     disambiguation,
+    inflightMessage,
     newAdditionalInstruction,
     additionalInstructionPoints,
     isLoadingSERP,
