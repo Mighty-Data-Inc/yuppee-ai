@@ -184,7 +184,7 @@ async function submitSearch(q?: string | null | Array<string | null>) {
 
   .search-header__logo {
     position: absolute;
-    left: -8rem;
+    left: -9rem;
     top: 50%;
     transform: translateY(-50%);
   }

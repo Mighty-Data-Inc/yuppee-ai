@@ -1,9 +1,20 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useAuthStore } from "@/stores/authStore";
 
 const authStore = useAuthStore();
 const isOpen = ref(false);
+const didAvatarFailToLoad = ref(false);
+
+const avatarUrl = computed(() => authStore.user?.photoURL ?? "");
+const shouldShowAvatarImage = computed(
+  () => avatarUrl.value !== "" && !didAvatarFailToLoad.value,
+);
+
+watch(avatarUrl, () => {
+  // Reset fallback state when auth provider updates the profile image URL.
+  didAvatarFailToLoad.value = false;
+});
 
 async function handleLogout() {
   try {
@@ -21,6 +32,10 @@ function toggleMenu() {
 function closeMenu() {
   isOpen.value = false;
 }
+
+function handleAvatarLoadError() {
+  didAvatarFailToLoad.value = true;
+}
 </script>
 
 <template>
@@ -32,10 +47,13 @@ function closeMenu() {
       :title="authStore.userEmail || 'User profile'"
     >
       <img
-        v-if="authStore.user?.photoURL"
-        :src="authStore.user.photoURL"
+        v-if="shouldShowAvatarImage"
+        :key="avatarUrl"
+        :src="avatarUrl"
         :alt="authStore.user?.displayName || 'User'"
         class="profile-avatar"
+        referrerpolicy="no-referrer"
+        @error="handleAvatarLoadError"
       />
       <div v-else class="profile-avatar-placeholder">
         {{ (authStore.user?.displayName || authStore.userEmail || "U")[0].toUpperCase() }}
