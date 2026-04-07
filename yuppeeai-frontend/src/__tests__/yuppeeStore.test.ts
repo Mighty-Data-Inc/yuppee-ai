@@ -101,6 +101,24 @@ describe("yuppeeStore", () => {
     expect(store.inflightMessage).toBe("Searching for books about history.");
   });
 
+  it("loads cached additional instructions for a new query", async () => {
+    window.localStorage.setItem(
+      "yuppee:query-refinement-cache",
+      JSON.stringify({
+        "Books about the Crimean War": [
+          'Additional instruction: "Personal accounts"',
+        ],
+      }),
+    );
+
+    const store = useYuppeeStore();
+    await store.search("Books about the Crimean War");
+
+    expect(store.additionalInstructionPoints).toEqual([
+      'Additional instruction: "Personal accounts"',
+    ]);
+  });
+
   it("sets and clears loading flags around search", async () => {
     const store = useYuppeeStore();
     const pending = store.search("books about history");

@@ -46,6 +46,9 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   async function search(q: string) {
     q = q.trim();
     const isNewQuery = q !== query.value;
+    const cachedInstructionsForQuery = isNewQuery
+      ? (queryRefinementCacheService.load(q) ?? [])
+      : null;
 
     if (isNewQuery) {
       reset();
@@ -57,6 +60,10 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
     newAdditionalInstruction.value = newAdditionalInstruction.value.trim();
+
+    if (cachedInstructionsForQuery) {
+      additionalInstructionPoints.value = [...cachedInstructionsForQuery];
+    }
 
     additionalInstructionPoints.value.push(
       ...describeChangedWidgetValues.value,
@@ -109,12 +116,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         widgetsFromLastSubmit.value = JSON.parse(
           JSON.stringify(refinementResponse.widgets),
         );
-
-        if (isNewQuery) {
-          // Load any additional instructions that we had saved for this query in the past.
-          additionalInstructionPoints.value =
-            queryRefinementCacheService.load(q) ?? [];
-        }
 
         // If this wasn't a new query, we don't want to see the disambiguation anymore.
         if (!isNewQuery) {
@@ -303,7 +304,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
 
         if (resolvedLabels.length) {
           lines.push(
-            `${widget.label} &mdash; Looking for these criteria: "${resolvedLabels.join('", "')}"`,
+            `${widget.label} — Looking for these criteria: "${resolvedLabels.join('", "')}"`,
           );
         }
       } else if (widget.type === "slider") {

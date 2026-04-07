@@ -2,8 +2,10 @@
 withDefaults(defineProps<{
   modelValue: string
   placeholder?: string
+  disabled?: boolean
 }>(), {
-  placeholder: 'Describe additional criteria...'
+  placeholder: 'Describe additional criteria...',
+  disabled: false,
 })
 
 const emit = defineEmits<{
@@ -16,6 +18,7 @@ const emit = defineEmits<{
     class="freeform"
     :value="modelValue"
     :placeholder="placeholder"
+    :disabled="disabled"
     rows="3"
     @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
   />
@@ -45,5 +48,11 @@ const emit = defineEmits<{
 .freeform::placeholder {
   color: var(--color-text-light);
   font-style: italic;
+}
+
+.freeform:disabled {
+  background: #f8fafc;
+  color: var(--color-text-light);
+  cursor: not-allowed;
 }
 </style>

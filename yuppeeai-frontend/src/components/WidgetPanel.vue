@@ -128,6 +128,7 @@ const canSearchAgain = computed(() => {
 
         <FreeformTextWidget
           :model-value="store.newAdditionalInstruction"
+          :disabled="store.isLoadingWidgets"
           placeholder="Modify the search results per your explanation, e.g. 'written by a British author, published after 2000'"
           @update:model-value="store.newAdditionalInstruction = $event"
         />
