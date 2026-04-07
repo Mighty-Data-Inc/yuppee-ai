@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { createServer, type IncomingHttpHeaders } from "node:http";
-import type { APIGatewayProxyEvent, Context } from "aws-lambda";
+import type { HttpRequest } from "./types";
 import {
   searchHandler,
   searchRefinementsHandler,
@@ -8,7 +8,12 @@ import {
 } from "./handlers";
 
 const PORT = Number(process.env["PORT"] ?? 3000);
-const context = {} as Context;
+
+// TODO: For Firebase Cloud Functions v2 deployment, replace this local HTTP
+// server with Firebase Hosting + Cloud Functions. Each handler should be
+// exported via onRequest() from firebase-functions/v2/https, and
+// firebase.json rewrites should map /search, /refine, /inflightmsg to the
+// corresponding function. Run locally with: firebase emulators:start
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -30,12 +35,12 @@ function collectBody(
   });
 }
 
-function toLambdaEvent(params: {
+function toHttpRequest(params: {
   method: string;
   path: string;
   headers: IncomingHttpHeaders;
   body: string;
-}): APIGatewayProxyEvent {
+}): HttpRequest {
   const normalizedHeaders: Record<string, string> = {};
   for (const [key, value] of Object.entries(params.headers)) {
     if (typeof value === "string") {
@@ -46,16 +51,7 @@ function toLambdaEvent(params: {
   return {
     body: params.body || null,
     headers: normalizedHeaders,
-    multiValueHeaders: {},
     httpMethod: params.method,
-    isBase64Encoded: false,
-    path: params.path,
-    pathParameters: null,
-    queryStringParameters: null,
-    multiValueQueryStringParameters: null,
-    stageVariables: null,
-    requestContext: {} as APIGatewayProxyEvent["requestContext"],
-    resource: params.path,
   };
 }
 
@@ -74,7 +70,7 @@ const server = createServer(async (req, res) => {
     (path === "/search" || path === "/refine" || path === "/inflightmsg")
   ) {
     const body = await collectBody(req);
-    const event = toLambdaEvent({
+    const event = toHttpRequest({
       method,
       path,
       headers: req.headers,
@@ -83,10 +79,10 @@ const server = createServer(async (req, res) => {
 
     const response =
       path === "/refine"
-        ? await searchRefinementsHandler(event, context)
+        ? await searchRefinementsHandler(event)
         : path === "/inflightmsg"
-          ? await inflightMessageHandler(event, context)
-          : await searchHandler(event, context);
+          ? await inflightMessageHandler(event)
+          : await searchHandler(event);
     res.writeHead(response.statusCode, {
       ...CORS_HEADERS,
       ...(response.headers ?? {}),

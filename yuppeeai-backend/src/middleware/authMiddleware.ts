@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import type { APIGatewayProxyEvent } from "aws-lambda";
+import type { HttpRequest } from "../types";
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { config as dotenvConfig } from "dotenv";
@@ -49,7 +49,7 @@ export function initializeFirebaseAdmin(
         projectId,
       });
     } else {
-      // Use Application Default Credentials in production (AWS Lambda)
+      // Use Application Default Credentials in production (Firebase Cloud Functions)
       firebaseApp = admin.initializeApp({
         credential: admin.credential.applicationDefault(),
         projectId,
@@ -80,7 +80,7 @@ export function initializeFirebaseAdmin(
  * Throws an error with message and statusCode if verification fails
  */
 export async function verifyAuthToken(
-  event: APIGatewayProxyEvent,
+  event: HttpRequest,
 ): Promise<admin.auth.DecodedIdToken> {
   const authHeader =
     event.headers?.Authorization || event.headers?.authorization;
@@ -120,7 +120,7 @@ export async function verifyAuthToken(
  * Adds user info to the event context if authentication succeeds
  */
 export async function requireAuth(
-  event: APIGatewayProxyEvent,
+  event: HttpRequest,
 ): Promise<admin.auth.DecodedIdToken> {
   return verifyAuthToken(event);
 }

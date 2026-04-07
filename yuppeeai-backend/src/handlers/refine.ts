@@ -1,6 +1,6 @@
-import type { APIGatewayProxyResult } from "aws-lambda";
 import type {
-  LambdaHandler,
+  HttpHandler,
+  HttpResponse,
   RefinementResponse,
   RefinementRequest,
 } from "../types";
@@ -18,7 +18,7 @@ const CORS_HEADERS = {
 // Initialize Firebase Admin on module load
 initializeFirebaseAdmin();
 
-export const handler: LambdaHandler = async (event, _context) => {
+export const handler: HttpHandler = async (event) => {
   try {
     // Require authentication
     const decodedToken = await requireAuth(event);
@@ -66,10 +66,7 @@ export const handler: LambdaHandler = async (event, _context) => {
   }
 };
 
-function errorResponse(
-  statusCode: number,
-  message: string,
-): APIGatewayProxyResult {
+function errorResponse(statusCode: number, message: string): HttpResponse {
   return {
     statusCode,
     headers: CORS_HEADERS,

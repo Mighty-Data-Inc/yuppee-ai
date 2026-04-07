@@ -1,4 +1,4 @@
-import type { APIGatewayProxyEvent, Context } from "aws-lambda";
+import type { HttpRequest } from "../types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../middleware/authMiddleware", () => ({
@@ -9,16 +9,11 @@ vi.mock("../middleware/authMiddleware", () => ({
 import { handler } from "../handlers/search";
 import { SearchProvider } from "../services/searchProvider";
 
-const mockContext = {} as Context;
-
-function makeEvent(body?: object | null): Partial<APIGatewayProxyEvent> {
+function makeEvent(body?: object | null): Partial<HttpRequest> {
   return {
     httpMethod: "POST",
     body: body !== undefined && body !== null ? JSON.stringify(body) : null,
     headers: {},
-    queryStringParameters: null,
-    pathParameters: null,
-    isBase64Encoded: false,
   };
 }
 
@@ -29,7 +24,7 @@ describe("search handler", () => {
 
   it("returns 400 when query is missing", async () => {
     const event = makeEvent({});
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
     expect(body.error).toMatch(/query/i);
@@ -37,7 +32,7 @@ describe("search handler", () => {
 
   it("returns 400 when body is empty", async () => {
     const event = makeEvent(null);
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
     expect(result.statusCode).toBe(400);
   });
 
@@ -56,7 +51,7 @@ describe("search handler", () => {
     });
 
     const event = makeEvent({ query: "interesting topics" });
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
     expect(body.results).toBeDefined();
@@ -79,7 +74,7 @@ describe("search handler", () => {
     });
 
     const event = makeEvent({ query: "interesting topics" });
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
     const firstResult = body.results[0];
@@ -112,7 +107,7 @@ describe("search handler", () => {
     });
 
     const event = makeEvent({ query: "best book recommendations" });
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
     expect(body.query).toBe("best book recommendations");
@@ -125,7 +120,7 @@ describe("search handler", () => {
     );
 
     const event = makeEvent({ query: "top rated movie 2023" });
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
     expect(result.statusCode).toBe(500);
     const body = JSON.parse(result.body);
     expect(body.error).toMatch(/search backend unavailable/i);

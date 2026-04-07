@@ -1,4 +1,4 @@
-import type { APIGatewayProxyEvent, Context } from "aws-lambda";
+import type { HttpRequest } from "../types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("../middleware/authMiddleware", () => ({
@@ -9,16 +9,11 @@ vi.mock("../middleware/authMiddleware", () => ({
 import { handler } from "../handlers/inflightmsg";
 import { InflightMessageWriter } from "../services/inflightMessageWriter";
 
-const mockContext = {} as Context;
-
-function makeEvent(body?: object | null): Partial<APIGatewayProxyEvent> {
+function makeEvent(body?: object | null): Partial<HttpRequest> {
   return {
     httpMethod: "POST",
     body: body !== undefined && body !== null ? JSON.stringify(body) : null,
     headers: {},
-    queryStringParameters: null,
-    pathParameters: null,
-    isBase64Encoded: false,
   };
 }
 
@@ -29,7 +24,7 @@ describe("inflight message handler", () => {
 
   it("returns 400 when query is missing", async () => {
     const event = makeEvent({});
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
 
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
@@ -41,12 +36,9 @@ describe("inflight message handler", () => {
       httpMethod: "POST",
       body: "{invalid-json}",
       headers: {},
-      queryStringParameters: null,
-      pathParameters: null,
-      isBase64Encoded: false,
-    } as Partial<APIGatewayProxyEvent>;
+    } as Partial<HttpRequest>;
 
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
     expect(body.error).toMatch(/invalid json/i);
@@ -66,7 +58,7 @@ describe("inflight message handler", () => {
       instructions: ["Books only", "Prioritize firsthand narratives"],
     });
 
-    const result = await handler(event as APIGatewayProxyEvent, mockContext);
+    const result = await handler(event as HttpRequest);
 
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
