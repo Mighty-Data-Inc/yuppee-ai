@@ -26,6 +26,13 @@ vi.mock("@/stores/yuppeeStore", () => ({
   }),
 }));
 
+vi.mock("@/stores/authStore", () => ({
+  useAuthStore: () => ({
+    isAuthenticated: true,
+    authToken: null,
+  }),
+}));
+
 describe("SearchBar", () => {
   beforeEach(() => {
     pushMock.mockReset();

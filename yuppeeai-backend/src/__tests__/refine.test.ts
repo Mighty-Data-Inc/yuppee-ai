@@ -1,4 +1,11 @@
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("../middleware/authMiddleware", () => ({
+  initializeFirebaseAdmin: vi.fn(),
+  requireAuth: vi.fn().mockResolvedValue({ uid: "test-user" }),
+}));
+
 import { handler } from "../handlers/refine";
 import { SearchRefiner } from "../services/searchRefiner";
 

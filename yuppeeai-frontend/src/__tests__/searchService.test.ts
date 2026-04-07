@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { createPinia, setActivePinia } from "pinia";
 import {
   submitSERPQuery,
   submitRefinementQuery,
@@ -91,6 +92,10 @@ function mockFetch(results = MOCK_RESULTS, widgets = MOCK_WIDGETS) {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+});
+
+beforeEach(() => {
+  setActivePinia(createPinia());
 });
 
 describe("searchService.search", () => {

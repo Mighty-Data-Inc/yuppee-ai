@@ -232,7 +232,13 @@ describe("yuppeeStore", () => {
 
   it("clears disambiguation when a search is submitted", () => {
     const store = useYuppeeStore();
-    store.disambiguation = { message: "Did you mean…?", options: [] };
+    store.disambiguation = {
+      presumed: {
+        doYouMean: "books about history",
+        query: "books about history",
+      },
+      alternatives: [],
+    };
     store.search("books about history");
     expect(store.disambiguation).toBeNull();
   });
@@ -262,7 +268,13 @@ describe("yuppeeStore", () => {
     );
 
     const store = useYuppeeStore();
-    store.disambiguation = { message: "Did you mean…?", options: [] };
+    store.disambiguation = {
+      presumed: {
+        doYouMean: "books about history",
+        query: "books about history",
+      },
+      alternatives: [],
+    };
     const pendingSearch = store.search("books about history");
 
     expect(store.disambiguation).toBeNull();

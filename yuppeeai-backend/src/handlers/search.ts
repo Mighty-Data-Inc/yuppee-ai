@@ -18,7 +18,7 @@ export const handler: LambdaHandler = async (event, _context) => {
   try {
     // Require authentication
     const decodedToken = await requireAuth(event);
-    console.log(`Authenticated user: ${decodedToken.uid}`);
+    console.log(`Authenticated user: ${decodedToken?.uid ?? "unknown"}`);
 
     let request: Partial<SERPRequest> = {};
 
