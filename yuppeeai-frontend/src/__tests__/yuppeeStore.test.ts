@@ -343,6 +343,24 @@ describe("yuppeeStore", () => {
     expect(store.haveAnyValuesChanged).toBe(true);
   });
 
+  it("haveAnyValuesChanged is true when an instruction point is removed", () => {
+    const store = useYuppeeStore();
+    store.additionalInstructionPoints = [
+      "written by a British author",
+      "published after 2000",
+    ];
+    store.additionalInstructionPointsFromLastSubmit = [
+      "written by a British author",
+      "published after 2000",
+    ];
+
+    expect(store.haveAnyValuesChanged).toBe(false);
+
+    store.additionalInstructionPoints.splice(0, 1);
+
+    expect(store.haveAnyValuesChanged).toBe(true);
+  });
+
   it("computes widgetsWithChangedValues as only the changed widgets", () => {
     const store = useYuppeeStore();
     store.widgets = [

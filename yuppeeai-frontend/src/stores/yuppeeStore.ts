@@ -23,6 +23,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   const widgetsFromLastSubmit = ref<RefinementWidget[]>([]);
   const newAdditionalInstruction = ref("");
   const additionalInstructionPoints = ref<string[]>([]);
+  const additionalInstructionPointsFromLastSubmit = ref<string[]>([]);
 
   const disambiguation = ref<Disambiguation | null>(null);
   const inflightMessage = ref<string | null>(null);
@@ -39,6 +40,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     widgetsFromLastSubmit.value = [];
     newAdditionalInstruction.value = "";
     additionalInstructionPoints.value = [];
+    additionalInstructionPointsFromLastSubmit.value = [];
     disambiguation.value = null;
     inflightMessage.value = null;
   }
@@ -74,6 +76,9 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     // Ignore the results of any resolved promise that has an earlier timestamp.
 
     queryRefinementCacheService.save(q, additionalInstructionPoints.value);
+    additionalInstructionPointsFromLastSubmit.value = [
+      ...additionalInstructionPoints.value,
+    ];
 
     const serpRequest = submitSERPQuery({
       query: q,
@@ -340,11 +345,21 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     return lines;
   });
 
-  const haveAnyValuesChanged = computed(
-    () =>
-      widgetsWithChangedValues.value.length > 0 ||
-      newAdditionalInstruction.value.trim() !== "",
-  );
+  const haveAnyValuesChanged = computed(() => {
+    if (widgetsWithChangedValues.value.length > 0) {
+      return true;
+    }
+    if (newAdditionalInstruction.value.trim() !== "") {
+      return true;
+    }
+    if (
+      additionalInstructionPoints.value.length !==
+      additionalInstructionPointsFromLastSubmit.value.length
+    ) {
+      return true;
+    }
+    return false;
+  });
 
   return {
     query,
@@ -356,6 +371,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     inflightMessage,
     newAdditionalInstruction,
     additionalInstructionPoints,
+    additionalInstructionPointsFromLastSubmit,
     isLoadingSERP,
     isLoadingWidgets,
     authError,
