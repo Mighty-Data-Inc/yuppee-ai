@@ -1,5 +1,14 @@
 {
   "projects": {
     "default": "yuppee-ai"
+  },
+  "targets": {
+    "yuppee-ai": {
+      "hosting": {
+        "yuppee-ai-frontend": [
+          "yuppee-ai"
+        ]
+      }
+    }
   }
 }

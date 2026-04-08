@@ -1,4 +1,21 @@
 {
+  "hosting": [
+    {
+      "target": "yuppee-ai-frontend",
+      "public": "yuppeeai-frontend/dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**",
+        "package-lock.json",
+        "npm-shrinkwrap.json"
+      ],
+      "predeploy": [
+        "node packages/yuppeeai-contracts/build-and-install.js",
+        "npm --prefix yuppeeai-frontend run build"
+      ]
+    }
+  ],
   "functions": [
     {
       "source": "yuppeeai-backend",
@@ -15,7 +32,7 @@
         "npm-shrinkwrap.json"
       ],
       "predeploy": [
-        "node yuppeeai-backend/build-contracts.js",
+        "node packages/yuppeeai-contracts/build-and-install.js",
         "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
