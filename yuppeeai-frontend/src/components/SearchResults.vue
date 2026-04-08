@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useYuppeeStore } from '@/stores/yuppeeStore'
+import LoginModal from './LoginModal.vue'
 
 const store = useYuppeeStore()
+const loginModalOpen = ref(false)
 
 // Show a compact display URL like example.com/path instead of the full raw link.
 function formatUrl(url?: string): string {
@@ -15,6 +18,10 @@ function formatUrl(url?: string): string {
   } catch {
     return url
   }
+}
+
+function handleAuthCtaClick() {
+  loginModalOpen.value = true
 }
 
 </script>
@@ -91,6 +98,22 @@ function formatUrl(url?: string): string {
       </div>
     </div>
 
+    <!-- Auth required state -->
+    <div v-else-if="store.authRequired" class="results__auth-required">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+        <circle cx="32" cy="32" r="28" stroke="#3b82f6" stroke-width="2" fill="none"/>
+        <path d="M32 16v16m0 8v0" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <h3>Sign in to search</h3>
+      <p>Create a <strong>free account</strong><br/>
+      to start exploring with <br/>
+      <strong>AI-powered search refinement</strong>.</p>
+      <p class="results__auth-required-subtext">Our <strong>Free tier</strong> gives you<br/>
+      <strong>20 searches per month</strong>.<br/>
+      Upgrade anytime for more!</p>
+      <button type="button" class="results__auth-cta" @click="handleAuthCtaClick">Search now</button>
+    </div>
+
     <!-- Empty state -->
     <div v-else-if="store.query" class="results__empty">
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
@@ -102,6 +125,8 @@ function formatUrl(url?: string): string {
       <p>Try adjusting your search or using the filters on the right.</p>
     </div>
   </div>
+
+  <LoginModal :isOpen="loginModalOpen" @close="loginModalOpen = false" />
 </template>
 
 <style scoped>
@@ -333,5 +358,67 @@ function formatUrl(url?: string): string {
 .results__upgrade-btn:hover {
   background: #15803d;
   border-color: #15803d;
+}
+
+.results__auth-required {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  padding: 3rem 2.5rem;
+  text-align: center;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 2px solid #3b82f6;
+  border-radius: var(--radius-lg);
+}
+
+.results__auth-required h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e40af;
+  margin: 0;
+}
+
+.results__auth-required p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 420px;
+  color: #1e3a8a;
+}
+
+.results__auth-required p strong {
+  color: #0c4a6e;
+  font-weight: 700;
+}
+
+.results__auth-required-subtext {
+  font-size: 0.95rem;
+  color: #0369a1;
+}
+
+.results__auth-cta {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 200ms ease;
+  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+}
+
+.results__auth-cta:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 6px 12px rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.results__auth-cta:active {
+  transform: translateY(0);
 }
 </style>

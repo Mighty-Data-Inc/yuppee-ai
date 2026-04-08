@@ -95,6 +95,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   const isLoadingWidgets = ref(false);
   const authError = ref<string | null>(null);
   const quotaExceeded = ref<QuotaExceededState | null>(null);
+  const authRequired = ref(false);
 
   function reset() {
     query.value = "";
@@ -108,6 +109,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     disambiguation.value = null;
     inflightMessage.value = null;
     quotaExceeded.value = null;
+    authRequired.value = false;
   }
 
   async function search(q: string) {
@@ -485,6 +487,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     isLoadingWidgets,
     authError,
     quotaExceeded,
+    authRequired,
     reset,
     search,
     rerollRefinements,

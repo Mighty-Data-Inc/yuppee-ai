@@ -25,6 +25,15 @@ async function submitSearch(q?: string | null | Array<string | null>) {
   if (!query) { store.reset(); return }
 
   await authStore.waitForInitialAuthState()
+  
+  // Only search if user is authenticated
+  if (!authStore.isAuthenticated) {
+    store.reset()
+    store.authRequired = true
+    return
+  }
+  
+  store.authRequired = false
   await store.search(query)
 }
 

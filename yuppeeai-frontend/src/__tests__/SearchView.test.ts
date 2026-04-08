@@ -23,6 +23,7 @@ vi.mock("@/stores/yuppeeStore", () => ({
 vi.mock("@/stores/authStore", () => ({
   useAuthStore: () => ({
     waitForInitialAuthState: mockWaitForInitialAuthState,
+    isAuthenticated: true,
   }),
 }));
 
