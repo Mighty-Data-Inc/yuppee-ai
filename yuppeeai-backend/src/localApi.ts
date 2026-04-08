@@ -6,6 +6,8 @@ import {
   searchRefinementsHandler,
   inflightMessageHandler,
   usageHandler,
+  checkoutHandler,
+  webhookHandler,
 } from "./handlers";
 
 const PORT = Number(process.env["PORT"] ?? 3000);
@@ -71,8 +73,10 @@ const server = createServer(async (req, res) => {
     (method === "POST" &&
       (path === "/api/search" ||
         path === "/api/refine" ||
-        path === "/api/inflightmsg")) ||
-    (method === "GET" && path === "/api/usage")
+        path === "/api/inflightmsg" ||
+        path === "/api/checkout")) ||
+    (method === "GET" && path === "/api/usage") ||
+    (method === "POST" && path === "/api/webhook")
   ) {
     const body = method === "POST" ? await collectBody(req) : "";
     const event = toHttpRequest({
@@ -89,7 +93,11 @@ const server = createServer(async (req, res) => {
           ? await inflightMessageHandler(event)
           : path === "/api/usage"
             ? await usageHandler(event)
-            : await searchHandler(event);
+            : path === "/api/checkout"
+              ? await checkoutHandler(event)
+              : path === "/api/webhook"
+                ? await webhookHandler(event)
+                : await searchHandler(event);
     res.writeHead(response.statusCode, {
       ...CORS_HEADERS,
       ...(response.headers ?? {}),

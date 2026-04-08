@@ -25,6 +25,10 @@ export interface UsageResponse {
   remainingSearchesThisPeriod: number;
 }
 
+export interface CheckoutResponse {
+  sessionUrl: string;
+}
+
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
@@ -207,4 +211,38 @@ export async function fetchUsage(): Promise<UsageResponse> {
   }
 
   return (await response.json()) as UsageResponse;
+}
+
+export async function initiateCheckout(
+  tierId: string,
+): Promise<CheckoutResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/checkout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(await getAuthHeaders()),
+    },
+    body: JSON.stringify({ tierId }),
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    const error = new Error("Unauthorized");
+    (error as any).statusCode = response.status;
+    throw error;
+  }
+
+  if (!response.ok) {
+    const errorPayload = await parseJsonBody(response);
+    const backendMessage =
+      errorPayload &&
+      typeof errorPayload === "object" &&
+      "error" in errorPayload &&
+      typeof (errorPayload as any).error === "string"
+        ? (errorPayload as any).error
+        : null;
+
+    throw new Error(backendMessage || `Checkout failed: ${response.status}`);
+  }
+
+  return (await response.json()) as CheckoutResponse;
 }

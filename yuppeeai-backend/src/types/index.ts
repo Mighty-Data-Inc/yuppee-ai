@@ -33,3 +33,11 @@ export type {
   Disambiguation,
   DisambiguationOption,
 } from "@yuppee-ai/contracts";
+
+export interface CheckoutRequest {
+  tierId: string;
+}
+
+export interface CheckoutResponse {
+  sessionUrl: string;
+}

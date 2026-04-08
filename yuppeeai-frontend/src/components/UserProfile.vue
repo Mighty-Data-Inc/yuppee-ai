@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import SubscriptionModal from "./SubscriptionModal.vue";
 import { useAuthStore } from "@/stores/authStore";
 import { fetchUsage, type UsageResponse } from "@/services/searchService";
 
 const authStore = useAuthStore();
 const isOpen = ref(false);
+const isSubscriptionModalOpen = ref(false);
 const didAvatarFailToLoad = ref(false);
 const usage = ref<UsageResponse | null>(null);
 const isLoadingUsage = ref(false);
@@ -85,6 +87,15 @@ function closeMenu() {
 function handleAvatarLoadError() {
   didAvatarFailToLoad.value = true;
 }
+
+function openSubscriptionModal() {
+  isSubscriptionModalOpen.value = true;
+  isOpen.value = false;
+}
+
+function closeSubscriptionModal() {
+  isSubscriptionModalOpen.value = false;
+}
 </script>
 
 <template>
@@ -141,7 +152,7 @@ function handleAvatarLoadError() {
 
       <div class="profile-divider" />
 
-      <a href="#" class="profile-manage-link" @click.prevent>
+      <a href="#" class="profile-manage-link" @click.prevent="openSubscriptionModal">
         Manage subscription
       </a>
 
@@ -152,6 +163,11 @@ function handleAvatarLoadError() {
       </button>
     </div>
   </div>
+
+  <SubscriptionModal
+    v-if="isSubscriptionModalOpen"
+    @close="closeSubscriptionModal"
+  />
 
   <!-- Close menu when clicking outside -->
   <div
