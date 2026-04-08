@@ -123,7 +123,7 @@ function handleAvatarLoadError() {
             Loading subscription info...
           </template>
           <template v-else>
-            <div>Current tier: <strong>{{ tierLabel }}</strong></div>
+            <div>Subscription: <strong>{{ tierLabel }}</strong></div>
             <div class="profile-usage-line">
               Searches this month:
               <span class="profile-usage-value">{{ monthlyUsageLabel }}</span>
