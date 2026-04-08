@@ -13,7 +13,8 @@ const PORT = Number(process.env["PORT"] ?? 3000);
 // TODO: For Firebase Cloud Functions v2 deployment, replace this local HTTP
 // server with Firebase Hosting + Cloud Functions. Each handler should be
 // exported via onRequest() from firebase-functions/v2/https, and
-// firebase.json rewrites should map /search, /refine, /inflightmsg, /usage to the
+// firebase.json rewrites should map /api/search, /api/refine, /api/inflightmsg,
+// and /api/usage to the
 // corresponding function. Run locally with: firebase emulators:start
 
 const CORS_HEADERS = {
@@ -68,8 +69,10 @@ const server = createServer(async (req, res) => {
 
   if (
     (method === "POST" &&
-      (path === "/search" || path === "/refine" || path === "/inflightmsg")) ||
-    (method === "GET" && path === "/usage")
+      (path === "/api/search" ||
+        path === "/api/refine" ||
+        path === "/api/inflightmsg")) ||
+    (method === "GET" && path === "/api/usage")
   ) {
     const body = method === "POST" ? await collectBody(req) : "";
     const event = toHttpRequest({
@@ -80,11 +83,11 @@ const server = createServer(async (req, res) => {
     });
 
     const response =
-      path === "/refine"
+      path === "/api/refine"
         ? await searchRefinementsHandler(event)
-        : path === "/inflightmsg"
+        : path === "/api/inflightmsg"
           ? await inflightMessageHandler(event)
-          : path === "/usage"
+          : path === "/api/usage"
             ? await usageHandler(event)
             : await searchHandler(event);
     res.writeHead(response.statusCode, {

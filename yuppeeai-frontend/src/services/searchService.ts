@@ -76,7 +76,7 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 export async function submitSERPQuery(
   serpRequest: SERPRequest,
 ): Promise<SERPResponse> {
-  const response = await fetch(`${API_BASE_URL}/search`, {
+  const response = await fetch(`${API_BASE_URL}/api/search`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -113,7 +113,7 @@ export async function submitSERPQuery(
       (error as any).usage = (errorPayload as any).usage;
     }
 
-    console.error("[SERP] /search failed", {
+    console.error("[SERP] /api/search failed", {
       status: response.status,
       body: JSON.stringify(serpRequest, null, 2),
     });
@@ -126,7 +126,7 @@ export async function submitSERPQuery(
 export async function submitRefinementQuery(
   refinementRequest: RefinementRequest,
 ): Promise<RefinementResponse> {
-  const response = await fetch(`${API_BASE_URL}/refine`, {
+  const response = await fetch(`${API_BASE_URL}/api/refine`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -152,7 +152,7 @@ export async function submitRefinementQuery(
 export async function submitInflightMessageQuery(
   request: SERPRequest,
 ): Promise<InflightMessageResponse> {
-  const response = await fetch(`${API_BASE_URL}/inflightmsg`, {
+  const response = await fetch(`${API_BASE_URL}/api/inflightmsg`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -175,7 +175,7 @@ export async function submitInflightMessageQuery(
 }
 
 export async function fetchUsage(): Promise<UsageResponse> {
-  const response = await fetch(`${API_BASE_URL}/usage`, {
+  const response = await fetch(`${API_BASE_URL}/api/usage`, {
     method: "GET",
     headers: {
       ...(await getAuthHeaders()),

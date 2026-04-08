@@ -71,7 +71,7 @@ function mockFetch(results = MOCK_RESULTS, widgets = MOCK_WIDGETS) {
     "fetch",
     vi.fn().mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.endsWith("/refine")) {
+      if (url.endsWith("/api/refine")) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ widgets }),
@@ -239,7 +239,7 @@ describe("searchService.search", () => {
     expect(response.results[0]).not.toHaveProperty("snippet");
   });
 
-  it("sends a POST request with query and instructions to /search", async () => {
+  it("sends a POST request with query and instructions to /api/search", async () => {
     const instructions = ["written by a British author"];
     await submitSERPQuery({
       query: "books about history",
@@ -249,7 +249,7 @@ describe("searchService.search", () => {
     expect(fetchMock).toHaveBeenCalledOnce();
     const call = fetchMock.mock.calls[0]!;
     const [url, init] = call as [string, RequestInit];
-    expect(url).toMatch(/\/search$/);
+    expect(url).toMatch(/\/api\/search$/);
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");
@@ -331,7 +331,7 @@ describe("searchService.submitRefinementQuery", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/refine")) {
+        if (url.endsWith("/api/refine")) {
           return Promise.resolve({
             ok: true,
             json: () =>
@@ -415,7 +415,7 @@ describe("searchService.submitRefinementQuery", () => {
     });
   });
 
-  it("returns widgets from /refine", async () => {
+  it("returns widgets from /api/refine", async () => {
     const widgets = (
       await submitRefinementQuery({ query: "artificial intelligence" })
     ).widgets;
@@ -428,7 +428,7 @@ describe("searchService.submitRefinementQuery", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/refine")) {
+        if (url.endsWith("/api/refine")) {
           return Promise.resolve({
             ok: true,
             json: () =>
@@ -527,7 +527,7 @@ describe("searchService.submitRefinementQuery", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/refine")) {
+        if (url.endsWith("/api/refine")) {
           return Promise.resolve({
             ok: true,
             json: () =>
@@ -562,7 +562,7 @@ describe("searchService.submitRefinementQuery", () => {
     });
   });
 
-  it("sends a POST request with query and instructions to /refine", async () => {
+  it("sends a POST request with query and instructions to /api/refine", async () => {
     const instructions = ["published after 2010"];
     await submitRefinementQuery({
       query: "books about history",
@@ -571,12 +571,12 @@ describe("searchService.submitRefinementQuery", () => {
 
     const fetchMock = vi.mocked(fetch);
     const refinementCall = fetchMock.mock.calls.find((call) =>
-      String(call[0]).endsWith("/refine"),
+      String(call[0]).endsWith("/api/refine"),
     );
 
     expect(refinementCall).toBeDefined();
     const [url, init] = refinementCall as [string, RequestInit];
-    expect(url).toMatch(/\/refine$/);
+    expect(url).toMatch(/\/api\/refine$/);
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");
@@ -589,7 +589,7 @@ describe("searchService.submitRefinementQuery", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/refine")) {
+        if (url.endsWith("/api/refine")) {
           return Promise.resolve({ ok: false, status: 500 });
         }
 
@@ -607,7 +607,7 @@ describe("searchService.submitRefinementQuery", () => {
 });
 
 describe("searchService.submitInflightMessageQuery", () => {
-  it("sends a POST request with query and instructions to /inflightmsg", async () => {
+  it("sends a POST request with query and instructions to /api/inflightmsg", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -636,7 +636,7 @@ describe("searchService.submitInflightMessageQuery", () => {
     expect(fetchMock).toHaveBeenCalledOnce();
     const call = fetchMock.mock.calls[0]!;
     const [url, init] = call as [string, RequestInit];
-    expect(url).toMatch(/\/inflightmsg$/);
+    expect(url).toMatch(/\/api\/inflightmsg$/);
     expect(init.method).toBe("POST");
     const body = JSON.parse(init.body as string);
     expect(body.query).toBe("books about history");

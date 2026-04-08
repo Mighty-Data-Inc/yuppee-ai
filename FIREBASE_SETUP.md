@@ -8,10 +8,10 @@ Yuppee.AI requires users to authenticate before using search APIs. The frontend 
 
 Current protected endpoints:
 
-- `POST /search`
-- `POST /refine`
-- `POST /inflightmsg`
-- `GET /usage`
+- `POST /api/search`
+- `POST /api/refine`
+- `POST /api/inflightmsg`
+- `GET /api/usage`
 
 ## Step 1: Create A Firebase Project
 
@@ -112,7 +112,7 @@ Backend returns 401 Unauthorized:
 Backend returns quota errors (429):
 
 - This is expected when monthly quota is exhausted
-- Use `GET /usage` to inspect tier and period usage data
+- Use `GET /api/usage` to inspect tier and period usage data
 
 Facebook sign-in issues:
 

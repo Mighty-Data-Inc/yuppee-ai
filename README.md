@@ -27,10 +27,10 @@ Current user-facing flow:
 
 When running locally via the backend adapter (default `http://localhost:3000`) or through Firebase Hosting rewrites, the app uses:
 
-- `POST /search`: Returns SERP summary + results and consumes one search from the current monthly quota
-- `POST /refine`: Returns refinement widgets and optional disambiguation alternatives
-- `POST /inflightmsg`: Returns a short in-progress message for the current query
-- `GET /usage`: Returns tier and quota usage information for the authenticated user
+- `POST /api/search`: Returns SERP summary + results and consumes one search from the current monthly quota
+- `POST /api/refine`: Returns refinement widgets and optional disambiguation alternatives
+- `POST /api/inflightmsg`: Returns a short in-progress message for the current query
+- `GET /api/usage`: Returns tier and quota usage information for the authenticated user
 
 All routes require a valid Firebase ID token (`Authorization: Bearer <token>`).
 
@@ -65,7 +65,7 @@ Deployment is configured through Firebase:
 
 - Frontend hosting target: `yuppee-ai-frontend`
 - Backend codebase: `yuppeeai-backend`
-- Hosting rewrites route `/search`, `/refine`, `/inflightmsg`, and `/usage` to Cloud Functions
+- Hosting rewrites route `/api/search`, `/api/refine`, `/api/inflightmsg`, and `/api/usage` to Cloud Functions
 
 See `firebase.json` for the authoritative deployment mapping.
 

@@ -66,6 +66,8 @@ describe("usage handler", () => {
     const result = await handler(event as HttpRequest);
 
     expect(result.statusCode).toBe(500);
-    expect(JSON.parse(result.body).error).toMatch(/firestore unavailable/i);
+    expect(JSON.parse(result.body).error).toBe(
+      "Usage data is temporarily unavailable",
+    );
   });
 });

@@ -46,7 +46,7 @@ beforeEach(() => {
     "fetch",
     vi.fn().mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.endsWith("/refine")) {
+      if (url.endsWith("/api/refine")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -54,7 +54,7 @@ beforeEach(() => {
         });
       }
 
-      if (url.endsWith("/inflightmsg")) {
+      if (url.endsWith("/api/inflightmsg")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -132,7 +132,7 @@ describe("yuppeeStore", () => {
     expect(store.isLoadingWidgets).toBe(false);
   });
 
-  it("rerollRefinements re-submits only to /refine", async () => {
+  it("rerollRefinements re-submits only to /api/refine", async () => {
     const rerolledWidgets: RefinementWidget[] = [
       {
         id: "genre",
@@ -147,7 +147,7 @@ describe("yuppeeStore", () => {
       .fn()
       .mockImplementation((input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input);
-        if (url.endsWith("/refine")) {
+        if (url.endsWith("/api/refine")) {
           return Promise.resolve({
             ok: true,
             json: () =>
@@ -159,7 +159,7 @@ describe("yuppeeStore", () => {
         }
 
         return Promise.reject(
-          new Error("rerollRefinements should only call /refine"),
+          new Error("rerollRefinements should only call /api/refine"),
         );
       });
     vi.stubGlobal("fetch", fetchMock);
@@ -171,7 +171,7 @@ describe("yuppeeStore", () => {
     await store.rerollRefinements();
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(String(fetchMock.mock.calls[0][0])).toContain("/refine");
+    expect(String(fetchMock.mock.calls[0][0])).toContain("/api/refine");
     expect(store.widgets).toEqual(rerolledWidgets);
   });
 
@@ -189,7 +189,7 @@ describe("yuppeeStore", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/refine")) {
+        if (url.endsWith("/api/refine")) {
           return Promise.resolve({
             ok: true,
             json: () => refinementDeferred.promise,
@@ -247,7 +247,7 @@ describe("yuppeeStore", () => {
   it("submits no widgets and includes described changes in instructions", async () => {
     const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.endsWith("/refine")) {
+      if (url.endsWith("/api/refine")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -332,7 +332,7 @@ describe("yuppeeStore", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/refine")) {
+        if (url.endsWith("/api/refine")) {
           return Promise.resolve({
             ok: true,
             json: () => refinementDeferred.promise,
@@ -529,7 +529,7 @@ describe("yuppeeStore", () => {
       "fetch",
       vi.fn().mockImplementation((input: RequestInfo | URL) => {
         const url = String(input);
-        if (url.endsWith("/search")) {
+        if (url.endsWith("/api/search")) {
           return Promise.resolve({
             ok: false,
             status: 429,
@@ -546,7 +546,7 @@ describe("yuppeeStore", () => {
           });
         }
 
-        if (url.endsWith("/refine")) {
+        if (url.endsWith("/api/refine")) {
           return Promise.resolve({
             ok: true,
             json: () =>

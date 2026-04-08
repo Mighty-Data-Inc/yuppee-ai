@@ -12,28 +12,28 @@
       ],
       "rewrites": [
         {
-          "source": "/search",
+          "source": "/api/search",
           "function": {
             "functionId": "search",
             "region": "us-central1"
           }
         },
         {
-          "source": "/refine",
+          "source": "/api/refine",
           "function": {
             "functionId": "refine",
             "region": "us-central1"
           }
         },
         {
-          "source": "/inflightmsg",
+          "source": "/api/inflightmsg",
           "function": {
             "functionId": "inflightmsg",
             "region": "us-central1"
           }
         },
         {
-          "source": "/usage",
+          "source": "/api/usage",
           "function": {
             "functionId": "usage",
             "region": "us-central1"
