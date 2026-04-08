@@ -35,9 +35,17 @@ export const handler: HttpHandler = async (event) => {
       }),
     };
   } catch (err) {
+    if ((err as any).statusCode !== 401) {
+      console.error("[Usage] Request failed", err);
+    }
+
     const statusCode = (err as any).statusCode || 500;
     const message =
-      err instanceof Error ? err.message : "Internal server error";
+      statusCode === 401
+        ? err instanceof Error
+          ? err.message
+          : "Unauthorized"
+        : "Usage data is temporarily unavailable";
     return errorResponse(statusCode, message);
   }
 };
