@@ -35,6 +35,7 @@ describe("WidgetPanel loading behavior", () => {
 
   it("hides existing widgets while loading", () => {
     const store = useYuppeeStore();
+    store.query = "crimean war books";
     store.widgets = [
       {
         id: "date-range",
@@ -145,6 +146,7 @@ describe("WidgetPanel loading behavior", () => {
 
   it("removes an instruction card when the close button is clicked", async () => {
     const store = useYuppeeStore();
+    store.query = "crimean war books";
     store.widgets = [
       {
         id: "date-range",
@@ -168,6 +170,22 @@ describe("WidgetPanel loading behavior", () => {
 
     expect(store.additionalInstructionPoints).toEqual([]);
     expect(wrapper.findAll(".widget-panel__instruction-card")).toHaveLength(0);
+  });
+
+  it("shows additional instructions even when no widgets are available", () => {
+    const store = useYuppeeStore();
+    store.query = "books about history";
+    store.widgets = [];
+    store.isLoadingWidgets = false;
+    store.additionalInstructionPoints = ["written by a British author"];
+
+    const wrapper = mount(WidgetPanel, {
+      global: { stubs: globalStubs },
+    });
+
+    expect(wrapper.find(".widget-panel__no-widgets-note").exists()).toBe(true);
+    expect(wrapper.findAll(".widget-panel__instruction-card")).toHaveLength(1);
+    expect(wrapper.find(".widget-panel__btn").exists()).toBe(true);
   });
 
   it("updates the URL query when selecting a disambiguation alternative", async () => {

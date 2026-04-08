@@ -63,7 +63,7 @@ const canSearchAgain = computed(() => {
         type="button"
         class="widget-panel__refresh"
         aria-label="Refresh refinements"
-        title="Try a different set of refinement suggestions"
+        title="Generate a new set of refinement suggestions"
         @click="handleRerollRefinements"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -97,9 +97,9 @@ const canSearchAgain = computed(() => {
       </div>
     </template>
 
-    <!-- Widgets -->
-    <template v-else-if="store.widgets.length > 0">
-      <div class="widget-panel__widgets" v-if="!store.isLoadingWidgets">
+    <!-- Query-scoped controls (with or without widgets) -->
+    <template v-else-if="store.query">
+      <div v-if="store.widgets.length > 0 && !store.isLoadingWidgets" class="widget-panel__widgets">
         <template v-for="widget in store.widgets" :key="widget.id">
           <RangeSliderWidget
             v-if="widget.type === 'slider'"
@@ -123,7 +123,8 @@ const canSearchAgain = computed(() => {
           />
         </template>
       </div>
-      <div v-else class="widget-panel__widgets-loading" aria-live="polite">
+
+      <div v-else-if="store.isLoadingWidgets" class="widget-panel__widgets-loading" aria-live="polite">
         <div
           v-for="i in Math.min(Math.max(store.widgets.length, 2), 4)"
           :key="`widget-loading-${i}`"
@@ -132,6 +133,10 @@ const canSearchAgain = computed(() => {
           <div class="skeleton-line skeleton-line--label" />
           <div class="skeleton-line skeleton-line--control" />
         </div>
+      </div>
+
+      <div v-else class="widget-panel__no-widgets-note">
+        No refinement widgets were returned this time, but your additional instructions still apply.
       </div>
 
       <div class="widget-panel__freeform">
@@ -257,6 +262,16 @@ const canSearchAgain = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+.widget-panel__no-widgets-note {
+  padding: 0.75rem 0.85rem;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 
 .widget-panel__widget-skeleton {
