@@ -389,6 +389,11 @@ export const normalizeWidgetObjectFromLLM = (
   }
 
   if (widget.type === "dropdown" || widget.type === "chipgroup") {
+    // Validate that choices exists and is an array before iterating
+    if (!Array.isArray(llmWidgetObj.widget_params?.choices)) {
+      return null;
+    }
+
     widget.options = [];
     for (const llmChoice of llmWidgetObj.widget_params.choices) {
       const choice: RefinementWidgetOption = {
