@@ -42,7 +42,26 @@ const monthlyUsageLabel = computed(() => {
     return "n/a";
   }
 
-  return `${usage.value.periodSearchesUsed} of ${usage.value.monthlyQuota} searches used this month`;
+  return `${usage.value.periodSearchesUsed} of ${usage.value.monthlyQuota}`;
+});
+
+const usagePercent = computed(() => {
+  if (!usage.value || usage.value.monthlyQuota <= 0) {
+    return 0;
+  }
+
+  const percent = (usage.value.periodSearchesUsed / usage.value.monthlyQuota) * 100;
+  return Math.min(100, Math.max(0, percent));
+});
+
+const usageBarClass = computed(() => {
+  if (usagePercent.value >= 90) {
+    return "profile-usage-fill--danger";
+  }
+  if (usagePercent.value >= 60) {
+    return "profile-usage-fill--warning";
+  }
+  return "profile-usage-fill--ok";
 });
 
 async function handleLogout() {
@@ -104,8 +123,18 @@ function handleAvatarLoadError() {
             Loading subscription info...
           </template>
           <template v-else>
-            <div><strong>Tier:</strong> {{ tierLabel }}</div>
-            <div>{{ monthlyUsageLabel }}</div>
+            <div>Current tier: <strong>{{ tierLabel }}</strong></div>
+            <div class="profile-usage-line">
+              Searches this month:
+              <span class="profile-usage-value">{{ monthlyUsageLabel }}</span>
+            </div>
+            <div class="profile-usage-track" aria-hidden="true">
+              <div
+                class="profile-usage-fill"
+                :class="usageBarClass"
+                :style="{ width: `${usagePercent}%` }"
+              />
+            </div>
           </template>
         </div>
       </div>
@@ -204,6 +233,40 @@ function handleAvatarLoadError() {
   font-size: 0.75rem;
   display: grid;
   gap: 0.2rem;
+}
+
+.profile-usage-track {
+  margin-top: 0.35rem;
+  width: 100%;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.profile-usage-value {
+  white-space: nowrap;
+}
+
+.profile-usage-line {
+  line-height: 1.3;
+}
+
+.profile-usage-fill {
+  height: 100%;
+  transition: width 0.2s ease;
+}
+
+.profile-usage-fill--ok {
+  background: #16a34a;
+}
+
+.profile-usage-fill--warning {
+  background: #eab308;
+}
+
+.profile-usage-fill--danger {
+  background: #dc2626;
 }
 
 .profile-divider {
