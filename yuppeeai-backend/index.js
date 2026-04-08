@@ -7,6 +7,10 @@ const {
 } = require("./dist/handlers");
 
 const PUBLIC_INVOKER = { invoker: "public" };
+const PUBLIC_INVOKER_WITH_OPENAI_SECRET = {
+  invoker: "public",
+  secrets: ["OPENAI_API_KEY"],
+};
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -63,13 +67,13 @@ async function runHandler(req, res, handler) {
   res.send(response.body || "");
 }
 
-exports.search = onRequest(PUBLIC_INVOKER, (req, res) =>
+exports.search = onRequest(PUBLIC_INVOKER_WITH_OPENAI_SECRET, (req, res) =>
   runHandler(req, res, searchHandler),
 );
-exports.refine = onRequest(PUBLIC_INVOKER, (req, res) =>
+exports.refine = onRequest(PUBLIC_INVOKER_WITH_OPENAI_SECRET, (req, res) =>
   runHandler(req, res, searchRefinementsHandler),
 );
-exports.inflightmsg = onRequest(PUBLIC_INVOKER, (req, res) =>
+exports.inflightmsg = onRequest(PUBLIC_INVOKER_WITH_OPENAI_SECRET, (req, res) =>
   runHandler(req, res, inflightMessageHandler),
 );
 exports.usage = onRequest(PUBLIC_INVOKER, (req, res) =>
