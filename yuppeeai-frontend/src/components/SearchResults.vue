@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useYuppeeStore } from '@/stores/yuppeeStore'
 import LoginModal from './LoginModal.vue'
 
 const store = useYuppeeStore()
 const loginModalOpen = ref(false)
+
+watch(
+  () => store.authRequired,
+  (isRequired) => {
+    if (isRequired) {
+      loginModalOpen.value = true
+    }
+  },
+  { immediate: true },
+)
 
 // Show a compact display URL like example.com/path instead of the full raw link.
 function formatUrl(url?: string): string {

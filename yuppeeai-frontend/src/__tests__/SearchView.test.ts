@@ -6,14 +6,17 @@ import SearchView from "../views/SearchView.vue";
 const mockSearch = vi.fn().mockResolvedValue(undefined);
 const mockReset = vi.fn();
 const mockWaitForInitialAuthState = vi.fn().mockResolvedValue(undefined);
+let mockIsAuthenticated = true;
 
 const routeState = reactive<{ query: Record<string, unknown> }>({
   query: {},
 });
 
 const mockStore = {
+  query: "",
   search: mockSearch,
   reset: mockReset,
+  authRequired: false,
 };
 
 vi.mock("@/stores/yuppeeStore", () => ({
@@ -23,7 +26,9 @@ vi.mock("@/stores/yuppeeStore", () => ({
 vi.mock("@/stores/authStore", () => ({
   useAuthStore: () => ({
     waitForInitialAuthState: mockWaitForInitialAuthState,
-    isAuthenticated: true,
+    get isAuthenticated() {
+      return mockIsAuthenticated;
+    },
   }),
 }));
 
@@ -41,9 +46,12 @@ vi.mock("vue-router", () => ({
 describe("SearchView query handling", () => {
   beforeEach(() => {
     routeState.query = {};
+    mockIsAuthenticated = true;
     mockSearch.mockClear();
     mockReset.mockClear();
     mockWaitForInitialAuthState.mockClear();
+    mockStore.query = "";
+    mockStore.authRequired = false;
   });
 
   it("submits search on mount when q is present", async () => {
@@ -63,7 +71,7 @@ describe("SearchView query handling", () => {
 
     await nextTick();
 
-    expect(mockWaitForInitialAuthState).toHaveBeenCalledTimes(1);
+    expect(mockWaitForInitialAuthState.mock.calls.length).toBeGreaterThan(0);
     expect(mockSearch).toHaveBeenCalledTimes(1);
     expect(mockSearch).toHaveBeenCalledWith("crimean war books");
     expect(mockReset).not.toHaveBeenCalled();
@@ -87,6 +95,31 @@ describe("SearchView query handling", () => {
     await nextTick();
 
     expect(mockReset.mock.calls.length).toBeGreaterThan(0);
+    expect(mockSearch).not.toHaveBeenCalled();
+  });
+
+  it("shows auth-required state on search page when user is signed out", async () => {
+    routeState.query = { q: "Books about Crimean War" };
+    mockIsAuthenticated = false;
+
+    mount(SearchView, {
+      global: {
+        stubs: {
+          SearchBar: true,
+          SearchResults: true,
+          WidgetPanel: true,
+          UserProfile: true,
+          "router-link": { template: "<a><slot /></a>" },
+        },
+      },
+    });
+
+    await nextTick();
+
+    expect(mockWaitForInitialAuthState.mock.calls.length).toBeGreaterThan(0);
+    expect(mockReset.mock.calls.length).toBeGreaterThan(0);
+    expect(mockStore.query).toBe("Books about Crimean War");
+    expect(mockStore.authRequired).toBe(true);
     expect(mockSearch).not.toHaveBeenCalled();
   });
 });

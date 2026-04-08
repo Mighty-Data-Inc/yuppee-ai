@@ -18,21 +18,30 @@ onMounted(() => {
 watch(() => route.query.q, (q) => {
   void submitSearch(q)
 })
+watch(
+  () => authStore.isAuthenticated,
+  (isAuthenticated, wasAuthenticated) => {
+    if (!wasAuthenticated && isAuthenticated) {
+      void submitSearch(route.query.q)
+    }
+  },
+)
 
 async function submitSearch(q?: string | null | Array<string | null>) {
   const firstValue = Array.isArray(q) ? (q[0] ?? "") : (q ?? "")
   const query = firstValue.trim()
-  if (!query) { store.reset(); return }
-
   await authStore.waitForInitialAuthState()
-  
-  // Only search if user is authenticated
+
+  // Always show the auth prompt on the search page for signed-out users.
   if (!authStore.isAuthenticated) {
     store.reset()
+    store.query = query
     store.authRequired = true
     return
   }
-  
+
+  if (!query) { store.reset(); return }
+
   store.authRequired = false
   await store.search(query)
 }
