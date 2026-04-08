@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { useAuthStore } from "@/stores/authStore";
+import { fetchUsage, type UsageResponse } from "@/services/searchService";
 
 const authStore = useAuthStore();
 const isOpen = ref(false);
 const didAvatarFailToLoad = ref(false);
+const usage = ref<UsageResponse | null>(null);
+const isLoadingUsage = ref(false);
 
 const avatarUrl = computed(() => authStore.user?.photoURL ?? "");
 const shouldShowAvatarImage = computed(
@@ -16,9 +19,36 @@ watch(avatarUrl, () => {
   didAvatarFailToLoad.value = false;
 });
 
+watch(isOpen, async (open) => {
+  if (!open || !authStore.isAuthenticated) {
+    return;
+  }
+
+  isLoadingUsage.value = true;
+  try {
+    usage.value = await fetchUsage();
+  } catch (err) {
+    console.warn("Failed to load usage details:", err);
+    usage.value = null;
+  } finally {
+    isLoadingUsage.value = false;
+  }
+});
+
+const tierLabel = computed(() => usage.value?.tierName || usage.value?.tier || "n/a");
+
+const monthlyUsageLabel = computed(() => {
+  if (!usage.value) {
+    return "n/a";
+  }
+
+  return `${usage.value.periodSearchesUsed} of ${usage.value.monthlyQuota} searches used this month`;
+});
+
 async function handleLogout() {
   try {
     await authStore.logout();
+    usage.value = null;
     isOpen.value = false;
   } catch (err) {
     console.error("Logout failed:", err);
@@ -67,6 +97,16 @@ function handleAvatarLoadError() {
         </div>
         <div class="profile-email">
           {{ authStore.userEmail }}
+        </div>
+
+        <div class="profile-subscription">
+          <template v-if="isLoadingUsage">
+            Loading subscription info...
+          </template>
+          <template v-else>
+            <div><strong>Tier:</strong> {{ tierLabel }}</div>
+            <div>{{ monthlyUsageLabel }}</div>
+          </template>
         </div>
       </div>
 
@@ -154,6 +194,16 @@ function handleAvatarLoadError() {
   color: var(--color-text-muted);
   font-size: 0.75rem;
   margin-top: 0.25rem;
+}
+
+.profile-subscription {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  display: grid;
+  gap: 0.2rem;
 }
 
 .profile-divider {

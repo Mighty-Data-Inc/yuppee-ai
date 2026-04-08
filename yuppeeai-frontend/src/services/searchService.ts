@@ -12,6 +12,19 @@ export interface InflightMessageResponse {
   message: string;
 }
 
+export interface UsageResponse {
+  uid: string;
+  totalSearches: number;
+  tier: string;
+  tierName: string;
+  tierDescription: string;
+  monthlyQuota: number;
+  periodKey: string;
+  periodSearchesUsed: number;
+  accessExpiresAtPeriod: string;
+  remainingSearchesThisPeriod: number;
+}
+
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
@@ -143,4 +156,25 @@ export async function submitInflightMessageQuery(
   }
 
   return (await response.json()) as InflightMessageResponse;
+}
+
+export async function fetchUsage(): Promise<UsageResponse> {
+  const response = await fetch(`${API_BASE_URL}/usage`, {
+    method: "GET",
+    headers: {
+      ...(await getAuthHeaders()),
+    },
+  });
+
+  if (response.status === 401 || response.status === 403) {
+    const error = new Error("Unauthorized");
+    (error as any).statusCode = response.status;
+    throw error;
+  }
+
+  if (!response.ok) {
+    throw new Error(`Usage request failed: ${response.status}`);
+  }
+
+  return (await response.json()) as UsageResponse;
 }
