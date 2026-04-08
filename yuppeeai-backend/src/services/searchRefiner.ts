@@ -256,6 +256,7 @@ const WIDGET_JSON_SCHEMA = {
                   `Indicates whether this widget already has a selected value in the current search context. ` +
                   `Set this to true if the widget already has a selected value that is implied by the user's ` +
                   `original query or additional instructions.`,
+              },
             },
             required: [
               "effect_of_user_selecting_value_for_this_widget",
