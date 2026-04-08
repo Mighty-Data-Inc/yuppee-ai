@@ -105,9 +105,12 @@ describe("searchService.search", () => {
   });
 
   it("returns results for book-related queries", async () => {
-    const response = await submitSERPQuery({
-      query: "Books about Crimean War",
-    });
+    const { response } = await submitSERPQuery(
+      {
+        query: "Books about Crimean War",
+      },
+      1,
+    );
     expect(response.results.length).toBeGreaterThan(0);
     expect(response.results[0]).toHaveProperty("title");
     expect(response.results[0]).toHaveProperty("url");
@@ -116,19 +119,28 @@ describe("searchService.search", () => {
   });
 
   it("returns results for movie-related queries", async () => {
-    const response = await submitSERPQuery({ query: "best sci-fi movies" });
+    const { response } = await submitSERPQuery(
+      { query: "best sci-fi movies" },
+      1,
+    );
     expect(response.results.length).toBeGreaterThan(0);
   });
 
   it("returns default results for generic queries", async () => {
-    const response = await submitSERPQuery({
-      query: "artificial intelligence search",
-    });
+    const { response } = await submitSERPQuery(
+      {
+        query: "artificial intelligence search",
+      },
+      1,
+    );
     expect(response.results.length).toBeGreaterThan(0);
   });
 
   it("returns 6 results", async () => {
-    const response = await submitSERPQuery({ query: "books about history" });
+    const { response } = await submitSERPQuery(
+      { query: "books about history" },
+      1,
+    );
     expect(response.results).toHaveLength(6);
   });
 
@@ -160,7 +172,7 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await submitSERPQuery({ query: "duplicate test" });
+    const { response } = await submitSERPQuery({ query: "duplicate test" }, 1);
 
     expect(response.results).toHaveLength(3);
     expect(response.results[0]).toMatchObject({
@@ -199,7 +211,7 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await submitSERPQuery({ query: "dual text test" });
+    const { response } = await submitSERPQuery({ query: "dual text test" }, 1);
 
     expect(response.results).toHaveLength(1);
     expect(response.results[0]).toMatchObject({
@@ -228,7 +240,10 @@ describe("searchService.search", () => {
       }),
     );
 
-    const response = await submitSERPQuery({ query: "summary only test" });
+    const { response } = await submitSERPQuery(
+      { query: "summary only test" },
+      1,
+    );
 
     expect(response.results).toHaveLength(1);
     expect(response.results[0]).toMatchObject({
@@ -241,10 +256,13 @@ describe("searchService.search", () => {
 
   it("sends a POST request with query and instructions to /api/search", async () => {
     const instructions = ["written by a British author"];
-    await submitSERPQuery({
-      query: "books about history",
-      instructions,
-    });
+    await submitSERPQuery(
+      {
+        query: "books about history",
+        instructions,
+      },
+      1,
+    );
     const fetchMock = vi.mocked(fetch);
     expect(fetchMock).toHaveBeenCalledOnce();
     const call = fetchMock.mock.calls[0]!;
@@ -263,10 +281,13 @@ describe("searchService.search", () => {
       "published after 2020",
     ];
 
-    await submitSERPQuery({
-      query: "books about history",
-      instructions,
-    });
+    await submitSERPQuery(
+      {
+        query: "books about history",
+        instructions,
+      },
+      1,
+    );
 
     const fetchMock = vi.mocked(fetch);
     const call = fetchMock.mock.calls[0]!;
@@ -281,7 +302,7 @@ describe("searchService.search", () => {
       "fetch",
       vi.fn().mockResolvedValue({ ok: false, status: 500 }),
     );
-    await expect(submitSERPQuery({ query: "test query" })).rejects.toThrow(
+    await expect(submitSERPQuery({ query: "test query" }, 1)).rejects.toThrow(
       "Search request failed: 500",
     );
   });
@@ -306,7 +327,7 @@ describe("searchService.search", () => {
     );
 
     try {
-      await submitSERPQuery({ query: "test query" });
+      await submitSERPQuery({ query: "test query" }, 1);
       throw new Error("Expected submitSERPQuery to throw");
     } catch (e) {
       expect((e as any).statusCode).toBe(429);
@@ -388,8 +409,8 @@ describe("searchService.submitRefinementQuery", () => {
       }),
     );
 
-    const widgets = (await submitRefinementQuery({ query: "best novels" }))
-      .widgets;
+    const widgets = (await submitRefinementQuery({ query: "best novels" }, 1))
+      .response.widgets;
 
     expect(widgets).toHaveLength(4);
     expect(widgets[0]).toMatchObject({
@@ -417,8 +438,8 @@ describe("searchService.submitRefinementQuery", () => {
 
   it("returns widgets from /api/refine", async () => {
     const widgets = (
-      await submitRefinementQuery({ query: "artificial intelligence" })
-    ).widgets;
+      await submitRefinementQuery({ query: "artificial intelligence" }, 1)
+    ).response.widgets;
     expect(widgets).toHaveLength(2);
     expect(widgets[0]?.id).toBe("date-range");
   });
@@ -490,7 +511,8 @@ describe("searchService.submitRefinementQuery", () => {
       }),
     );
 
-    const widgets = (await submitRefinementQuery({ query: "prices" })).widgets;
+    const widgets = (await submitRefinementQuery({ query: "prices" }, 1))
+      .response.widgets;
 
     expect(widgets[0]).toMatchObject({
       variable_name: "exact_price",
@@ -554,7 +576,8 @@ describe("searchService.submitRefinementQuery", () => {
       }),
     );
 
-    const widgets = (await submitRefinementQuery({ query: "formats" })).widgets;
+    const widgets = (await submitRefinementQuery({ query: "formats" }, 1))
+      .response.widgets;
     expect(widgets).toHaveLength(1);
     expect(widgets[0]).toMatchObject({
       type: "dropdown",
@@ -564,10 +587,13 @@ describe("searchService.submitRefinementQuery", () => {
 
   it("sends a POST request with query and instructions to /api/refine", async () => {
     const instructions = ["published after 2010"];
-    await submitRefinementQuery({
-      query: "books about history",
-      instructions,
-    });
+    await submitRefinementQuery(
+      {
+        query: "books about history",
+        instructions,
+      },
+      1,
+    );
 
     const fetchMock = vi.mocked(fetch);
     const refinementCall = fetchMock.mock.calls.find((call) =>
@@ -601,7 +627,7 @@ describe("searchService.submitRefinementQuery", () => {
     );
 
     await expect(
-      submitRefinementQuery({ query: "test query" }),
+      submitRefinementQuery({ query: "test query" }, 1),
     ).rejects.toThrow("Refinements request failed: 500");
   });
 });

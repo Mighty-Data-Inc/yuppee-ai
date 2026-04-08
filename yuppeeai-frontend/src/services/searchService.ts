@@ -75,7 +75,11 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 
 export async function submitSERPQuery(
   serpRequest: SERPRequest,
-): Promise<SERPResponse> {
+  timestamp: number,
+): Promise<{
+  response: SERPResponse;
+  timestamp: number;
+}> {
   const response = await fetch(`${API_BASE_URL}/api/search`, {
     method: "POST",
     headers: {
@@ -120,12 +124,19 @@ export async function submitSERPQuery(
     throw error;
   }
   const data = (await response.json()) as SERPResponse;
-  return data;
+  return {
+    response: data,
+    timestamp,
+  };
 }
 
 export async function submitRefinementQuery(
   refinementRequest: RefinementRequest,
-): Promise<RefinementResponse> {
+  timestamp: number,
+): Promise<{
+  response: RefinementResponse;
+  timestamp: number;
+}> {
   const response = await fetch(`${API_BASE_URL}/api/refine`, {
     method: "POST",
     headers: {
@@ -146,7 +157,10 @@ export async function submitRefinementQuery(
   }
 
   const data = (await response.json()) as RefinementResponse;
-  return data;
+  return {
+    response: data,
+    timestamp,
+  };
 }
 
 export async function submitInflightMessageQuery(

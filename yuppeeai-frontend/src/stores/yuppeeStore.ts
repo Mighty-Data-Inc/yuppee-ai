@@ -96,6 +96,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   const authError = ref<string | null>(null);
   const quotaExceeded = ref<QuotaExceededState | null>(null);
   const authRequired = ref(false);
+  const lastSearchAt = ref<number>(0);
 
   function reset() {
     query.value = "";
@@ -113,6 +114,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   }
 
   async function search(q: string) {
+    lastSearchAt.value = Date.now();
     q = q.trim();
     const isNewQuery = q !== query.value;
     const cachedInstructionsForQuery = isNewQuery
@@ -140,19 +142,26 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     );
     newAdditionalInstruction.value = "";
 
-    // TODO (low priority): Record the timestamp when the last query went out.
-    // Ignore the results of any resolved promise that has an earlier timestamp.
-
     queryRefinementCacheService.save(q, additionalInstructionPoints.value);
     additionalInstructionPointsFromLastSubmit.value = [
       ...additionalInstructionPoints.value,
     ];
 
-    const serpRequest = submitSERPQuery({
-      query: q,
-      instructions: additionalInstructionPoints.value,
-    })
-      .then((searchResponse) => {
+    const serpRequest = submitSERPQuery(
+      {
+        query: q,
+        instructions: additionalInstructionPoints.value,
+      },
+      lastSearchAt.value,
+    )
+      .then(({ response: searchResponse, timestamp }) => {
+        // If the timestamp doesn't match the last search timestamp,
+        // it means a newer search has been submitted since this request was made,
+        // so we should ignore the results of this request to avoid showing stale data.
+        if (timestamp !== lastSearchAt.value) {
+          return;
+        }
+
         serpResults.value = searchResponse.results;
         serpSummary.value = searchResponse.summary ?? "";
         authError.value = null;
@@ -177,11 +186,18 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         isLoadingSERP.value = false;
       });
 
-    const refinementRequest = submitRefinementQuery({
-      query: q,
-      instructions: additionalInstructionPoints.value,
-    })
-      .then((refinementResponse) => {
+    const refinementRequest = submitRefinementQuery(
+      {
+        query: q,
+        instructions: additionalInstructionPoints.value,
+      },
+      lastSearchAt.value,
+    )
+      .then(({ response: refinementResponse, timestamp }) => {
+        if (timestamp !== lastSearchAt.value) {
+          return;
+        }
+
         disambiguation.value = refinementResponse.disambiguation ?? null;
 
         // Both the "live" widgets and the snapshot of widgets from the "last" submit
@@ -250,10 +266,18 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     ];
 
     try {
-      const refinementResponse = await submitRefinementQuery({
-        query: q,
-        instructions,
-      });
+      const { response: refinementResponse, timestamp } =
+        await submitRefinementQuery(
+          {
+            query: q,
+            instructions,
+          },
+          lastSearchAt.value,
+        );
+
+      if (timestamp !== lastSearchAt.value) {
+        return;
+      }
 
       disambiguation.value = refinementResponse.disambiguation ?? null;
       widgets.value = JSON.parse(JSON.stringify(refinementResponse.widgets));
@@ -488,6 +512,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     authError,
     quotaExceeded,
     authRequired,
+    lastSearchAt,
     reset,
     search,
     rerollRefinements,
