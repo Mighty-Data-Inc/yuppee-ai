@@ -85,22 +85,23 @@ function handleAuthCtaClick() {
     </template>
 
     <div v-else-if="store.quotaExceeded" class="results__quota">
+      <div class="results__quota-badge">Usage limit reached</div>
       <h2>You have used up this month's searches</h2>
       <h3>Monthly quota exceeded</h3>
       <p>
         Your current subscription tier is: <strong>{{ store.quotaExceeded.tierLabel }}</strong>.
       </p>
-      <p v-if="store.quotaExceeded.periodSearchesUsed !== null && store.quotaExceeded.monthlyQuota !== null">
+      <p v-if="store.quotaExceeded.periodSearchesUsed !== null && store.quotaExceeded.monthlyQuota !== null" class="results__quota-usage">
         You have used {{ store.quotaExceeded.periodSearchesUsed }} of
         <strong>{{ store.quotaExceeded.monthlyQuota }}</strong> searches this month.
       </p>
       <p>
-        You'll have to wait until your quota resets at the start of the next month
-        before you can perform more searches.
+        You'll have to wait until your <strong>quota resets</strong> at the start of the next month
+        before you can <strong>perform more searches</strong>.
       </p>
       <p>
-        Or, you can upgrade your subscription to get a higher monthly quota.
-        With a higher-tier subscription, you'll be able to continue searching now
+        Or, you can <strong>upgrade your subscription</strong> to get a <strong>higher monthly quota</strong>.
+        With a higher-tier subscription, you'll be able to <strong>continue searching now</strong>
         and get a larger monthly quota when your usage resets.
       </p>
       <div class="results__quota-actions">
@@ -317,57 +318,92 @@ function handleAuthCtaClick() {
 }
 
 .results__quota {
-  padding: 1.05rem 1.15rem;
-  border: 1px solid #bfdbfe;
-  background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
-  border-radius: var(--radius-md);
-  color: #1e3a8a;
-  font-size: 1rem;
-  display: grid;
-  gap: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.85rem;
+  padding: 2.25rem 1.65rem;
+  border: 2px solid #f59e0b;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 22% -12%, rgba(251, 191, 36, 0.2) 0%, rgba(251, 191, 36, 0) 58%),
+    radial-gradient(circle at 88% 114%, rgba(245, 158, 11, 0.24) 0%, rgba(245, 158, 11, 0) 55%),
+    linear-gradient(135deg, #fff7e8 0%, #fff2cf 100%);
+  color: #78350f;
+}
+
+.results__quota-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid #f59e0b;
+  border-radius: 999px;
+  background: rgba(255, 251, 235, 0.95);
+  color: #92400e;
+  font-size: 0.76rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  font-weight: 700;
 }
 
 .results__quota h2 {
-  color: #1e3a8a;
-  font-size: 1.4rem;
+  color: #7c2d12;
+  font-size: 1.55rem;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.25;
+  margin: 0;
 }
 
 .results__quota h3 {
-  color: #1e40af;
-  font-size: 1.1rem;
-  font-weight: 700;
+  color: #b45309;
+  font-size: 0.96rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   line-height: 1.35;
+  margin: 0;
 }
 
 .results__quota p {
-  font-size: 1rem;
-  line-height: 1.45;
-  margin-top: 1rem;
+  font-size: 0.97rem;
+  line-height: 1.55;
+  margin: 0;
+  max-width: 46ch;
+  color: #92400e;
+}
+
+.results__quota-usage {
+  padding: 0.65rem 0.85rem;
+  border: 1px dashed #f59e0b;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.65);
 }
 
 .results__quota-actions {
-  margin-top: 0.35rem;
+  margin-top: 0.15rem;
   display: flex;
   justify-content: center;
 }
 
 .results__upgrade-btn {
-  padding: 0.55rem 0.85rem;
-  border: 1px solid #16a34a;
-  background: #16a34a;
+  padding: 0.72rem 1.4rem;
+  border: 1px solid #b45309;
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
   color: white;
-  margin-top: 1rem;
-  font-size: 1.4rem;
+  font-size: 0.96rem;
   font-weight: 600;
-  border-radius: var(--radius-sm);
-  transition: background-color var(--transition), border-color var(--transition);
+  letter-spacing: 0.01em;
+  border-radius: var(--radius-md);
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  box-shadow: 0 8px 18px rgba(180, 83, 9, 0.28);
 }
 
 .results__upgrade-btn:hover {
-  background: #15803d;
-  border-color: #15803d;
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow: 0 12px 20px rgba(180, 83, 9, 0.33);
 }
 
 .results__auth-required {
