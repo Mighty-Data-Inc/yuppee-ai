@@ -6,6 +6,8 @@ const {
   usageHandler,
 } = require("./dist/handlers");
 
+const PUBLIC_INVOKER = { invoker: "public" };
+
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -61,11 +63,15 @@ async function runHandler(req, res, handler) {
   res.send(response.body || "");
 }
 
-exports.search = onRequest((req, res) => runHandler(req, res, searchHandler));
-exports.refine = onRequest((req, res) =>
+exports.search = onRequest(PUBLIC_INVOKER, (req, res) =>
+  runHandler(req, res, searchHandler),
+);
+exports.refine = onRequest(PUBLIC_INVOKER, (req, res) =>
   runHandler(req, res, searchRefinementsHandler),
 );
-exports.inflightmsg = onRequest((req, res) =>
+exports.inflightmsg = onRequest(PUBLIC_INVOKER, (req, res) =>
   runHandler(req, res, inflightMessageHandler),
 );
-exports.usage = onRequest((req, res) => runHandler(req, res, usageHandler));
+exports.usage = onRequest(PUBLIC_INVOKER, (req, res) =>
+  runHandler(req, res, usageHandler),
+);
