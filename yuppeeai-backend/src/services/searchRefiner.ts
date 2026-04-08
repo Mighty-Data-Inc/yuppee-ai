@@ -522,7 +522,7 @@ Do this query's search results lend themselves to any kind of filtration by a nu
         },
       });
 
-      retval.widgets = (refinements.widgets as any[])
+      retval.widgets = ((refinements.widgets || []) as any[])
         .map(normalizeWidgetObjectFromLLM)
         .filter((w) => w) as RefinementWidget[];
 

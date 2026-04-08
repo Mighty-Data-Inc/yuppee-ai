@@ -15,12 +15,28 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
 };
 
+// Number of parallel LLM calls to fire simultaneously. The first one to return
+// a non-empty widgets array wins; the rest are discarded. This hedges against
+// slow or empty responses from the LLM.
 const REFINEMENT_SHOTGUN = 5;
 
-class EmptyWidgetsError extends Error {
-  constructor() {
-    super("Empty widgets result");
-    this.name = "EmptyWidgetsError";
+// Wraps inferSearchRefinements with two behaviours on top:
+//   1. Throws if the response has no widgets, so Promise.any treats it as a
+//      failed attempt rather than a successful-but-useless result.
+//   2. Logs every failure so individual attempts are visible in the logs.
+async function inferSearchRefinementsWithLogging(
+  searchRefiner: SearchRefiner,
+  request: RefinementRequest,
+): Promise<RefinementResponse> {
+  try {
+    const response = await searchRefiner.inferSearchRefinements(request);
+    if (!Array.isArray(response.widgets) || response.widgets.length === 0) {
+      throw new Error("Empty widgets result");
+    }
+    return response;
+  } catch (error) {
+    console.error("inferSearchRefinements failed", error);
+    throw error;
   }
 }
 
@@ -55,42 +71,29 @@ export const handler: HttpHandler = async (event) => {
       openaiApiKey: process.env["OPENAI_API_KEY"],
     });
 
-    let response: RefinementResponse;
-    try {
-      response = await Promise.any(
-        Array.from({ length: REFINEMENT_SHOTGUN }, async () => {
-          const candidate = await searchRefiner.inferSearchRefinements({
-            query: request.query!,
-            instructions: request.instructions,
-          });
+    const refinementRequest: RefinementRequest = {
+      query: request.query!,
+      instructions: request.instructions,
+    };
 
-          if (
-            !Array.isArray(candidate.widgets) ||
-            candidate.widgets.length === 0
-          ) {
-            throw new EmptyWidgetsError();
-          }
+    // Fire REFINEMENT_SHOTGUN attempts in parallel. Each attempt is an
+    // independent LLM call. If a response comes back with no widgets, then
+    // the helper throws on empty results so that Promise.any skips it
+    // and waits for a better one.
+    const refinementAttempts = Array.from({ length: REFINEMENT_SHOTGUN }, () =>
+      inferSearchRefinementsWithLogging(searchRefiner, refinementRequest),
+    );
 
-          return candidate;
-        }),
-      );
-    } catch (err) {
-      if (err instanceof AggregateError && err.errors.length > 0) {
-        const allEmpty = err.errors.every(
-          (e: unknown) => e instanceof EmptyWidgetsError,
-        );
-        if (allEmpty) {
-          response = {
-            query: request.query,
-            widgets: [],
-          };
-        } else {
-          throw err;
-        }
-      } else {
-        throw err;
-      }
-    }
+    // Resolve with the first attempt that returns non-empty widgets.
+    // If every attempt fails or returns empty, fall back to an empty response
+    // rather than surfacing an error to the client.
+    const defaultEmptyResponse: RefinementResponse = {
+      query: request.query!,
+      widgets: [],
+    };
+    const response: RefinementResponse = await Promise.any(
+      refinementAttempts,
+    ).catch(() => defaultEmptyResponse);
 
     return {
       statusCode: 200,
@@ -98,16 +101,6 @@ export const handler: HttpHandler = async (event) => {
       body: JSON.stringify(response),
     };
   } catch (err) {
-    if (err instanceof AggregateError && err.errors.length > 0) {
-      const firstErr =
-        err.errors.find((e: unknown) => !(e instanceof EmptyWidgetsError)) ??
-        err.errors[0];
-      const statusCode = (firstErr as any).statusCode || 500;
-      const message =
-        firstErr instanceof Error ? firstErr.message : "Internal server error";
-      return errorResponse(statusCode, message);
-    }
-
     const statusCode = (err as any).statusCode || 500;
     const message =
       err instanceof Error ? err.message : "Internal server error";
