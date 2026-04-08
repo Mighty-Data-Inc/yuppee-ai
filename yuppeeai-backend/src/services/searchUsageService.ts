@@ -217,8 +217,30 @@ export async function getSearchUsage(uid: string): Promise<SearchUsage> {
   const usage = await db.runTransaction(async (transaction) => {
     const userSubscriptionSnapshot = await transaction.get(userSubscriptionRef);
 
-    let userSubscription = normalizeUserSubscription();
-    if (!userSubscriptionSnapshot.exists) {
+    const shouldCreateUserSubscription = !userSubscriptionSnapshot.exists;
+    const userSubscription = shouldCreateUserSubscription
+      ? normalizeUserSubscription()
+      : normalizeUserSubscription(
+          userSubscriptionSnapshot.data() as Partial<UserSubscriptionDoc>,
+        );
+
+    const tierRef = db
+      .collection(SUBSCRIPTION_TIERS_COLLECTION)
+      .doc(userSubscription.tierId);
+    const tierSnapshot = await transaction.get(tierRef);
+    const tier = resolveTierForUser(userSubscription.tierId, tierSnapshot);
+
+    const shouldCreateDefaultTier =
+      !tierSnapshot.exists && userSubscription.tierId === DEFAULT_TIER;
+
+    const monthlyUsageSnapshot = await transaction.get(monthlyUsageRef);
+    const periodSearchesUsed = monthlyUsageSnapshot.exists
+      ? normalizeMonthlyUsage(
+          monthlyUsageSnapshot.data() as Partial<MonthlyUsageDoc>,
+        )
+      : 0;
+
+    if (shouldCreateUserSubscription) {
       transaction.set(userSubscriptionRef, {
         tierId: userSubscription.tierId,
         accessExpiresAtPeriod: userSubscription.accessExpiresAtPeriod,
@@ -227,19 +249,9 @@ export async function getSearchUsage(uid: string): Promise<SearchUsage> {
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
-    } else {
-      userSubscription = normalizeUserSubscription(
-        userSubscriptionSnapshot.data() as Partial<UserSubscriptionDoc>,
-      );
     }
 
-    const tierRef = db
-      .collection(SUBSCRIPTION_TIERS_COLLECTION)
-      .doc(userSubscription.tierId);
-    const tierSnapshot = await transaction.get(tierRef);
-    const tier = resolveTierForUser(userSubscription.tierId, tierSnapshot);
-
-    if (!tierSnapshot.exists && userSubscription.tierId === DEFAULT_TIER) {
+    if (shouldCreateDefaultTier) {
       transaction.set(tierRef, {
         name: tier.name,
         description: tier.description,
@@ -250,13 +262,6 @@ export async function getSearchUsage(uid: string): Promise<SearchUsage> {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     }
-
-    const monthlyUsageSnapshot = await transaction.get(monthlyUsageRef);
-    const periodSearchesUsed = monthlyUsageSnapshot.exists
-      ? normalizeMonthlyUsage(
-          monthlyUsageSnapshot.data() as Partial<MonthlyUsageDoc>,
-        )
-      : 0;
 
     return toUsage(
       normalizeEntitlement({
@@ -292,21 +297,12 @@ export async function consumeSearchQuota(
   const result = await db.runTransaction(async (transaction) => {
     const userSubscriptionSnapshot = await transaction.get(userSubscriptionRef);
 
-    let userSubscription = normalizeUserSubscription();
-    if (!userSubscriptionSnapshot.exists) {
-      transaction.set(userSubscriptionRef, {
-        tierId: userSubscription.tierId,
-        accessExpiresAtPeriod: userSubscription.accessExpiresAtPeriod,
-        status: userSubscription.status,
-        lifetimeSearchesUsed: userSubscription.lifetimeSearchesUsed,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    } else {
-      userSubscription = normalizeUserSubscription(
-        userSubscriptionSnapshot.data() as Partial<UserSubscriptionDoc>,
-      );
-    }
+    const shouldCreateUserSubscription = !userSubscriptionSnapshot.exists;
+    const userSubscription = shouldCreateUserSubscription
+      ? normalizeUserSubscription()
+      : normalizeUserSubscription(
+          userSubscriptionSnapshot.data() as Partial<UserSubscriptionDoc>,
+        );
 
     const tierRef = db
       .collection(SUBSCRIPTION_TIERS_COLLECTION)
@@ -314,17 +310,8 @@ export async function consumeSearchQuota(
     const tierSnapshot = await transaction.get(tierRef);
     const tier = resolveTierForUser(userSubscription.tierId, tierSnapshot);
 
-    if (!tierSnapshot.exists && userSubscription.tierId === DEFAULT_TIER) {
-      transaction.set(tierRef, {
-        name: tier.name,
-        description: tier.description,
-        monthlyQuota: tier.monthlyQuota,
-        active: true,
-        isPublic: DEFAULT_TIER_IS_PUBLIC,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      });
-    }
+    const shouldCreateDefaultTier =
+      !tierSnapshot.exists && userSubscription.tierId === DEFAULT_TIER;
 
     const monthlyUsageSnapshot = await transaction.get(monthlyUsageRef);
     const periodSearchesUsed = monthlyUsageSnapshot.exists
@@ -382,6 +369,18 @@ export async function consumeSearchQuota(
     entitlement.periodSearchesUsed += 1;
     entitlement.lifetimeSearchesUsed += 1;
 
+    if (shouldCreateDefaultTier) {
+      transaction.set(tierRef, {
+        name: tier.name,
+        description: tier.description,
+        monthlyQuota: tier.monthlyQuota,
+        active: true,
+        isPublic: DEFAULT_TIER_IS_PUBLIC,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+
     if (!monthlyUsageSnapshot.exists) {
       transaction.set(monthlyUsageRef, {
         uid,
@@ -397,10 +396,21 @@ export async function consumeSearchQuota(
       });
     }
 
-    transaction.update(userSubscriptionRef, {
-      lifetimeSearchesUsed: entitlement.lifetimeSearchesUsed,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    if (shouldCreateUserSubscription) {
+      transaction.set(userSubscriptionRef, {
+        tierId: userSubscription.tierId,
+        accessExpiresAtPeriod: userSubscription.accessExpiresAtPeriod,
+        status: userSubscription.status,
+        lifetimeSearchesUsed: entitlement.lifetimeSearchesUsed,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } else {
+      transaction.update(userSubscriptionRef, {
+        lifetimeSearchesUsed: entitlement.lifetimeSearchesUsed,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
 
     return {
       allowed: true as const,
