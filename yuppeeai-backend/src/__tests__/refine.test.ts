@@ -18,6 +18,8 @@ function makeEvent(body?: object | null): Partial<HttpRequest> {
 }
 
 describe("search refinements handler", () => {
+  const REFINEMENT_SHOTGUN = 5;
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -56,7 +58,19 @@ describe("search refinements handler", () => {
           },
           alternatives: [],
         },
-        widgets: [],
+        widgets: [
+          {
+            id: "w1",
+            type: "dropdown",
+            label: "Topic",
+            tooltip: "Filter by topic",
+            value: "",
+            options: [
+              { label: "Fundraising", value: "fundraising" },
+              { label: "Pitching", value: "pitching" },
+            ],
+          },
+        ],
       });
 
     const event = makeEvent({
@@ -74,9 +88,70 @@ describe("search refinements handler", () => {
       },
       alternatives: [],
     });
-    expect(body.widgets).toEqual([]);
-    expect(inferSpy).toHaveBeenCalledWith({
-      query: "best books about startup fundraising",
+    expect(body.widgets.length).toBeGreaterThan(0);
+    expect(inferSpy).toHaveBeenCalledTimes(REFINEMENT_SHOTGUN);
+    for (let i = 1; i <= REFINEMENT_SHOTGUN; i++) {
+      expect(inferSpy).toHaveBeenNthCalledWith(i, {
+        query: "best books about startup fundraising",
+        instructions: undefined,
+      });
+    }
+  });
+
+  it("discards empty-widget results and returns a non-empty result", async () => {
+    const inferSpy = vi
+      .spyOn(SearchRefiner.prototype, "inferSearchRefinements")
+      .mockImplementationOnce(async () => ({
+        query: "query",
+        widgets: [],
+      }))
+      .mockImplementationOnce(async () => ({
+        query: "query",
+        widgets: [
+          {
+            id: "w1",
+            type: "dropdown",
+            label: "Topic",
+            tooltip: "Filter by topic",
+            value: "",
+            options: [
+              { label: "A", value: "a" },
+              { label: "B", value: "b" },
+            ],
+          },
+        ],
+      }))
+      .mockImplementation(async () => ({
+        query: "query",
+        widgets: [],
+      }));
+
+    const event = makeEvent({ query: "query" });
+    const result = await handler(event as HttpRequest);
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body.widgets.length).toBeGreaterThan(0);
+    expect(inferSpy).toHaveBeenCalledTimes(REFINEMENT_SHOTGUN);
+  });
+
+  it("returns default empty widgets response when all shotgun runs are empty", async () => {
+    const inferSpy = vi
+      .spyOn(SearchRefiner.prototype, "inferSearchRefinements")
+      .mockResolvedValue({
+        query: "query",
+        widgets: [],
+      });
+
+    const event = makeEvent({ query: "query" });
+    const result = await handler(event as HttpRequest);
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body).toEqual({
+      query: "query",
+      widgets: [],
     });
+    expect(inferSpy).toHaveBeenCalledTimes(REFINEMENT_SHOTGUN);
   });
 });

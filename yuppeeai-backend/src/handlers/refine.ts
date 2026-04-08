@@ -15,6 +15,15 @@ const CORS_HEADERS = {
   "Content-Type": "application/json",
 };
 
+const REFINEMENT_SHOTGUN = 5;
+
+class EmptyWidgetsError extends Error {
+  constructor() {
+    super("Empty widgets result");
+    this.name = "EmptyWidgetsError";
+  }
+}
+
 // Initialize Firebase Admin on module load
 initializeFirebaseAdmin();
 
@@ -46,11 +55,42 @@ export const handler: HttpHandler = async (event) => {
       openaiApiKey: process.env["OPENAI_API_KEY"],
     });
 
-    const response: RefinementResponse =
-      await searchRefiner.inferSearchRefinements({
-        query: request.query,
-        instructions: request.instructions,
-      });
+    let response: RefinementResponse;
+    try {
+      response = await Promise.any(
+        Array.from({ length: REFINEMENT_SHOTGUN }, async () => {
+          const candidate = await searchRefiner.inferSearchRefinements({
+            query: request.query!,
+            instructions: request.instructions,
+          });
+
+          if (
+            !Array.isArray(candidate.widgets) ||
+            candidate.widgets.length === 0
+          ) {
+            throw new EmptyWidgetsError();
+          }
+
+          return candidate;
+        }),
+      );
+    } catch (err) {
+      if (err instanceof AggregateError && err.errors.length > 0) {
+        const allEmpty = err.errors.every(
+          (e: unknown) => e instanceof EmptyWidgetsError,
+        );
+        if (allEmpty) {
+          response = {
+            query: request.query,
+            widgets: [],
+          };
+        } else {
+          throw err;
+        }
+      } else {
+        throw err;
+      }
+    }
 
     return {
       statusCode: 200,
@@ -58,6 +98,16 @@ export const handler: HttpHandler = async (event) => {
       body: JSON.stringify(response),
     };
   } catch (err) {
+    if (err instanceof AggregateError && err.errors.length > 0) {
+      const firstErr =
+        err.errors.find((e: unknown) => !(e instanceof EmptyWidgetsError)) ??
+        err.errors[0];
+      const statusCode = (firstErr as any).statusCode || 500;
+      const message =
+        firstErr instanceof Error ? firstErr.message : "Internal server error";
+      return errorResponse(statusCode, message);
+    }
+
     const statusCode = (err as any).statusCode || 500;
     const message =
       err instanceof Error ? err.message : "Internal server error";
