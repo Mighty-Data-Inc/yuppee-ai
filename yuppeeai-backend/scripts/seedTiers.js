@@ -3,15 +3,6 @@ const { getFirestore } = require("./firebaseAdmin");
 
 const DEFAULT_TIERS = [
   {
-    id: "internal_test",
-    name: "Internal Test",
-    description:
-      "Internal-only tier for development, QA, and demos. Not purchasable and not visible to customer-facing plan selectors.",
-    monthlyQuota: 1_000_000,
-    active: true,
-    isPublic: false,
-  },
-  {
     id: "free",
     name: "Free",
     description:
@@ -21,11 +12,20 @@ const DEFAULT_TIERS = [
     isPublic: true,
   },
   {
+    id: "basic",
+    name: "Basic",
+    description:
+      "Lightweight plan for casual users who plan to use AI-enhanced search and refinement capabilities every so often.",
+    monthlyQuota: 250,
+    active: true,
+    isPublic: true,
+  },
+  {
     id: "standard",
     name: "Standard",
     description:
-      "Balanced plan for regular users who need more monthly capacity and a smoother day-to-day workflow.",
-    monthlyQuota: 250,
+      "Balanced plan for regular users who expect to make AI-enhanced refinement a regular part of their search experience.",
+    monthlyQuota: 1000,
     active: true,
     isPublic: true,
   },
@@ -34,7 +34,7 @@ const DEFAULT_TIERS = [
     name: "Pro",
     description:
       "High-volume plan for power users and small teams with advanced research needs and frequent search sessions.",
-    monthlyQuota: 1_000,
+    monthlyQuota: 5_000,
     active: true,
     isPublic: true,
   },
@@ -43,9 +43,18 @@ const DEFAULT_TIERS = [
     name: "Enterprise",
     description:
       "Maximum capacity plan for organizations with large-scale usage, operational rigor, and enterprise-level workflows.",
-    monthlyQuota: 5_000,
+    monthlyQuota: 20_000,
     active: true,
     isPublic: true,
+  },
+  {
+    id: "internal_test",
+    name: "Internal Test",
+    description:
+      "Internal-only tier for development, QA, and demos. Not purchasable and not visible to customer-facing plan selectors.",
+    monthlyQuota: 1_000_000,
+    active: true,
+    isPublic: false,
   },
 ];
 
