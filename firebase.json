@@ -10,10 +10,12 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "*.local"
+        "*.local",
+        "package-lock.json",
+        "npm-shrinkwrap.json"
       ],
       "predeploy": [
-        "npm --prefix .. run build:contracts",
+        "node yuppeeai-backend/build-contracts.js",
         "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
