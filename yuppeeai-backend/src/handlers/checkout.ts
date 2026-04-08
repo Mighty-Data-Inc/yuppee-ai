@@ -9,10 +9,10 @@ import {
 const STRIPE_API_KEY = process.env["STRIPE_SECRET_KEY"];
 const STRIPE_PRICE_ID_MAP: Record<string, string> = {
   free: "", // Free tier has no price ID
-  basic: process.env["STRIPE_PRICE_BASIC"] || "",
-  standard: process.env["STRIPE_PRICE_STANDARD"] || "",
-  pro: process.env["STRIPE_PRICE_PRO"] || "",
-  enterprise: process.env["STRIPE_PRICE_ENTERPRISE"] || "",
+  basic: process.env["STRIPE_PRICE_TIER_BASIC"] || "",
+  standard: process.env["STRIPE_PRICE_TIER_STANDARD"] || "",
+  pro: process.env["STRIPE_PRICE_TIER_PRO"] || "",
+  enterprise: process.env["STRIPE_PRICE_TIER_ENTERPRISE"] || "",
 };
 
 const CORS_HEADERS = {
