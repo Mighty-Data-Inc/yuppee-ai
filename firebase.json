@@ -10,6 +10,40 @@
         "package-lock.json",
         "npm-shrinkwrap.json"
       ],
+      "rewrites": [
+        {
+          "source": "/search",
+          "function": {
+            "functionId": "search",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/refine",
+          "function": {
+            "functionId": "refine",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/inflightmsg",
+          "function": {
+            "functionId": "inflightmsg",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "/usage",
+          "function": {
+            "functionId": "usage",
+            "region": "us-central1"
+          }
+        },
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "predeploy": [
         "node packages/yuppeeai-contracts/build-and-install.js",
         "npm --prefix yuppeeai-frontend run build"
