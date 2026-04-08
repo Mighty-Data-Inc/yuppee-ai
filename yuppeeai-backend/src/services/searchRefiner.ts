@@ -273,21 +273,6 @@ const WIDGET_JSON_SCHEMA = {
                   `Indicates whether this widget is redundant with other widgets in the current search context. ` +
                   `Set this to true if the widget is redundant.`,
               },
-              discuss_if_instructions_describe_a_specific_value_for_this_widget:
-                {
-                  type: "string",
-                  description:
-                    `Explain how the search query and/or additional instructions might already imply a ` +
-                    `specific value for this widget. For example, if the widget is "CEOs and Founders", ` +
-                    `and the query or instructions specify "Steve Jobs", then it's implied that this widget ` +
-                    `would implicitly have its value set to "Steve Jobs".`,
-                },
-              do_instructions_describe_a_specific_value_for_this_widget: {
-                type: "boolean",
-                description:
-                  `Indicates whether the search query and/or additional instructions already describe a specific value for this widget. ` +
-                  `Set this to true if the query or instructions describe a specific value for this widget.`,
-              },
             },
             required: [
               "effect_of_user_selecting_value_for_this_widget",
@@ -295,8 +280,6 @@ const WIDGET_JSON_SCHEMA = {
               "should_we_hide_this_widget_based_on_the_current_search_query",
               "discuss_how_widget_is_redundant_with_other_widgets",
               "is_widget_redundant",
-              "discuss_if_instructions_describe_a_specific_value_for_this_widget",
-              "do_instructions_describe_a_specific_value_for_this_widget",
             ],
             additionalProperties: false,
           },
@@ -341,19 +324,22 @@ export const normalizeWidgetObjectFromLLM = (
   const sanityCheckObj = llmWidgetObj?.sanity_check;
   if (
     sanityCheckObj?.should_we_hide_this_widget_based_on_the_current_search_query ||
-    sanityCheckObj?.is_widget_redundant ||
-    sanityCheckObj?.do_instructions_describe_a_specific_value_for_this_widget
+    sanityCheckObj?.is_widget_redundant
   ) {
     return null;
   }
 
-  // Look at widget_params. If it has choices, and if any of those choices
+  // Look at widget_params. If it has choices, and if *exactly one* of those choices
   // are implicitly selected by the instructions, then we should return null.
   if (llmWidgetObj.widget_params?.choices) {
+    let implicitChoiceCount = 0;
     for (const choice of llmWidgetObj.widget_params.choices) {
       if (choice.do_instructions_describe_this_choice) {
-        return null;
+        implicitChoiceCount++;
       }
+    }
+    if (implicitChoiceCount === 1) {
+      return null;
     }
   }
 
