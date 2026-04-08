@@ -61,9 +61,25 @@ const DEFAULT_TIERS = [
 async function main() {
   const db = getFirestore();
   const now = admin.firestore.FieldValue.serverTimestamp();
+  const shouldClear = process.argv.includes("--clear");
+
+  const tiersCollection = db.collection("subscription_tiers");
+
+  if (shouldClear) {
+    // eslint-disable-next-line no-console
+    console.log("Clearing existing tiers...");
+    const snapshot = await tiersCollection.get();
+    const batch = db.batch();
+    snapshot.docs.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+    await batch.commit();
+    // eslint-disable-next-line no-console
+    console.log(`Deleted ${snapshot.size} existing tiers.`);
+  }
 
   for (const tier of DEFAULT_TIERS) {
-    const ref = db.collection("subscription_tiers").doc(tier.id);
+    const ref = tiersCollection.doc(tier.id);
     const existing = await ref.get();
 
     await ref.set(
