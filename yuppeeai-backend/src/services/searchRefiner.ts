@@ -243,19 +243,19 @@ const WIDGET_JSON_SCHEMA = {
                   `Indicates whether this widget is redundant with other widgets in the current search context. ` +
                   `Set this to true if the widget is redundant.`,
               },
-              discuss_is_widget_already_selected: {
+              discuss_if_instructions_imply_value_for_this_widget: {
                 type: "string",
                 description:
-                  `Explain how this widget might already have a selected value in the current search context. ` +
-                  `It's very likely that the user's original query (or one of the additional instructions, if ` +
-                  `provided) already implies a specific value for this widget.`,
+                  `Explain how the search query and/or additional instructions might already imply a ` +
+                  `specific value for this widget. For example, if the widget is "CEOs and Founders", ` +
+                  `and the query or instructions specify "Steve Jobs", then it's implied that this widget ` +
+                  `would implicitly have its value set to "Steve Jobs".`,
               },
-              is_widget_already_selected: {
+              do_instructions_imply_value_for_this_widget: {
                 type: "boolean",
                 description:
-                  `Indicates whether this widget already has a selected value in the current search context. ` +
-                  `Set this to true if the widget already has a selected value that is implied by the user's ` +
-                  `original query or additional instructions.`,
+                  `Indicates whether the search query and/or additional instructions already imply a specific value for this widget. ` +
+                  `Set this to true if the query or instructions imply a specific value for this widget.`,
               },
             },
             required: [
@@ -264,8 +264,8 @@ const WIDGET_JSON_SCHEMA = {
               "should_we_hide_this_widget_based_on_the_current_search_query",
               "discuss_how_widget_is_redundant_with_other_widgets",
               "is_widget_redundant",
-              "discuss_is_widget_already_selected",
-              "is_widget_already_selected",
+              "discuss_if_instructions_imply_value_for_this_widget",
+              "do_instructions_imply_value_for_this_widget",
             ],
             additionalProperties: false,
           },
@@ -311,7 +311,7 @@ export const normalizeWidgetObjectFromLLM = (
   if (
     sanityCheckObj?.should_we_hide_this_widget_based_on_the_current_search_query ||
     sanityCheckObj?.is_widget_redundant ||
-    sanityCheckObj?.is_widget_already_selected
+    sanityCheckObj?.do_instructions_imply_value_for_this_widget
   ) {
     return null;
   }
@@ -372,7 +372,7 @@ export const normalizeWidgetObjectFromLLM = (
       widget.value = "";
     }
 
-    if (!widget.options || widget.options.length === 0) {
+    if (!widget.options || widget.options.length < 2) {
       return null;
     }
   }
@@ -486,6 +486,10 @@ Do this query's search results lend themselves to any kind of filtration by a nu
           },
         },
       });
+      console.log(
+        "Raw LLM response for refinements:",
+        JSON.stringify(refinements, null, 2),
+      );
 
       retval.widgets = (refinements.widgets as any[])
         .map(normalizeWidgetObjectFromLLM)
