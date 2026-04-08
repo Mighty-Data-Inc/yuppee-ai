@@ -6,17 +6,20 @@ const USER_SUBSCRIPTIONS_COLLECTION = "user_subscriptions";
 const USER_MONTHLY_USAGE_COLLECTION = "user_monthly_usage";
 const PERIOD_KEY_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 
-const DEFAULT_TIER = process.env.SEARCH_DEFAULT_TIER ?? "internal_test";
+const DEFAULT_TIER = process.env.SEARCH_DEFAULT_TIER ?? "free";
 const DEFAULT_MONTHLY_QUOTA = Number(
-  process.env.SEARCH_DEFAULT_MONTHLY_QUOTA ?? "1000000",
+  process.env.SEARCH_DEFAULT_MONTHLY_QUOTA ?? "20",
 );
 const DEFAULT_ACCESS_EXPIRES_AT_PERIOD =
   process.env.SEARCH_DEFAULT_ACCESS_EXPIRES_AT_PERIOD ?? "2080-01";
-const DEFAULT_TIER_NAME =
-  process.env.SEARCH_DEFAULT_TIER_NAME ?? "Internal Test";
+const DEFAULT_TIER_NAME = process.env.SEARCH_DEFAULT_TIER_NAME ?? "Free";
 const DEFAULT_TIER_DESCRIPTION =
   process.env.SEARCH_DEFAULT_TIER_DESCRIPTION ??
-  "Internal testing tier with a large monthly search quota.";
+  "Get started with essential search and refinement capabilities at no cost.";
+const DEFAULT_TIER_IS_PUBLIC =
+  process.env.SEARCH_DEFAULT_TIER_IS_PUBLIC === "false"
+    ? false
+    : DEFAULT_TIER !== "internal_test";
 
 export interface SearchUsage {
   tier: string;
@@ -242,7 +245,7 @@ export async function getSearchUsage(uid: string): Promise<SearchUsage> {
         description: tier.description,
         monthlyQuota: tier.monthlyQuota,
         active: true,
-        isPublic: false,
+        isPublic: DEFAULT_TIER_IS_PUBLIC,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -317,7 +320,7 @@ export async function consumeSearchQuota(
         description: tier.description,
         monthlyQuota: tier.monthlyQuota,
         active: true,
-        isPublic: false,
+        isPublic: DEFAULT_TIER_IS_PUBLIC,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });

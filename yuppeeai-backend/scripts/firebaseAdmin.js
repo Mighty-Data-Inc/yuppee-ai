@@ -53,6 +53,11 @@ function getFirestore() {
   return admin.firestore(app);
 }
 
+function getAuth() {
+  const app = initializeAdmin();
+  return admin.auth(app);
+}
+
 function getArg(name) {
   const prefix = `--${name}=`;
   const found = process.argv.find((arg) => arg.startsWith(prefix));
@@ -64,5 +69,6 @@ function getArg(name) {
 
 module.exports = {
   getFirestore,
+  getAuth,
   getArg,
 };
