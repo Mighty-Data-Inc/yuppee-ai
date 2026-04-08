@@ -516,10 +516,6 @@ Do this query's search results lend themselves to any kind of filtration by a nu
           },
         },
       });
-      console.log(
-        "Raw LLM response for refinements:",
-        JSON.stringify(refinements, null, 2),
-      );
 
       retval.widgets = (refinements.widgets as any[])
         .map(normalizeWidgetObjectFromLLM)

@@ -22,7 +22,6 @@ export const handler: HttpHandler = async (event) => {
   try {
     // Require authentication
     const decodedToken = await requireAuth(event);
-    console.log(`Authenticated user: ${decodedToken?.uid ?? "unknown"}`);
 
     let request: Partial<RefinementRequest> = {};
 

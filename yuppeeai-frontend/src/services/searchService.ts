@@ -76,8 +76,6 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 export async function submitSERPQuery(
   serpRequest: SERPRequest,
 ): Promise<SERPResponse> {
-  console.log("[SERP] Submitting query", JSON.stringify(serpRequest, null, 2));
-
   const response = await fetch(`${API_BASE_URL}/search`, {
     method: "POST",
     headers: {
@@ -122,18 +120,12 @@ export async function submitSERPQuery(
     throw error;
   }
   const data = (await response.json()) as SERPResponse;
-  console.log("[SERP] Received response", JSON.stringify(data, null, 2));
   return data;
 }
 
 export async function submitRefinementQuery(
   refinementRequest: RefinementRequest,
 ): Promise<RefinementResponse> {
-  console.log(
-    "[Refinement] Submitting refinement query",
-    JSON.stringify(refinementRequest, null, 2),
-  );
-
   const response = await fetch(`${API_BASE_URL}/refine`, {
     method: "POST",
     headers: {
@@ -154,21 +146,12 @@ export async function submitRefinementQuery(
   }
 
   const data = (await response.json()) as RefinementResponse;
-  console.log(
-    "[Refinement] Received refinement response",
-    JSON.stringify(data, null, 2),
-  );
   return data;
 }
 
 export async function submitInflightMessageQuery(
   request: SERPRequest,
 ): Promise<InflightMessageResponse> {
-  console.log(
-    "[InflightMsg] Submitting inflight message query",
-    JSON.stringify(request, null, 2),
-  );
-
   const response = await fetch(`${API_BASE_URL}/inflightmsg`, {
     method: "POST",
     headers: {

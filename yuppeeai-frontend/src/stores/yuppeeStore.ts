@@ -221,10 +221,6 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     })
       .then((inflightResponse) => {
         inflightMessage.value = inflightResponse.message;
-        console.log(
-          "[InflightMsg] Received inflight message",
-          inflightResponse.message,
-        );
       })
       .catch((e) => {
         console.warn("[InflightMsg] Failed to load inflight message", e);
