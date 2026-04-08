@@ -10,6 +10,13 @@ const isSubscriptionModalOpen = ref(false);
 const didAvatarFailToLoad = ref(false);
 const usage = ref<UsageResponse | null>(null);
 const isLoadingUsage = ref(false);
+const billingUrl =
+  import.meta.env.VITE_STRIPE_BILLING_URL || "https://billing.stripe.com";
+
+const isPaidTier = computed(() => {
+  const tier = usage.value?.tier;
+  return !!tier && tier !== "free";
+});
 
 const avatarUrl = computed(() => authStore.user?.photoURL ?? "");
 const shouldShowAvatarImage = computed(
@@ -152,8 +159,25 @@ function closeSubscriptionModal() {
 
       <div class="profile-divider" />
 
-      <a href="#" class="profile-manage-link" @click.prevent="openSubscriptionModal">
+      <!-- Paid users: open Stripe customer portal in new tab -->
+      <a
+        v-if="isPaidTier"
+        :href="billingUrl"
+        class="profile-manage-link"
+        target="_blank"
+        rel="noopener noreferrer"
+        @click="closeMenu"
+      >
         Manage subscription
+      </a>
+      <!-- Free users: open pricing table modal -->
+      <a
+        v-else
+        href="#"
+        class="profile-manage-link"
+        @click.prevent="openSubscriptionModal"
+      >
+        Upgrade
       </a>
 
       <div class="profile-divider" />

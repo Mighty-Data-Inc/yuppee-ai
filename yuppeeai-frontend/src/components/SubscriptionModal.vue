@@ -36,7 +36,8 @@ const emit = defineEmits<{ close: [] }>();
 
 .subscription-modal {
   position: relative;
-  background: var(--color-background);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
   width: 90%;
@@ -54,12 +55,12 @@ const emit = defineEmits<{ close: [] }>();
   border: none;
   font-size: 20px;
   cursor: pointer;
-  color: var(--color-text-secondary);
+  color: #6b7280;
   line-height: 1;
   z-index: 1;
 }
 
 .modal-close:hover {
-  color: var(--color-text);
+  color: #111827;
 }
 </style>

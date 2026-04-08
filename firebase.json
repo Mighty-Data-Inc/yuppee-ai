@@ -74,14 +74,7 @@
       "source": "yuppeeai-backend",
       "codebase": "backend",
       "runtime": "nodejs24",
-      "env": [
-        "FIREBASE_PROJECT_ID=yuppee-ai",
-        "APP_URL=https://yuppee.ai",
-        "STRIPE_PRICE_TIER_BASIC=price_1TK3E5H62GinkX6xDAyOAE8l",
-        "STRIPE_PRICE_TIER_STANDARD=price_1TK3ImH62GinkX6xKLPGGgnd",
-        "STRIPE_PRICE_TIER_PRO=price_1TK3KbH62GinkX6xcX1PMOcH",
-        "STRIPE_PRICE_TIER_ENTERPRISE=price_1TK3NLH62GinkX6x6YI1He9S"
-      ],
+      "env": ["FIREBASE_PROJECT_ID=yuppee-ai", "APP_URL=https://yuppee.ai"],
       "ignore": [
         "firebase.json",
         "**/.*",
