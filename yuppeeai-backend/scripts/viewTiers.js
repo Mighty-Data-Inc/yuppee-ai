@@ -21,6 +21,7 @@ async function main() {
       name: row.name,
       monthlyQuota: row.monthlyQuota,
       active: row.active,
+      isPublic: row.isPublic,
       description: row.description,
     })),
   );

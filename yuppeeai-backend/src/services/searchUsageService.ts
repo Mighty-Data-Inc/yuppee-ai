@@ -57,6 +57,7 @@ interface TierDoc {
   description?: string;
   monthlyQuota: number;
   active?: boolean;
+  isPublic?: boolean;
 }
 
 interface UserSubscriptionDoc {
@@ -171,6 +172,7 @@ function normalizeTier(raw?: Partial<TierDoc>) {
     description: raw?.description || DEFAULT_TIER_DESCRIPTION,
     monthlyQuota: normalizeMonthlyQuota(raw?.monthlyQuota),
     active: raw?.active !== false,
+    isPublic: raw?.isPublic !== false,
   };
 }
 
@@ -240,6 +242,7 @@ export async function getSearchUsage(uid: string): Promise<SearchUsage> {
         description: tier.description,
         monthlyQuota: tier.monthlyQuota,
         active: true,
+        isPublic: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -314,6 +317,7 @@ export async function consumeSearchQuota(
         description: tier.description,
         monthlyQuota: tier.monthlyQuota,
         active: true,
+        isPublic: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });

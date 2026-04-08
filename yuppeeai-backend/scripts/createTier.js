@@ -26,7 +26,7 @@ async function main() {
   const id = getArg("id");
   if (!id) {
     throw new Error(
-      "Missing --id. Example: npm run create:tier -- --id=enterprise --name=Enterprise --description=Top%20tier --monthlyQuota=25000 --active=true",
+      "Missing --id. Example: npm run create:tier -- --id=enterprise --name=Enterprise --description=Top%20tier --monthlyQuota=25000 --active=true --isPublic=true",
     );
   }
 
@@ -34,6 +34,7 @@ async function main() {
   const description = getArg("description") || "";
   const monthlyQuota = parsePositiveInt(getArg("monthlyQuota"), 1000);
   const active = parseBool(getArg("active"), true);
+  const isPublic = parseBool(getArg("isPublic"), true);
 
   const db = getFirestore();
   const now = admin.firestore.FieldValue.serverTimestamp();
@@ -46,6 +47,7 @@ async function main() {
       description,
       monthlyQuota,
       active,
+      isPublic,
       updatedAt: now,
       ...(existing.exists ? {} : { createdAt: now }),
     },
@@ -54,7 +56,7 @@ async function main() {
 
   // eslint-disable-next-line no-console
   console.log(
-    `Upserted tier ${id} (name=${name}, monthlyQuota=${monthlyQuota}, active=${active}).`,
+    `Upserted tier ${id} (name=${name}, monthlyQuota=${monthlyQuota}, active=${active}, isPublic=${isPublic}).`,
   );
 }
 
