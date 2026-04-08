@@ -48,15 +48,19 @@ function deriveEffectiveTierStatus({
 
 async function main() {
   const email = getArg("email");
-  if (!email) {
+  const uidArg = getArg("uid");
+
+  if ((!email && !uidArg) || (email && uidArg)) {
     throw new Error(
-      "Missing --email. Example: npm run view:user -- --email=you@example.com",
+      "Provide exactly one of --email or --uid. Examples: npm run view:user -- --email=you@example.com OR npm run view:user -- --uid=<firebase-uid>",
     );
   }
 
   const db = getFirestore();
   const auth = getAuth();
-  const userRecord = await auth.getUserByEmail(email);
+  const userRecord = email
+    ? await auth.getUserByEmail(email)
+    : await auth.getUser(String(uidArg));
   const uid = userRecord.uid;
 
   const subscriptionRef = db.collection("user_subscriptions").doc(uid);
@@ -121,7 +125,7 @@ async function main() {
   console.log("Auth");
   // eslint-disable-next-line no-console
   console.log({
-    email,
+    email: userRecord.email || "n/a",
     uid,
     emailVerified: userRecord.emailVerified,
     disabled: userRecord.disabled,
