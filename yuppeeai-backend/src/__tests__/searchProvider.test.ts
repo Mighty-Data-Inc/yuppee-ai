@@ -43,13 +43,15 @@ describe("SearchProvider", () => {
 
     (
       vi.mocked(OpenAI) as unknown as {
-        mockImplementation: (impl: () => unknown) => void;
+        mockImplementation: (impl: new (...args: any[]) => unknown) => void;
       }
-    ).mockImplementation(() => ({
-      responses: {
-        create: createMock,
-      },
-    }));
+    ).mockImplementation(
+      class {
+        responses = {
+          create: createMock,
+        };
+      } as unknown as new (...args: any[]) => unknown,
+    );
 
     const provider = new SearchProvider({ openaiApiKey: "test-key" });
     const result = await provider.getSearchResults({ query: "test" });

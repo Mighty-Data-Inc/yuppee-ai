@@ -88,7 +88,7 @@ function handleClose() {
             @click="handleGoogleSignIn"
             :disabled="isLoading"
           >
-            <img class="button-icon" src="/logos/google-official.png" alt="Google" />
+            <img class="button-icon" :src="'/logos/google-official.png'" alt="Google" />
             Sign in with Google
           </button>
 
@@ -97,7 +97,7 @@ function handleClose() {
             @click="handleFacebookSignIn"
             :disabled="isLoading"
           >
-            <img class="button-icon" src="/logos/facebook-official.png" alt="Facebook" />
+            <img class="button-icon" :src="'/logos/facebook-official.png'" alt="Facebook" />
             Sign in with Facebook
           </button>
         </template>

@@ -26,6 +26,13 @@ vi.mock("@/stores/authStore", () => ({
   }),
 }));
 
+vi.mock("@/components/SearchBar.vue", () => ({
+  default: {
+    name: "SearchBar",
+    template: "<div />",
+  },
+}));
+
 vi.mock("vue-router", () => ({
   useRoute: () => routeState,
 }));

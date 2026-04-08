@@ -51,10 +51,17 @@ export function initializeFirebaseAdmin(
 
   const projectId =
     process.env.FIREBASE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT;
+  const configuredServiceAccountPath =
+    serviceAccountKeyPath ||
+    process.env.FIREBASE_SERVICE_ACCOUNT_KEY_PATH?.trim() ||
+    undefined;
+  const resolvedServiceAccountPath = configuredServiceAccountPath
+    ? resolve(process.cwd(), configuredServiceAccountPath)
+    : undefined;
 
   try {
-    if (serviceAccountKeyPath) {
-      const serviceAccount = require(serviceAccountKeyPath);
+    if (resolvedServiceAccountPath && existsSync(resolvedServiceAccountPath)) {
+      const serviceAccount = require(resolvedServiceAccountPath);
       firebaseApp = admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         projectId,
