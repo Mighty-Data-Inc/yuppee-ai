@@ -67,6 +67,30 @@ function formatUrl(url?: string): string {
       </a>
     </template>
 
+    <div v-else-if="store.quotaExceeded" class="results__quota">
+      <h2>You have used up this month's searches</h2>
+      <h3>Monthly quota exceeded</h3>
+      <p>
+        Your current subscription tier is: <strong>{{ store.quotaExceeded.tierLabel }}</strong>.
+      </p>
+      <p v-if="store.quotaExceeded.periodSearchesUsed !== null && store.quotaExceeded.monthlyQuota !== null">
+        You have used {{ store.quotaExceeded.periodSearchesUsed }} of
+        <strong>{{ store.quotaExceeded.monthlyQuota }}</strong> searches this month.
+      </p>
+      <p>
+        You'll have to wait until your quota resets at the start of the next month
+        before you can perform more searches.
+      </p>
+      <p>
+        Or, you can upgrade your subscription to get a higher monthly quota.
+        With a higher-tier subscription, you'll be able to continue searching now
+        and get a larger monthly quota when your usage resets.
+      </p>
+      <div class="results__quota-actions">
+        <button type="button" class="results__upgrade-btn">Upgrade subscription</button>
+      </div>
+    </div>
+
     <!-- Empty state -->
     <div v-else-if="store.query" class="results__empty">
       <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
@@ -255,5 +279,59 @@ function formatUrl(url?: string): string {
 
 .results__empty p {
   font-size: 0.9rem;
+}
+
+.results__quota {
+  padding: 1.05rem 1.15rem;
+  border: 1px solid #bfdbfe;
+  background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
+  border-radius: var(--radius-md);
+  color: #1e3a8a;
+  font-size: 1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.results__quota h2 {
+  color: #1e3a8a;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.results__quota h3 {
+  color: #1e40af;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.results__quota p {
+  font-size: 1rem;
+  line-height: 1.45;
+  margin-top: 1rem;
+}
+
+.results__quota-actions {
+  margin-top: 0.35rem;
+  display: flex;
+  justify-content: center;
+}
+
+.results__upgrade-btn {
+  padding: 0.55rem 0.85rem;
+  border: 1px solid #16a34a;
+  background: #16a34a;
+  color: white;
+  margin-top: 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+.results__upgrade-btn:hover {
+  background: #15803d;
+  border-color: #15803d;
 }
 </style>

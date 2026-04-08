@@ -285,6 +285,40 @@ describe("searchService.search", () => {
       "Search request failed: 500",
     );
   });
+
+  it("propagates 429 status and usage payload from backend", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        json: () =>
+          Promise.resolve({
+            error: "Monthly search quota exceeded",
+            usage: {
+              tier: "free",
+              tierName: "Free",
+              monthlyQuota: 20,
+              periodSearchesUsed: 20,
+            },
+          }),
+      }),
+    );
+
+    try {
+      await submitSERPQuery({ query: "test query" });
+      throw new Error("Expected submitSERPQuery to throw");
+    } catch (e) {
+      expect((e as any).statusCode).toBe(429);
+      expect((e as any).usage).toMatchObject({
+        tier: "free",
+        tierName: "Free",
+        monthlyQuota: 20,
+        periodSearchesUsed: 20,
+      });
+      expect((e as Error).message).toBe("Monthly search quota exceeded");
+    }
+  });
 });
 
 describe("searchService.submitRefinementQuery", () => {

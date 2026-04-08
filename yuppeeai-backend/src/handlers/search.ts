@@ -39,15 +39,6 @@ export const handler: HttpHandler = async (event) => {
       return errorResponse(400, "Missing required field: query");
     }
 
-    const searchProvider = new SearchProvider({
-      openaiApiKey: process.env["OPENAI_API_KEY"],
-    });
-
-    const response = await searchProvider.getSearchResults({
-      query: request.query,
-      instructions: request.instructions,
-    });
-
     try {
       const quotaResult = await consumeSearchQuota(decodedToken.uid);
       if (!quotaResult.allowed) {
@@ -59,6 +50,15 @@ export const handler: HttpHandler = async (event) => {
       // Search results should still be returned if quota tracking has a transient failure.
       console.error("Failed to update search usage:", usageErr);
     }
+
+    const searchProvider = new SearchProvider({
+      openaiApiKey: process.env["OPENAI_API_KEY"],
+    });
+
+    const response = await searchProvider.getSearchResults({
+      query: request.query,
+      instructions: request.instructions,
+    });
 
     return {
       statusCode: 200,

@@ -141,6 +141,12 @@ function handleAvatarLoadError() {
 
       <div class="profile-divider" />
 
+      <a href="#" class="profile-manage-link" @click.prevent>
+        Manage subscription
+      </a>
+
+      <div class="profile-divider" />
+
       <button class="profile-logout" @click="handleLogout">
         Sign Out
       </button>
@@ -272,6 +278,22 @@ function handleAvatarLoadError() {
 .profile-divider {
   height: 1px;
   background: var(--color-border);
+}
+
+.profile-manage-link {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--color-primary-dark);
+  text-decoration: none;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.profile-manage-link:hover {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
 }
 
 .profile-logout {

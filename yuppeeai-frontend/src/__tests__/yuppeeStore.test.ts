@@ -523,4 +523,51 @@ describe("yuppeeStore", () => {
     expect(store.additionalInstructionPoints).toEqual([]);
     expect(store.newAdditionalInstruction).toBe("");
   });
+
+  it("sets quotaExceeded state when search returns 429", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockImplementation((input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url.endsWith("/search")) {
+          return Promise.resolve({
+            ok: false,
+            status: 429,
+            json: () =>
+              Promise.resolve({
+                error: "Monthly search quota exceeded",
+                usage: {
+                  tier: "free",
+                  tierName: "Free",
+                  periodSearchesUsed: 20,
+                  monthlyQuota: 20,
+                },
+              }),
+          });
+        }
+
+        if (url.endsWith("/refine")) {
+          return Promise.resolve({
+            ok: true,
+            json: () =>
+              Promise.resolve({ widgets: MOCK_WIDGETS, disambiguation: "" }),
+          });
+        }
+
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ query: "test", message: "Working..." }),
+        });
+      }),
+    );
+
+    const store = useYuppeeStore();
+    await store.search("books");
+
+    expect(store.serpResults).toEqual([]);
+    expect(store.quotaExceeded).not.toBeNull();
+    expect(store.quotaExceeded?.tierLabel).toBe("Free");
+    expect(store.quotaExceeded?.periodSearchesUsed).toBe(20);
+    expect(store.quotaExceeded?.monthlyQuota).toBe(20);
+  });
 });

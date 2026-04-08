@@ -144,7 +144,7 @@ describe("search handler", () => {
     expect(result.statusCode).toBe(500);
     const body = JSON.parse(result.body);
     expect(body.error).toMatch(/search backend unavailable/i);
-    expect(consumeSearchQuota).not.toHaveBeenCalled();
+    expect(consumeSearchQuota).toHaveBeenCalledWith("test-user");
   });
 
   it("still returns 200 when usage tracking fails", async () => {
@@ -163,10 +163,12 @@ describe("search handler", () => {
   });
 
   it("returns 429 when monthly quota is exceeded", async () => {
-    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
-      results: [],
-      query: "interesting topics",
-    });
+    const providerSpy = vi
+      .spyOn(SearchProvider.prototype, "getSearchResults")
+      .mockResolvedValue({
+        results: [],
+        query: "interesting topics",
+      });
 
     vi.mocked(consumeSearchQuota).mockResolvedValueOnce({
       allowed: false,
@@ -192,13 +194,16 @@ describe("search handler", () => {
     expect(result.statusCode).toBe(429);
     expect(body.error).toMatch(/quota exceeded/i);
     expect(body.usage.accessExpiresAtPeriod).toBe("2080-01");
+    expect(providerSpy).not.toHaveBeenCalled();
   });
 
   it("returns 403 when subscription is expired", async () => {
-    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
-      results: [],
-      query: "interesting topics",
-    });
+    const providerSpy = vi
+      .spyOn(SearchProvider.prototype, "getSearchResults")
+      .mockResolvedValue({
+        results: [],
+        query: "interesting topics",
+      });
 
     vi.mocked(consumeSearchQuota).mockResolvedValueOnce({
       allowed: false,
@@ -224,5 +229,6 @@ describe("search handler", () => {
     expect(result.statusCode).toBe(403);
     expect(body.error).toMatch(/expired/i);
     expect(body.usage.accessExpiresAtPeriod).toBe("2080-01");
+    expect(providerSpy).not.toHaveBeenCalled();
   });
 });

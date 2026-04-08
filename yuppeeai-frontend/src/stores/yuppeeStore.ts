@@ -13,6 +13,69 @@ import {
 import { showError } from "@/services/errorService";
 import { queryRefinementCacheService } from "@/services/queryRefinementCacheService";
 
+function getQuotaExceededMessage(error: unknown): string {
+  const usage = (error as any)?.usage;
+  if (
+    usage &&
+    typeof usage === "object" &&
+    typeof usage.periodSearchesUsed === "number" &&
+    typeof usage.monthlyQuota === "number"
+  ) {
+    const tierLabel =
+      typeof usage.tierName === "string" && usage.tierName.trim() !== ""
+        ? usage.tierName
+        : typeof usage.tier === "string" && usage.tier.trim() !== ""
+          ? usage.tier
+          : "your current tier";
+
+    return `Monthly quota exceeded for ${tierLabel}: ${usage.periodSearchesUsed} of ${usage.monthlyQuota} searches used.`;
+  }
+
+  return "Monthly search quota exceeded. Please wait until your quota resets.";
+}
+
+interface QuotaExceededState {
+  message: string;
+  tierLabel: string;
+  periodSearchesUsed: number | null;
+  monthlyQuota: number | null;
+}
+
+function getQuotaExceededState(error: unknown): QuotaExceededState {
+  const usage = (error as any)?.usage;
+  const tierLabel =
+    usage &&
+    typeof usage === "object" &&
+    typeof usage.tierName === "string" &&
+    usage.tierName.trim() !== ""
+      ? usage.tierName
+      : usage &&
+          typeof usage === "object" &&
+          typeof usage.tier === "string" &&
+          usage.tier.trim() !== ""
+        ? usage.tier
+        : "current";
+
+  const periodSearchesUsed =
+    usage &&
+    typeof usage === "object" &&
+    typeof usage.periodSearchesUsed === "number"
+      ? usage.periodSearchesUsed
+      : null;
+
+  const monthlyQuota =
+    usage && typeof usage === "object" && typeof usage.monthlyQuota === "number"
+      ? usage.monthlyQuota
+      : null;
+
+  return {
+    message: getQuotaExceededMessage(error),
+    tierLabel,
+    periodSearchesUsed,
+    monthlyQuota,
+  };
+}
+
 export const useYuppeeStore = defineStore("yuppee", () => {
   const query = ref("");
 
@@ -31,6 +94,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
   const isLoadingSERP = ref(false);
   const isLoadingWidgets = ref(false);
   const authError = ref<string | null>(null);
+  const quotaExceeded = ref<QuotaExceededState | null>(null);
 
   function reset() {
     query.value = "";
@@ -43,6 +107,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     additionalInstructionPointsFromLastSubmit.value = [];
     disambiguation.value = null;
     inflightMessage.value = null;
+    quotaExceeded.value = null;
   }
 
   async function search(q: string) {
@@ -59,6 +124,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     query.value = q;
     disambiguation.value = null;
     inflightMessage.value = null;
+    quotaExceeded.value = null;
     isLoadingSERP.value = true;
     isLoadingWidgets.value = true;
     newAdditionalInstruction.value = newAdditionalInstruction.value.trim();
@@ -88,12 +154,15 @@ export const useYuppeeStore = defineStore("yuppee", () => {
         serpResults.value = searchResponse.results;
         serpSummary.value = searchResponse.summary ?? "";
         authError.value = null;
+        quotaExceeded.value = null;
       })
       .catch((e) => {
         console.error(e);
         if ((e as any).statusCode === 401 || (e as any).statusCode === 403) {
           authError.value =
             "You must be signed in to search. Please sign in and try again.";
+        } else if ((e as any).statusCode === 429) {
+          quotaExceeded.value = getQuotaExceededState(e);
         } else {
           showError(
             e instanceof Error ? e.message : "An error occurred during search",
@@ -419,6 +488,7 @@ export const useYuppeeStore = defineStore("yuppee", () => {
     isLoadingSERP,
     isLoadingWidgets,
     authError,
+    quotaExceeded,
     reset,
     search,
     rerollRefinements,

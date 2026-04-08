@@ -28,6 +28,18 @@ export interface UsageResponse {
 const API_BASE_URL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
+async function parseJsonBody(response: Response): Promise<unknown | null> {
+  if (typeof response.json !== "function") {
+    return null;
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 async function getAuthHeaders(): Promise<Record<string, string>> {
   const authStore = useAuthStore();
   const headers: Record<string, string> = {};
@@ -82,11 +94,32 @@ export async function submitSERPQuery(
   }
 
   if (!response.ok) {
+    const errorPayload = await parseJsonBody(response);
+    const backendMessage =
+      errorPayload &&
+      typeof errorPayload === "object" &&
+      "error" in errorPayload &&
+      typeof (errorPayload as any).error === "string"
+        ? (errorPayload as any).error
+        : null;
+
+    const error = new Error(
+      backendMessage || `Search request failed: ${response.status}`,
+    );
+    (error as any).statusCode = response.status;
+    if (
+      errorPayload &&
+      typeof errorPayload === "object" &&
+      "usage" in errorPayload
+    ) {
+      (error as any).usage = (errorPayload as any).usage;
+    }
+
     console.error("[SERP] /search failed", {
       status: response.status,
       body: JSON.stringify(serpRequest, null, 2),
     });
-    throw new Error(`Search request failed: ${response.status}`);
+    throw error;
   }
   const data = (await response.json()) as SERPResponse;
   console.log("[SERP] Received response", JSON.stringify(data, null, 2));
