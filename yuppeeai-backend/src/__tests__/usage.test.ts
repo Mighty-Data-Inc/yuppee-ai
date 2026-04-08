@@ -9,6 +9,8 @@ vi.mock("../middleware/authMiddleware", () => ({
 vi.mock("../services/searchUsageService", () => ({
   getSearchUsage: vi.fn().mockResolvedValue({
     tier: "internal_test",
+    tierName: "Internal Test",
+    tierDescription: "Internal testing tier with a large monthly search quota.",
     monthlyQuota: 1000000,
     periodKey: "2026-04",
     periodSearchesUsed: 7,
@@ -44,6 +46,9 @@ describe("usage handler", () => {
       uid: "test-user",
       totalSearches: 7,
       tier: "internal_test",
+      tierName: "Internal Test",
+      tierDescription:
+        "Internal testing tier with a large monthly search quota.",
       monthlyQuota: 1000000,
       periodKey: "2026-04",
       periodSearchesUsed: 7,

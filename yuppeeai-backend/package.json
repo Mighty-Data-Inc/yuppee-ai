@@ -9,7 +9,11 @@
     "api:local:start": "node dist/localApi.js",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "lint": "eslint src --ext .ts"
+    "lint": "eslint src --ext .ts",
+    "seed:tiers": "node scripts/seedTiers.js",
+    "view:tiers": "node scripts/viewTiers.js",
+    "create:tier": "node scripts/createTier.js",
+    "delete:tier": "node scripts/deleteTier.js"
   },
   "dependencies": {
     "@mightydatainc/llm-conversation": "^1.0.6",

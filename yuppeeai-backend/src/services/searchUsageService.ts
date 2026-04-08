@@ -12,9 +12,16 @@ const DEFAULT_MONTHLY_QUOTA = Number(
 );
 const DEFAULT_ACCESS_EXPIRES_AT_PERIOD =
   process.env.SEARCH_DEFAULT_ACCESS_EXPIRES_AT_PERIOD ?? "2080-01";
+const DEFAULT_TIER_NAME =
+  process.env.SEARCH_DEFAULT_TIER_NAME ?? "Internal Test";
+const DEFAULT_TIER_DESCRIPTION =
+  process.env.SEARCH_DEFAULT_TIER_DESCRIPTION ??
+  "Internal testing tier with a large monthly search quota.";
 
 export interface SearchUsage {
   tier: string;
+  tierName: string;
+  tierDescription: string;
   monthlyQuota: number;
   periodKey: string;
   periodSearchesUsed: number;
@@ -37,6 +44,8 @@ export type ConsumeSearchQuotaResult =
 
 interface EntitlementDoc {
   tier: string;
+  tierName: string;
+  tierDescription: string;
   monthlyQuota: number;
   periodSearchesUsed: number;
   lifetimeSearchesUsed: number;
@@ -44,6 +53,8 @@ interface EntitlementDoc {
 }
 
 interface TierDoc {
+  name?: string;
+  description?: string;
   monthlyQuota: number;
   active?: boolean;
 }
@@ -84,6 +95,8 @@ function toUsage(doc: EntitlementDoc): SearchUsage {
   const periodKey = getCurrentPeriodKey();
   return {
     tier: doc.tier,
+    tierName: doc.tierName,
+    tierDescription: doc.tierDescription,
     monthlyQuota: doc.monthlyQuota,
     periodKey,
     periodSearchesUsed: doc.periodSearchesUsed,
@@ -99,6 +112,8 @@ function toUsage(doc: EntitlementDoc): SearchUsage {
 function getDefaultEntitlement(): EntitlementDoc {
   return {
     tier: DEFAULT_TIER,
+    tierName: DEFAULT_TIER_NAME,
+    tierDescription: DEFAULT_TIER_DESCRIPTION,
     monthlyQuota: normalizeMonthlyQuota(DEFAULT_MONTHLY_QUOTA),
     periodSearchesUsed: 0,
     lifetimeSearchesUsed: 0,
@@ -124,6 +139,8 @@ function normalizeEntitlement(raw?: Partial<EntitlementDoc>): EntitlementDoc {
 
   return {
     tier: raw?.tier || defaults.tier,
+    tierName: raw?.tierName || defaults.tierName,
+    tierDescription: raw?.tierDescription || defaults.tierDescription,
     monthlyQuota: normalizeMonthlyQuota(raw?.monthlyQuota),
     periodSearchesUsed,
     lifetimeSearchesUsed,
@@ -150,6 +167,8 @@ function normalizeUserSubscription(raw?: Partial<UserSubscriptionDoc>) {
 
 function normalizeTier(raw?: Partial<TierDoc>) {
   return {
+    name: raw?.name || DEFAULT_TIER_NAME,
+    description: raw?.description || DEFAULT_TIER_DESCRIPTION,
     monthlyQuota: normalizeMonthlyQuota(raw?.monthlyQuota),
     active: raw?.active !== false,
   };
@@ -217,6 +236,8 @@ export async function getSearchUsage(uid: string): Promise<SearchUsage> {
 
     if (!tierSnapshot.exists && userSubscription.tierId === DEFAULT_TIER) {
       transaction.set(tierRef, {
+        name: tier.name,
+        description: tier.description,
         monthlyQuota: tier.monthlyQuota,
         active: true,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -234,6 +255,8 @@ export async function getSearchUsage(uid: string): Promise<SearchUsage> {
     return toUsage(
       normalizeEntitlement({
         tier: userSubscription.tierId,
+        tierName: tier.name,
+        tierDescription: tier.description,
         monthlyQuota: tier.monthlyQuota,
         periodSearchesUsed,
         lifetimeSearchesUsed: userSubscription.lifetimeSearchesUsed,
@@ -287,6 +310,8 @@ export async function consumeSearchQuota(
 
     if (!tierSnapshot.exists && userSubscription.tierId === DEFAULT_TIER) {
       transaction.set(tierRef, {
+        name: tier.name,
+        description: tier.description,
         monthlyQuota: tier.monthlyQuota,
         active: true,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -303,6 +328,8 @@ export async function consumeSearchQuota(
 
     const entitlement = normalizeEntitlement({
       tier: userSubscription.tierId,
+      tierName: tier.name,
+      tierDescription: tier.description,
       monthlyQuota: tier.monthlyQuota,
       periodSearchesUsed,
       lifetimeSearchesUsed: userSubscription.lifetimeSearchesUsed,

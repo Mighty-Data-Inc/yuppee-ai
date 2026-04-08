@@ -11,6 +11,9 @@ vi.mock("../services/searchUsageService", () => ({
     allowed: true,
     usage: {
       tier: "internal_test",
+      tierName: "Internal Test",
+      tierDescription:
+        "Internal testing tier with a large monthly search quota.",
       monthlyQuota: 1000000,
       periodKey: "2026-04",
       periodSearchesUsed: 1,
@@ -171,6 +174,9 @@ describe("search handler", () => {
       error: "Monthly search quota exceeded",
       usage: {
         tier: "internal_test",
+        tierName: "Internal Test",
+        tierDescription:
+          "Internal testing tier with a large monthly search quota.",
         monthlyQuota: 1,
         periodKey: "2026-04",
         periodSearchesUsed: 1,
@@ -200,6 +206,9 @@ describe("search handler", () => {
       error: "Subscription has expired",
       usage: {
         tier: "internal_test",
+        tierName: "Internal Test",
+        tierDescription:
+          "Internal testing tier with a large monthly search quota.",
         monthlyQuota: 1000000,
         periodKey: "2080-02",
         periodSearchesUsed: 200,

@@ -25,6 +25,8 @@ export const handler: HttpHandler = async (event) => {
         uid: decodedToken.uid,
         totalSearches: usage.lifetimeSearchesUsed,
         tier: usage.tier,
+        tierName: usage.tierName,
+        tierDescription: usage.tierDescription,
         monthlyQuota: usage.monthlyQuota,
         periodKey: usage.periodKey,
         periodSearchesUsed: usage.periodSearchesUsed,
