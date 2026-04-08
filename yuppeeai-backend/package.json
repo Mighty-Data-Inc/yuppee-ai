@@ -15,6 +15,7 @@
     "create:tier": "node scripts/createTier.js",
     "delete:tier": "node scripts/deleteTier.js",
     "set:user-tier": "node scripts/setUserTier.js",
+    "set:user-period-usage": "node scripts/setUserPeriodUsage.js",
     "view:user": "node scripts/viewUser.js"
   },
   "dependencies": {
