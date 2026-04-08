@@ -14,7 +14,8 @@
     "view:tiers": "node scripts/viewTiers.js",
     "create:tier": "node scripts/createTier.js",
     "delete:tier": "node scripts/deleteTier.js",
-    "set:user-tier": "node scripts/setUserTier.js"
+    "set:user-tier": "node scripts/setUserTier.js",
+    "view:user": "node scripts/viewUser.js"
   },
   "dependencies": {
     "@mightydatainc/llm-conversation": "^1.0.6",

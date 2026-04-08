@@ -237,29 +237,34 @@ const WIDGET_JSON_SCHEMA = {
                   `some kind of status, and there is already a drop-down that selects this same status, ` +
                   `then this widget would be redundant.`,
               },
-              discuss_how_widget_is_redundant_with_existing_instructions: {
-                type: "string",
-                description:
-                  `Explain how this widget might be redundant with existing instructions in the current search context. ` +
-                  `If there are instructions that provide similar functionality or overlap in purpose, ` +
-                  `describe the redundancy. For example, if this is a switch widget that filters results by ` +
-                  `some kind of status, and there is already an explicit additional instruction that specifies that ` +
-                  `same status, then this widget would be redundant.`,
-              },
               is_widget_redundant: {
                 type: "boolean",
                 description:
                   `Indicates whether this widget is redundant with other widgets in the current search context. ` +
-                  `Set this to true if the widget is redundant and unnecessary.`,
+                  `Set this to true if the widget is redundant.`,
               },
+              discuss_is_widget_already_selected: {
+                type: "string",
+                description:
+                  `Explain how this widget might already have a selected value in the current search context. ` +
+                  `It's very likely that the user's original query (or one of the additional instructions, if ` +
+                  `provided) already implies a specific value for this widget.`,
+              },
+              is_widget_already_selected: {
+                type: "boolean",
+                description:
+                  `Indicates whether this widget already has a selected value in the current search context. ` +
+                  `Set this to true if the widget already has a selected value that is implied by the user's ` +
+                  `original query or additional instructions.`,
             },
             required: [
               "effect_of_user_selecting_value_for_this_widget",
               "does_selecting_this_value_make_sense_for_this_search_query",
               "should_we_hide_this_widget_based_on_the_current_search_query",
               "discuss_how_widget_is_redundant_with_other_widgets",
-              "discuss_how_widget_is_redundant_with_existing_instructions",
               "is_widget_redundant",
+              "discuss_is_widget_already_selected",
+              "is_widget_already_selected",
             ],
             additionalProperties: false,
           },
@@ -304,7 +309,8 @@ export const normalizeWidgetObjectFromLLM = (
   const sanityCheckObj = llmWidgetObj?.sanity_check;
   if (
     sanityCheckObj?.should_we_hide_this_widget_based_on_the_current_search_query ||
-    sanityCheckObj?.is_widget_redundant
+    sanityCheckObj?.is_widget_redundant ||
+    sanityCheckObj?.is_widget_already_selected
   ) {
     return null;
   }
