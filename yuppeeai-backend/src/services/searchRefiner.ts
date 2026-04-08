@@ -368,11 +368,16 @@ export const normalizeWidgetObjectFromLLM = (
   };
 
   if (llmWidgetObj.widget_type === "switch") {
-    if (llmWidgetObj.widget_params.value_given_by_instructions !== "none") {
+    if (
+      llmWidgetObj.widget_params &&
+      llmWidgetObj.widget_params.value_given_by_instructions &&
+      llmWidgetObj.widget_params.value_given_by_instructions !== "none"
+    ) {
+      // If there's a value at all, then it HAS TO be "none".
       return null;
     }
     widget.label =
-      llmWidgetObj.widget_params.label_for_switch_on || widget.label;
+      llmWidgetObj.widget_params?.label_for_switch_on || widget.label;
     widget.value = false;
   } else if (llmWidgetObj.widget_type === "checkboxes") {
     widget.type = "chipgroup";
