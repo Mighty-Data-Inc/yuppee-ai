@@ -15,7 +15,7 @@ interface SearchRefinerConfig {
 const GPT_MODEL_FAST = "gpt-4.1-nano";
 
 const WIDGET_JSON_SCHEMA = {
-  required: ["disambiguation", "widgets"],
+  required: ["disambiguation", "explain_query_and_instructions", "widgets"],
   additionalProperties: false,
   type: "object",
   properties: {
@@ -85,6 +85,12 @@ const WIDGET_JSON_SCHEMA = {
         "other_alternative_potential_meanings",
       ],
       additionalProperties: false,
+    },
+    explain_query_and_instructions: {
+      type: "string",
+      description:
+        "A detailed explanation of the search query and any additional instructions, " +
+        "to demonstrate that you understand what's being requested.",
     },
     widgets: {
       type: "array",
@@ -159,7 +165,13 @@ const WIDGET_JSON_SCHEMA = {
                     items: {
                       type: "object",
                       additionalProperties: false,
-                      required: ["choice_variable_value", "choice_ui_label"],
+                      required: [
+                        "choice_variable_value",
+                        "choice_ui_label",
+                        "what_it_means_if_this_choice_is_selected",
+                        "discuss_if_instructions_describe_this_choice",
+                        "do_instructions_describe_this_choice",
+                      ],
                       properties: {
                         choice_variable_value: {
                           type: "string",
@@ -170,6 +182,24 @@ const WIDGET_JSON_SCHEMA = {
                           type: "string",
                           description:
                             "The label that will be displayed to the user for this choice.",
+                        },
+                        what_it_means_if_this_choice_is_selected: {
+                          type: "string",
+                          description:
+                            "A detailed explanation, in plain English, of what it means if this widget's value is set to this choice. " +
+                            "Explicitly state the widget label and the choice label in your explanation.",
+                        },
+                        discuss_if_instructions_describe_this_choice: {
+                          type: "string",
+                          description:
+                            `Discuss whether the search query and/or additional instructions already describe this specific choice. ` +
+                            `Look at what it means if this choice is selected, and then see if the search query or instructions ` +
+                            `already contain that meaning.`,
+                        },
+                        do_instructions_describe_this_choice: {
+                          type: "boolean",
+                          description:
+                            "Indicates whether this choice is described by the search query or additional instructions.",
                         },
                       },
                     },
@@ -243,19 +273,20 @@ const WIDGET_JSON_SCHEMA = {
                   `Indicates whether this widget is redundant with other widgets in the current search context. ` +
                   `Set this to true if the widget is redundant.`,
               },
-              discuss_if_instructions_imply_value_for_this_widget: {
-                type: "string",
-                description:
-                  `Explain how the search query and/or additional instructions might already imply a ` +
-                  `specific value for this widget. For example, if the widget is "CEOs and Founders", ` +
-                  `and the query or instructions specify "Steve Jobs", then it's implied that this widget ` +
-                  `would implicitly have its value set to "Steve Jobs".`,
-              },
-              do_instructions_imply_value_for_this_widget: {
+              discuss_if_instructions_describe_a_specific_value_for_this_widget:
+                {
+                  type: "string",
+                  description:
+                    `Explain how the search query and/or additional instructions might already imply a ` +
+                    `specific value for this widget. For example, if the widget is "CEOs and Founders", ` +
+                    `and the query or instructions specify "Steve Jobs", then it's implied that this widget ` +
+                    `would implicitly have its value set to "Steve Jobs".`,
+                },
+              do_instructions_describe_a_specific_value_for_this_widget: {
                 type: "boolean",
                 description:
-                  `Indicates whether the search query and/or additional instructions already imply a specific value for this widget. ` +
-                  `Set this to true if the query or instructions imply a specific value for this widget.`,
+                  `Indicates whether the search query and/or additional instructions already describe a specific value for this widget. ` +
+                  `Set this to true if the query or instructions describe a specific value for this widget.`,
               },
             },
             required: [
@@ -264,8 +295,8 @@ const WIDGET_JSON_SCHEMA = {
               "should_we_hide_this_widget_based_on_the_current_search_query",
               "discuss_how_widget_is_redundant_with_other_widgets",
               "is_widget_redundant",
-              "discuss_if_instructions_imply_value_for_this_widget",
-              "do_instructions_imply_value_for_this_widget",
+              "discuss_if_instructions_describe_a_specific_value_for_this_widget",
+              "do_instructions_describe_a_specific_value_for_this_widget",
             ],
             additionalProperties: false,
           },
@@ -311,9 +342,19 @@ export const normalizeWidgetObjectFromLLM = (
   if (
     sanityCheckObj?.should_we_hide_this_widget_based_on_the_current_search_query ||
     sanityCheckObj?.is_widget_redundant ||
-    sanityCheckObj?.do_instructions_imply_value_for_this_widget
+    sanityCheckObj?.do_instructions_describe_a_specific_value_for_this_widget
   ) {
     return null;
+  }
+
+  // Look at widget_params. If it has choices, and if any of those choices
+  // are implicitly selected by the instructions, then we should return null.
+  if (llmWidgetObj.widget_params?.choices) {
+    for (const choice of llmWidgetObj.widget_params.choices) {
+      if (choice.do_instructions_describe_this_choice) {
+        return null;
+      }
+    }
   }
 
   const widget: RefinementWidget = {
