@@ -20,6 +20,8 @@ const CORS_HEADERS = {
 // slow or empty responses from the LLM.
 const REFINEMENT_SHOTGUN = 5;
 
+const EMPTY_WIDGETS_ERROR = "Empty widgets result";
+
 // Wraps inferSearchRefinements with two behaviours on top:
 //   1. Throws if the response has no widgets, so Promise.any treats it as a
 //      failed attempt rather than a successful-but-useless result.
@@ -31,11 +33,15 @@ async function inferSearchRefinementsWithLogging(
   try {
     const response = await searchRefiner.inferSearchRefinements(request);
     if (!Array.isArray(response.widgets) || response.widgets.length === 0) {
-      throw new Error("Empty widgets result");
+      throw new Error(EMPTY_WIDGETS_ERROR);
     }
     return response;
   } catch (error) {
-    console.error("inferSearchRefinements failed", error);
+    const isExpectedEmptyWidgetsError =
+      error instanceof Error && error.message === EMPTY_WIDGETS_ERROR;
+    if (!isExpectedEmptyWidgetsError) {
+      console.error("inferSearchRefinements failed", error);
+    }
     throw error;
   }
 }
