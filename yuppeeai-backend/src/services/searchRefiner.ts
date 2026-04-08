@@ -331,7 +331,10 @@ export const normalizeWidgetObjectFromLLM = (
 
   // Look at widget_params. If it has choices, and if *exactly one* of those choices
   // are implicitly selected by the instructions, then we should return null.
-  if (llmWidgetObj.widget_params?.choices) {
+  if (
+    llmWidgetObj.widget_params?.choices &&
+    Array.isArray(llmWidgetObj.widget_params.choices)
+  ) {
     let implicitChoiceCount = 0;
     for (const choice of llmWidgetObj.widget_params.choices) {
       if (choice.do_instructions_describe_this_choice) {
