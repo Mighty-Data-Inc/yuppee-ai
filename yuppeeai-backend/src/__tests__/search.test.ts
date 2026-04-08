@@ -6,8 +6,24 @@ vi.mock("../middleware/authMiddleware", () => ({
   requireAuth: vi.fn().mockResolvedValue({ uid: "test-user" }),
 }));
 
+vi.mock("../services/searchUsageService", () => ({
+  consumeSearchQuota: vi.fn().mockResolvedValue({
+    allowed: true,
+    usage: {
+      tier: "internal_test",
+      monthlyQuota: 1000000,
+      periodKey: "2026-04",
+      periodSearchesUsed: 1,
+      lifetimeSearchesUsed: 1,
+      accessExpiresAtPeriod: "2080-01",
+      remainingSearchesThisPeriod: 999999,
+    },
+  }),
+}));
+
 import { handler } from "../handlers/search";
 import { SearchProvider } from "../services/searchProvider";
+import { consumeSearchQuota } from "../services/searchUsageService";
 
 function makeEvent(body?: object | null): Partial<HttpRequest> {
   return {
@@ -19,7 +35,7 @@ function makeEvent(body?: object | null): Partial<HttpRequest> {
 
 describe("search handler", () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   it("returns 400 when query is missing", async () => {
@@ -57,6 +73,7 @@ describe("search handler", () => {
     expect(body.results).toBeDefined();
     expect(Array.isArray(body.results)).toBe(true);
     expect(body.results.length).toBeGreaterThan(0);
+    expect(consumeSearchQuota).toHaveBeenCalledWith("test-user");
   });
 
   it("results contain expected fields", async () => {
@@ -124,5 +141,79 @@ describe("search handler", () => {
     expect(result.statusCode).toBe(500);
     const body = JSON.parse(result.body);
     expect(body.error).toMatch(/search backend unavailable/i);
+    expect(consumeSearchQuota).not.toHaveBeenCalled();
+  });
+
+  it("still returns 200 when usage tracking fails", async () => {
+    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
+      results: [],
+      query: "interesting topics",
+    });
+
+    vi.mocked(consumeSearchQuota).mockRejectedValueOnce(
+      new Error("firestore unavailable"),
+    );
+
+    const event = makeEvent({ query: "interesting topics" });
+    const result = await handler(event as HttpRequest);
+    expect(result.statusCode).toBe(200);
+  });
+
+  it("returns 429 when monthly quota is exceeded", async () => {
+    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
+      results: [],
+      query: "interesting topics",
+    });
+
+    vi.mocked(consumeSearchQuota).mockResolvedValueOnce({
+      allowed: false,
+      statusCode: 429,
+      error: "Monthly search quota exceeded",
+      usage: {
+        tier: "internal_test",
+        monthlyQuota: 1,
+        periodKey: "2026-04",
+        periodSearchesUsed: 1,
+        lifetimeSearchesUsed: 100,
+        accessExpiresAtPeriod: "2080-01",
+        remainingSearchesThisPeriod: 0,
+      },
+    });
+
+    const event = makeEvent({ query: "interesting topics" });
+    const result = await handler(event as HttpRequest);
+    const body = JSON.parse(result.body);
+    expect(result.statusCode).toBe(429);
+    expect(body.error).toMatch(/quota exceeded/i);
+    expect(body.usage.accessExpiresAtPeriod).toBe("2080-01");
+  });
+
+  it("returns 403 when subscription is expired", async () => {
+    vi.spyOn(SearchProvider.prototype, "getSearchResults").mockResolvedValue({
+      results: [],
+      query: "interesting topics",
+    });
+
+    vi.mocked(consumeSearchQuota).mockResolvedValueOnce({
+      allowed: false,
+      statusCode: 403,
+      error: "Subscription has expired",
+      usage: {
+        tier: "internal_test",
+        monthlyQuota: 1000000,
+        periodKey: "2080-02",
+        periodSearchesUsed: 200,
+        lifetimeSearchesUsed: 5000,
+        accessExpiresAtPeriod: "2080-01",
+        remainingSearchesThisPeriod: 999800,
+      },
+    });
+
+    const event = makeEvent({ query: "interesting topics" });
+    const result = await handler(event as HttpRequest);
+    const body = JSON.parse(result.body);
+    expect(result.statusCode).toBe(403);
+    expect(body.error).toMatch(/expired/i);
+    expect(body.usage.accessExpiresAtPeriod).toBe("2080-01");
   });
 });

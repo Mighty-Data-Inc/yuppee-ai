@@ -1,5 +1,6 @@
 import type { HttpHandler, HttpResponse, SERPRequest } from "../types";
 import { SearchProvider } from "../services/searchProvider";
+import { consumeSearchQuota } from "../services/searchUsageService";
 import {
   requireAuth,
   initializeFirebaseAdmin,
@@ -47,6 +48,18 @@ export const handler: HttpHandler = async (event) => {
       instructions: request.instructions,
     });
 
+    try {
+      const quotaResult = await consumeSearchQuota(decodedToken.uid);
+      if (!quotaResult.allowed) {
+        return errorResponse(quotaResult.statusCode, quotaResult.error, {
+          usage: quotaResult.usage,
+        });
+      }
+    } catch (usageErr) {
+      // Search results should still be returned if quota tracking has a transient failure.
+      console.error("Failed to update search usage:", usageErr);
+    }
+
     return {
       statusCode: 200,
       headers: CORS_HEADERS,
@@ -60,10 +73,14 @@ export const handler: HttpHandler = async (event) => {
   }
 };
 
-function errorResponse(statusCode: number, message: string): HttpResponse {
+function errorResponse(
+  statusCode: number,
+  message: string,
+  extra: Record<string, unknown> = {},
+): HttpResponse {
   return {
     statusCode,
     headers: CORS_HEADERS,
-    body: JSON.stringify({ error: message }),
+    body: JSON.stringify({ error: message, ...extra }),
   };
 }
