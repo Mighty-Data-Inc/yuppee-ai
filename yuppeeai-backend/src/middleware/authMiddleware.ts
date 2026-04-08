@@ -4,10 +4,19 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { config as dotenvConfig } from "dotenv";
 
+let envLoaded = false;
+
 function loadBackendEnv(): void {
-  // Load .env regardless of the process cwd (src/* and dist/* supported).
+  if (envLoaded) {
+    return;
+  }
+
+  // Load local env files regardless of process cwd (src/* and dist/* supported).
+  // Prefer .env.local for local development overrides.
   const envCandidates = [
+    resolve(process.cwd(), ".env.local"),
     resolve(process.cwd(), ".env"),
+    resolve(__dirname, "../../.env.local"),
     resolve(__dirname, "../../.env"),
   ];
 
@@ -22,9 +31,9 @@ function loadBackendEnv(): void {
   if (!process.env.GOOGLE_CLOUD_PROJECT && process.env.FIREBASE_PROJECT_ID) {
     process.env.GOOGLE_CLOUD_PROJECT = process.env.FIREBASE_PROJECT_ID;
   }
-}
 
-loadBackendEnv();
+  envLoaded = true;
+}
 
 // Will be initialized via initializeFirebaseAdmin
 let firebaseApp: admin.app.App | null = null;
@@ -36,6 +45,8 @@ let firebaseApp: admin.app.App | null = null;
 export function initializeFirebaseAdmin(
   serviceAccountKeyPath?: string,
 ): admin.app.App {
+  loadBackendEnv();
+
   if (firebaseApp) return firebaseApp;
 
   const projectId =
@@ -82,6 +93,8 @@ export function initializeFirebaseAdmin(
 export async function verifyAuthToken(
   event: HttpRequest,
 ): Promise<admin.auth.DecodedIdToken> {
+  loadBackendEnv();
+
   const authHeader =
     event.headers?.Authorization || event.headers?.authorization;
 
