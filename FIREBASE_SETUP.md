@@ -1,216 +1,125 @@
 # Firebase Authentication Setup Guide
 
-This guide walks you through setting up Google and Facebook authentication for Yuppee.AI.
+This guide covers Firebase setup for local development and deployment of Yuppee.AI.
 
 ## Overview
 
-Yuppee.AI now requires users to authenticate via Google or Facebook before they can submit searches. The authentication system uses Firebase for both the frontend and backend.
+Yuppee.AI requires users to authenticate before using search APIs. The frontend signs users in with Firebase Auth, then sends Firebase ID tokens to the backend.
 
-### What Changed
+Current protected endpoints:
 
-- **Frontend**: Login modal appears when user clicks "Search" without being authenticated
-- **Backend**: All `/search` and `/refine` endpoints now require an `Authorization: Bearer <token>` header with a valid Firebase ID token
-- Users can sign up for free with one click using their existing Google or Facebook account
+- `POST /search`
+- `POST /refine`
+- `POST /inflightmsg`
+- `GET /usage`
 
----
+## Step 1: Create A Firebase Project
 
-## Step 1: Create a Firebase Project
+1. Open Firebase Console: <https://console.firebase.google.com>
+2. Create a new project
+3. Keep your project ID handy (used by frontend and backend)
 
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Click **"Create a project"**
-3. Enter project name: **Yuppee AI** (or your preferred name)
-4. Click through the setup (you can disable Google Analytics for now)
-5. Wait for the project to be created
+## Step 2: Enable Sign-In Providers
 
----
+1. Go to Authentication -> Sign-in method
+2. Enable Google
+3. Optionally enable Facebook and complete its OAuth setup in Meta Developer Console
 
-## Step 2: Enable Google Authentication
+## Step 3: Create/Find Web App Config
 
-1. In Firebase Console, go to **Authentication** → **Sign-in method**
-2. Click **Google**
-3. Enable it and provide:
-   - **Project name**: (autofilled)
-   - **Project support email**: (select your email)
-4. Click **Save**
+1. In Project Settings, open Your Apps
+2. Register a web app if needed
+3. Copy config values:
+   - `apiKey`
+   - `authDomain`
+   - `projectId`
+   - `messagingSenderId`
+   - `appId`
 
----
+## Step 4: Configure Frontend Environment
 
-## Step 3: Enable Facebook Authentication (Optional but Recommended)
+Create `yuppeeai-frontend/.env.local` (from `.env.example`) and set:
 
-1. In Firebase Console, go to **Authentication** → **Sign-in method**
-2. Click **Facebook**
-3. You need a **Facebook App ID**:
-   - Go to [Facebook Developers](https://developers.facebook.com/apps)
-   - Create a new app (if you don't have one)
-   - Get your **App ID** and **App Secret**
-4. In Firebase, paste your **App ID** and **App Secret**
-5. Copy the **OAuth Redirect URI** from Firebase
-6. Go back to Facebook App → Settings → Basic → Add platforms → Web
-7. Set **App Domains** to your domain (e.g., `localhost:5173` for local)
-8. Set **Valid OAuth Redirect URIs** to the value from Firebase
-9. Click **Save** in Firebase
+```env
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_API_BASE_URL=http://localhost:3000
+```
 
----
+Notes:
 
-## Step 4: Get Your Firebase Config
+- For production with Firebase Hosting rewrites, `VITE_API_BASE_URL` can be left blank.
+- Local development typically points to `http://localhost:3000` (backend local adapter).
 
-1. In Firebase Console, go to **Project Settings** (gear icon)
-2. Under **Your apps**, you should see a web app. If not:
-   - Click **Create app** → Select **Web** → Register
-3. Copy your Firebase config:
-   ```javascript
-   {
-     "apiKey": "...",
-     "authDomain": "...",
-     "projectId": "...",
-     "messagingSenderId": "...",
-     "appId": "..."
-   }
-   ```
+## Step 5: Configure Backend Environment
 
----
+Create `yuppeeai-backend/.env` (from `.env.example`) and set:
 
-## Step 5: Configure Frontend Environment
+```env
+OPENAI_API_KEY=...
+FIREBASE_PROJECT_ID=...
+FIREBASE_SERVICE_ACCOUNT_KEY_PATH=./firebase-key.json
+```
 
-1. In `yuppeeai-frontend/` directory, copy `.env.example` to `.env.local`:
-   ```bash
-   cp .env.example .env.local
-   ```
+Local development:
 
-2. Fill in your Firebase config in `.env.local`:
-   ```env
-   VITE_FIREBASE_API_KEY=your_api_key_here
-   VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=your_project_id
-   VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-   VITE_FIREBASE_APP_ID=your_app_id
+1. In Firebase Console -> Project Settings -> Service Accounts
+2. Generate a new private key (JSON)
+3. Save it as `yuppeeai-backend/firebase-key.json` (or update the env var to match your path)
 
-   VITE_API_BASE_URL=http://localhost:3000
-   ```
+Deployment to Firebase Functions:
 
----
+- Service account key file is not required in runtime.
+- Firebase Admin uses Application Default Credentials in Cloud Functions.
 
-## Step 6: Configure Backend Environment
+## Step 6: Install And Run Locally
 
-### For Local Development
-
-1. In Firebase Console, go to **Project Settings** → **Service Accounts**
-2. Click **Generate new private key** (Node.js)
-3. A JSON file will download - save it securely (e.g., `firebase-key.json`)
-4. In `yuppeeai-backend/` directory, copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-5. Update `.env` with:
-   ```env
-   FIREBASE_PROJECT_ID=your_firebase_project_id_here
-   FIREBASE_SERVICE_ACCOUNT_KEY_PATH=./firebase-key.json
-   OPENAI_API_KEY=your_openai_api_key_here
-   ```
-
-6. Save the downloaded JSON file as `firebase-key.json` in the `yuppeeai-backend/` directory
-
-### For AWS Lambda Deployment
-
-For production Lambda deployment, you don't need the service account file. Instead:
-
-1. Configure your Lambda execution role to have Firebase permissions
-2. Firebase Admin SDK will automatically use Application Default Credentials (ADC)
-3. In your `.env` (or Lambda environment variables):
-   ```env
-   FIREBASE_PROJECT_ID=your_firebase_project_id_here
-   OPENAI_API_KEY=your_openai_api_key_here
-   ```
-
----
-
-## Step 7: Install Dependencies
-
-In both directories, install the new dependencies:
+At repository root:
 
 ```bash
-# Frontend
-cd yuppeeai-frontend
-npm install
-
-# Backend
-cd yuppeeai-backend
 npm install
 ```
 
----
+In separate terminals:
 
-## Step 8: Test Locally
-
-### Start the backend:
 ```bash
-cd yuppeeai-backend
-npm run api:local
+npm run dev:backend
+npm run dev:frontend
 ```
 
-### In another terminal, start the frontend:
-```bash
-cd yuppeeai-frontend
-npm run dev
-```
+Open <http://localhost:5173> and test:
 
-### Visit `http://localhost:5173` and:
-1. Type a search query
-2. Click "Search"
-3. The login modal should appear
-4. Click "Sign in with Google" or "Sign in with Facebook"
-5. Complete the authentication flow
-6. You should be redirected back and the search should execute
-
----
+1. Submit a query
+2. Authenticate if prompted
+3. Verify results, refinement widgets, and usage behavior
 
 ## Troubleshooting
 
-### "Firebase not initialized" error
-- Make sure your `.env.local` file in the frontend has all required Firebase variables
-- Check that the variables don't have quotes around the values
+Frontend cannot initialize Firebase:
 
-### "Invalid authorization token" on backend
-- Ensure the frontend is sending the auth token: check browser Network tab
-- Verify your Firebase Service Account JSON has access to the project
-- Check that the backend `FIREBASE_PROJECT_ID` matches your Firebase project
+- Verify all `VITE_FIREBASE_*` variables are present
+- Restart Vite after updating `.env.local`
 
-### Facebook login not working
-- Verify your OAuth Redirect URIs are correctly set in Facebook App Settings
-- Check that your domain in Firebase is allowed (Settings → Authorized domains)
-- Make sure your app is in development mode (Facebook Dashboard)
+Backend returns 401 Unauthorized:
 
-### CORS errors
-- The backend CORS headers allow all origins by default (`Access-Control-Allow-Origin: *`)
-- If this is too permissive, update `CORS_HEADERS` in `src/handlers/search.ts` and `src/handlers/refine.ts`
+- Confirm frontend includes `Authorization: Bearer <token>`
+- Confirm `FIREBASE_PROJECT_ID` matches the auth project
+- Confirm local service account key path is valid (if using local key file)
 
----
+Backend returns quota errors (429):
+
+- This is expected when monthly quota is exhausted
+- Use `GET /usage` to inspect tier and period usage data
+
+Facebook sign-in issues:
+
+- Verify redirect URIs and authorized domains in both Firebase and Meta app config
 
 ## Security Notes
 
-⚠️ **Important for Production:**
-
-1. **Never commit Firebase credentials** to version control:
-   - Add `.env.local`, `.env`, and `firebase-key.json` to `.gitignore`
-   - Use environment variables in CI/CD and Lambda
-
-2. **Firebase Rules**: By default, Firebase Authentication is enabled for any app with valid credentials. Consider:
-   - Setting up Firestore/Realtime Database security rules if you store user data
-   - Using Firebase Security Rules to restrict API access
-
-3. **Rate Limiting**: Consider adding rate limiting to your backend to prevent abuse
-
-4. **Token Expiration**: Firebase ID tokens expire after 1 hour. The frontend automatically refreshes them
-
----
-
-## Next Steps
-
-After setting up authentication, you may want to:
-
-- Add user profile pages
-- Store user search history in Firestore
-- Implement usage quotas per user
-- Add email verification
-- Implement password reset for email/password auth
+- Never commit `.env`, `.env.local`, or service account key JSON files
+- Prefer runtime environment variables/secrets in CI/CD and production
+- Restrict CORS and apply rate limits as needed for your deployment posture

@@ -1,174 +1,75 @@
 # Yuppee.AI
 
-An AI-powered search engine that fills a niche between freeform text and traditional parameter-driven pattern-matching. Users can type natural language queries (like ChatGPT) and then drill down with dynamically generated filter widgets (like a domain-specific search system).
+Yuppee.AI is an AI-assisted search experience that combines natural-language search with dynamic refinement controls.
+
+Users start with a plain-language query, then iteratively tighten scope using generated widgets and additional instructions.
 
 ## Architecture
 
-```
-yuppee-ai/
-├── yuppeeai-frontend/    # Vue 3 + Vite + TypeScript SPA
-└── yuppeeai-backend/     # AWS Lambda handlers (Node.js + TypeScript)
-```
+This repository is a monorepo with three main workspaces:
 
-## Features
+- `yuppeeai-frontend`: Vue 3 + Vite SPA
+- `yuppeeai-backend`: TypeScript Firebase Functions backend (plus local HTTP adapter for development)
+- `packages/yuppeeai-contracts`: Shared request/response and UI contract types
 
-- **Smart search bar** — Google-style search on the home screen, compact on results
-- **SERP results** — Clean result cards with title, URL, and snippet; shimmer loading skeletons
-- **Dynamic widget panel** — AI-generated filter widgets appear on the right (desktop) or bottom (mobile) based on the query:
-  - Radio buttons (e.g. Fiction / Nonfiction)
-  - Range sliders (e.g. publication year, book length)
-  - Checkboxes (e.g. genre selection)
-  - Dropdown menus (e.g. reading/scholarly level, content rating)
-  - Freeform text refinement box
-- **Adaptive widgets** — Widgets change based on what the user selects (e.g. choosing "Fiction" reveals a fiction-genre checkbox)
+## Product Surface
 
-- **Fully responsive** — Sidebar layout on desktop (≥768 px); stacked layout on mobile
+Current user-facing flow:
 
-## Frontend
+- Authentication via Firebase (Google/Facebook)
+- Query submission from the home/search views
+- AI-generated SERP with concise top summary and ranked results
+- AI-generated refinement widgets and optional disambiguation suggestions
+- Inflight status message while results are loading
+- Usage-aware experience with monthly quota enforcement
 
-### Setup
+## API Surface
+
+When running locally via the backend adapter (default `http://localhost:3000`) or through Firebase Hosting rewrites, the app uses:
+
+- `POST /search`: Returns SERP summary + results and consumes one search from the current monthly quota
+- `POST /refine`: Returns refinement widgets and optional disambiguation alternatives
+- `POST /inflightmsg`: Returns a short in-progress message for the current query
+- `GET /usage`: Returns tier and quota usage information for the authenticated user
+
+All routes require a valid Firebase ID token (`Authorization: Bearer <token>`).
+
+## Local Development
+
+Install dependencies once at repository root:
 
 ```bash
-cd yuppeeai-frontend
 npm install
 ```
 
-### Development
+Run frontend and backend in separate terminals:
 
 ```bash
-npm run dev       # Vite dev server at http://localhost:5173
+npm run dev:backend
+npm run dev:frontend
 ```
 
-### Build
+Frontend runs at `http://localhost:5173`.
 
-```bash
-npm run build     # Type-checks and builds to yuppeeai-frontend/dist/
-npm run preview   # Locally preview the production build
-```
+## Workspace Scripts
 
-### Tests (Vitest)
+Common root-level scripts:
 
-```bash
-npm test          # Run all 22 unit tests
-npm run test:watch
-```
+- `npm run build`: Build all workspaces
+- `npm run test`: Run tests across workspaces
+- `npm run typecheck`: Build shared contracts, then typecheck backend and frontend
 
-## Backend (AWS Lambda)
+## Deployment
 
-Three Lambda handlers:
+Deployment is configured through Firebase:
 
-| Handler | Path | Description |
-|---------|------|-------------|
-| `search` | `src/handlers/search.ts` | Accepts `{ query, filters }`, returns SERP results |
-| `widgets` | `src/handlers/widgets.ts` | Accepts `{ query, currentFilters }`, returns AI-generated widgets |
+- Frontend hosting target: `yuppee-ai-frontend`
+- Backend codebase: `yuppeeai-backend`
+- Hosting rewrites route `/search`, `/refine`, `/inflightmsg`, and `/usage` to Cloud Functions
 
-### Setup
+See `firebase.json` for the authoritative deployment mapping.
 
-```bash
-cd yuppeeai-backend
-npm install
-cp .env.example .env   # fill in your API keys
-```
+## Notes
 
-### Build
-
-```bash
-npm run build     # Compiles TypeScript to yuppeeai-backend/dist/
-```
-
-### Local Backend Development
-
-Run the backend locally with a lightweight HTTP adapter that invokes the Lambda handlers directly.
-
-```bash
-cd yuppeeai-backend
-npm run api:local
-```
-
-Local API base URL:
-
-```text
-http://localhost:3000
-```
-
-Current local route:
-
-```text
-POST /search
-```
-
-Notes:
-
-- `USE_MOCK` defaults to `true` in local mode unless explicitly set to `false`.
-- Use `npm run api:local:start` if you already built and only want to start the local API.
-
-### Run Frontend Against Local Backend
-
-Use two terminals.
-
-Terminal 1 (backend):
-
-```bash
-cd yuppeeai-backend
-npm run api:local
-```
-
-Terminal 2 (frontend):
-
-```bash
-cd yuppeeai-frontend
-npm run dev
-```
-
-Then open:
-
-```text
-http://localhost:5173
-```
-
-The frontend reads `VITE_API_BASE_URL` from `yuppeeai-frontend/.env.local`, which is set to `http://localhost:3000` for local backend development.
-
-### Tests (Jest)
-
-```bash
-npm test          # Run all 19 unit tests
-```
-
-### Configuration (`.env`)
-
-| Variable | Purpose |
-|----------|---------|
-| `AWS_REGION` | AWS region for DynamoDB |
-| `SEARCH_PROVIDER_API_KEY` | Google Custom Search / SerpAPI key |
-| `SEARCH_PROVIDER_ENGINE_ID` | Custom search engine ID |
-| `OPENAI_API_KEY` | OpenAI key for widget generation |
-| `OPENAI_MODEL` | Model name (default: `gpt-4o-mini`) |
-| `USE_MOCK` | Set to `false` to use real APIs (default: `true`) |
-
-### Deploying to AWS
-
-The Lambda handlers in `yuppeeai-backend/dist/handlers/` can be deployed to AWS Lambda via the console, AWS CLI, or a framework such as the [Serverless Framework](https://www.serverless.com/) or [AWS SAM](https://aws.amazon.com/serverless/sam/).
-
-Suggested API Gateway routes:
-
-```
-POST /search          → search handler
-POST /widgets         → widgets handler
-```
-
-## Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend framework | Vue 3 (`<script setup>` + Composition API) |
-| Build tool | Vite 5 |
-| Language | TypeScript 5 |
-| State management | Pinia |
-| Routing | Vue Router 4 |
-| Frontend tests | Vitest + @vue/test-utils |
-| Backend runtime | Node.js 20 |
-| Backend tests | Jest + ts-jest |
-| Search provider | Google Custom Search API (mock in dev) |
-| RefinementWidget AI | OpenAI API (mock in dev) |
-| Hosting target | AWS Lambda + API Gateway |
-
+- The backend local adapter in `yuppeeai-backend/src/localApi.ts` mirrors the same route contract used by Firebase Hosting rewrites.
+- Shared types in `@yuppee-ai/contracts` are the source of truth for request/response shapes used by both frontend and backend.
