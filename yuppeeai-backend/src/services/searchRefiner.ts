@@ -230,8 +230,21 @@ const WIDGET_JSON_SCHEMA = {
                     type: "string",
                     description: `The prompt to show users to explain what happens when the switch is turned off, e.g. "Show all items regardless of in-stock status" or "Show all shops regardless of distance from you"`,
                   },
+                  discuss_value_given_by_instructions: {
+                    type: "string",
+                    description: `State which value for this switch widget (on or off) is described by the search query and/or additional instructions. For example, if the query is for Apple Computers, and this switch widget is "Show results about Apple Computers", then we would say that the value of this widget that is given by the instructions would be "on".`,
+                  },
+                  value_given_by_instructions: {
+                    type: "string",
+                    enum: ["on", "off", "none"],
+                  },
                 },
-                required: ["label_for_switch_on", "label_for_switch_off"],
+                required: [
+                  "label_for_switch_on",
+                  "label_for_switch_off",
+                  "discuss_value_given_by_instructions",
+                  "value_given_by_instructions",
+                ],
                 additionalProperties: false,
               },
             ],
@@ -355,6 +368,9 @@ export const normalizeWidgetObjectFromLLM = (
   };
 
   if (llmWidgetObj.widget_type === "switch") {
+    if (llmWidgetObj.widget_params.value_given_by_instructions !== "none") {
+      return null;
+    }
     widget.label =
       llmWidgetObj.widget_params.label_for_switch_on || widget.label;
     widget.value = false;
