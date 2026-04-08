@@ -4,12 +4,22 @@ const {
   searchRefinementsHandler,
   inflightMessageHandler,
   usageHandler,
+  checkoutHandler,
+  webhookHandler,
 } = require("./dist/handlers");
 
 const PUBLIC_INVOKER = { invoker: "public" };
 const PUBLIC_INVOKER_WITH_OPENAI_SECRET = {
   invoker: "public",
   secrets: ["OPENAI_API_KEY"],
+};
+const PUBLIC_INVOKER_WITH_STRIPE_SECRET = {
+  invoker: "public",
+  secrets: ["STRIPE_SECRET_KEY"],
+};
+const PUBLIC_INVOKER_WITH_WEBHOOK_SECRET = {
+  invoker: "public",
+  secrets: ["STRIPE_WEBHOOK_SECRET"],
 };
 
 const CORS_HEADERS = {
@@ -28,9 +38,15 @@ function normalizeHeaders(headers) {
   return normalized;
 }
 
-function bodyFromRequest(req) {
+function bodyFromRequest(req, options = {}) {
+  const { preferRawBody = false } = options;
+
   if (req.method !== "POST") {
     return "";
+  }
+
+  if (preferRawBody && req.rawBody) {
+    return req.rawBody.toString("utf8");
   }
 
   if (typeof req.body === "string") {
@@ -48,7 +64,7 @@ function bodyFromRequest(req) {
   return "";
 }
 
-async function runHandler(req, res, handler) {
+async function runHandler(req, res, handler, options = {}) {
   if (req.method === "OPTIONS") {
     res.status(204).set(CORS_HEADERS).send();
     return;
@@ -57,7 +73,7 @@ async function runHandler(req, res, handler) {
   const response = await handler({
     httpMethod: req.method,
     headers: normalizeHeaders(req.headers),
-    body: bodyFromRequest(req),
+    body: bodyFromRequest(req, options),
   });
 
   res.status(response.statusCode).set({
@@ -78,4 +94,10 @@ exports.inflightmsg = onRequest(PUBLIC_INVOKER_WITH_OPENAI_SECRET, (req, res) =>
 );
 exports.usage = onRequest(PUBLIC_INVOKER, (req, res) =>
   runHandler(req, res, usageHandler),
+);
+exports.checkout = onRequest(PUBLIC_INVOKER_WITH_STRIPE_SECRET, (req, res) =>
+  runHandler(req, res, checkoutHandler),
+);
+exports.webhook = onRequest(PUBLIC_INVOKER_WITH_WEBHOOK_SECRET, (req, res) =>
+  runHandler(req, res, webhookHandler, { preferRawBody: true }),
 );
