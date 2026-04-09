@@ -6,6 +6,7 @@ const {
   usageHandler,
   checkoutHandler,
   webhookHandler,
+  refreshTierHandler,
 } = require("./dist/handlers");
 
 const PUBLIC_INVOKER = { invoker: "public" };
@@ -100,4 +101,7 @@ exports.checkout = onRequest(PUBLIC_INVOKER_WITH_STRIPE_SECRET, (req, res) =>
 );
 exports.webhook = onRequest(PUBLIC_INVOKER_WITH_WEBHOOK_SECRET, (req, res) =>
   runHandler(req, res, webhookHandler, { preferRawBody: true }),
+);
+exports.refreshTier = onRequest(PUBLIC_INVOKER_WITH_STRIPE_SECRET, (req, res) =>
+  runHandler(req, res, refreshTierHandler),
 );

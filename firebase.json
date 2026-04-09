@@ -59,6 +59,13 @@
           }
         },
         {
+          "source": "/api/refresh-tier",
+          "function": {
+            "functionId": "refreshTier",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "**",
           "destination": "/index.html"
         }

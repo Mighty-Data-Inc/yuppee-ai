@@ -4,3 +4,4 @@ export { handler as inflightMessageHandler } from "./inflightmsg";
 export { handler as usageHandler } from "./usage";
 export { handler as checkoutHandler } from "./checkout";
 export { handler as webhookHandler } from "./webhook";
+export { handler as refreshTierHandler } from "./refreshTier";

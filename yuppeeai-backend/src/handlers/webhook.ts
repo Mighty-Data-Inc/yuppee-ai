@@ -61,6 +61,13 @@ export const handler: HttpHandler = async (event) => {
         subscriptionUpdatedAt: new Date(),
       });
 
+      // Stamp tierId onto the subscription so refreshTier can look it up later
+      if (session.subscription) {
+        await stripe.subscriptions.update(session.subscription, {
+          metadata: { tierId },
+        });
+      }
+
       console.log(`User ${userId} upgraded to tier ${tierId}`);
     }
 

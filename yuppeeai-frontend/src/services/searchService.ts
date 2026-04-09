@@ -246,3 +246,16 @@ export async function initiateCheckout(
 
   return (await response.json()) as CheckoutResponse;
 }
+
+export async function refreshTier(): Promise<{ tier: string }> {
+  const response = await fetch(`${API_BASE_URL}/api/refresh-tier`, {
+    method: "POST",
+    headers: await getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Tier refresh failed: ${response.status}`);
+  }
+
+  return (await response.json()) as { tier: string };
+}
